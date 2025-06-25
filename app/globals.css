@@ -72,6 +72,91 @@
   }
 }
 
+/* 반응형 디자인 개선 */
+@layer components {
+  /* 모바일 최적화 */
+  @media (max-width: 640px) {
+    .mobile-optimized {
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    
+    .mobile-padding {
+      padding: 1rem;
+    }
+    
+    .mobile-margin {
+      margin: 0.5rem;
+    }
+  }
+  
+  /* 태블릿 최적화 */
+  @media (min-width: 641px) and (max-width: 1024px) {
+    .tablet-optimized {
+      font-size: 16px;
+      line-height: 1.5;
+    }
+  }
+  
+  /* 데스크톱 최적화 */
+  @media (min-width: 1025px) {
+    .desktop-optimized {
+      font-size: 16px;
+      line-height: 1.6;
+    }
+  }
+  
+  /* 터치 디바이스 최적화 */
+  @media (hover: none) and (pointer: coarse) {
+    .touch-optimized {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    .touch-button {
+      padding: 12px 16px;
+      font-size: 16px;
+    }
+  }
+  
+  /* 다이얼로그 반응형 개선 */
+  .responsive-dialog {
+    width: 95vw;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  /* 카드 반응형 개선 */
+  .responsive-card {
+    @apply p-4 sm:p-6;
+  }
+  
+  /* 그리드 반응형 개선 */
+  .responsive-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6;
+  }
+  
+  /* 텍스트 반응형 개선 */
+  .responsive-text {
+    @apply text-sm sm:text-base lg:text-lg;
+  }
+  
+  .responsive-heading {
+    @apply text-lg sm:text-xl lg:text-2xl xl:text-3xl;
+  }
+  
+  /* 버튼 반응형 개선 */
+  .responsive-button {
+    @apply px-3 py-2 sm:px-4 sm:py-2 lg:px-6 lg:py-3 text-sm sm:text-base;
+  }
+  
+  /* 입력 필드 반응형 개선 */
+  .responsive-input {
+    @apply px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base;
+  }
+}
+
 /* Leaflet 지도 스타일 커스터마이징 */
 .leaflet-container {
   font-family: inherit;
@@ -84,6 +169,18 @@
 .leaflet-popup-content {
   margin: 8px 12px;
   line-height: 1.4;
+}
+
+/* 모바일에서 지도 팝업 개선 */
+@media (max-width: 640px) {
+  .leaflet-popup-content {
+    margin: 6px 8px;
+    font-size: 14px;
+  }
+  
+  .leaflet-popup-content-wrapper {
+    border-radius: 6px;
+  }
 }
 
 /* 커스텀 애니메이션 */
@@ -109,12 +206,27 @@
   }
 }
 
+@keyframes slide-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .animate-soft-pulse {
   animation: soft-pulse 3s ease-in-out infinite;
 }
 
 .animate-fade-in {
   animation: fade-in 0.3s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out forwards;
 }
 
 /* 현재 위치 마커 pulse 애니메이션 */
@@ -129,4 +241,53 @@
 
 .current-location-marker div {
   animation: pulse 2s infinite;
+}
+
+/* 스크롤바 커스터마이징 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 모바일에서 스크롤바 숨기기 */
+@media (max-width: 640px) {
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+}
+
+/* 포커스 상태 개선 */
+.focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+/* 로딩 상태 */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* 터치 피드백 */
+.touch-feedback {
+  transition: transform 0.1s ease;
+}
+
+.touch-feedback:active {
+  transform: scale(0.95);
 }

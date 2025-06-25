@@ -1043,81 +1043,161 @@ export default function EnvironmentalMapPlatform() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [name, setName] = useState("")
+    const [activeTab, setActiveTab] = useState("login")
+    const [isLoading, setIsLoading] = useState(false)
+
+    const handleLogin = async () => {
+      if (!email || !password) {
+        toast({
+          title: "입력 오류",
+          description: "이메일과 비밀번호를 모두 입력해주세요.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setIsLoading(true);
+      try {
+        await onLogin(email, password);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    const handleSignup = async () => {
+      if (!email || !password || !name) {
+        toast({
+          title: "입력 오류",
+          description: "모든 필드를 입력해주세요.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setIsLoading(true);
+      try {
+        await onSignup(email, password, name);
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
     return (
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md w-[95vw] max-w-[400px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>로그인 / 회원가입</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-center">로그인 / 회원가입</DialogTitle>
         </DialogHeader>
-        <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">로그인</TabsTrigger>
-            <TabsTrigger value="signup">회원가입</TabsTrigger>
-          </TabsList>
-          <TabsContent value="login" className="space-y-4">
+        
+        {/* 탭 버튼 */}
+        <div className="flex space-x-1 p-1 bg-gray-100 rounded-lg mb-6">
+          <button
+            onClick={() => setActiveTab("login")}
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+              activeTab === "login"
+                ? "bg-white text-green-600 shadow-sm"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            로그인
+          </button>
+          <button
+            onClick={() => setActiveTab("signup")}
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+              activeTab === "signup"
+                ? "bg-white text-green-600 shadow-sm"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            회원가입
+          </button>
+        </div>
+
+        {/* 로그인 폼 */}
+        {activeTab === "login" && (
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="login-email">이메일</Label>
+              <Label htmlFor="login-email" className="text-sm font-medium">이메일</Label>
               <Input
                 id="login-email"
                 type="email"
                 placeholder="이메일을 입력하세요"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="login-password">비밀번호</Label>
+              <Label htmlFor="login-password" className="text-sm font-medium">비밀번호</Label>
               <Input
                 id="login-password"
                 type="password"
                 placeholder="비밀번호를 입력하세요"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                disabled={isLoading}
               />
             </div>
-            <Button className="w-full" onClick={() => onLogin(email, password)}>
-              로그인
+            <Button 
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 rounded-lg transition-colors" 
+              onClick={handleLogin}
+              disabled={isLoading}
+            >
+              {isLoading ? "로그인 중..." : "로그인"}
             </Button>
-            <div className="text-center text-sm text-gray-600">
+            <div className="text-center text-xs text-gray-600 bg-gray-50 p-3 rounded-lg">
               <p>관리자 계정으로 로그인하려면</p>
               <p>이메일에 "admin" 또는 "관리자"를 포함하세요</p>
             </div>
-          </TabsContent>
-          <TabsContent value="signup" className="space-y-4">
+          </div>
+        )}
+
+        {/* 회원가입 폼 */}
+        {activeTab === "signup" && (
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="signup-name">이름</Label>
+              <Label htmlFor="signup-name" className="text-sm font-medium">이름</Label>
               <Input
                 id="signup-name"
                 placeholder="이름을 입력하세요"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="signup-email">이메일</Label>
+              <Label htmlFor="signup-email" className="text-sm font-medium">이메일</Label>
               <Input
                 id="signup-email"
                 type="email"
                 placeholder="이메일을 입력하세요"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="signup-password">비밀번호</Label>
+              <Label htmlFor="signup-password" className="text-sm font-medium">비밀번호</Label>
               <Input
                 id="signup-password"
                 type="password"
-                placeholder="비밀번호를 입력하세요"
+                placeholder="비밀번호를 입력하세요 (6자 이상)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                disabled={isLoading}
               />
             </div>
-            <Button className="w-full" onClick={() => onSignup(email, password, name)}>
-              회원가입
+            <Button 
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 rounded-lg transition-colors" 
+              onClick={handleSignup}
+              disabled={isLoading}
+            >
+              {isLoading ? "회원가입 중..." : "회원가입"}
             </Button>
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
       </DialogContent>
     )
   }
@@ -1177,36 +1257,36 @@ export default function EnvironmentalMapPlatform() {
     }
 
     return (
-      <DialogContent className="sm:max-w-xl w-full max-w-[95vw] max-h-[90vh] overflow-y-auto p-8 rounded-2xl shadow-2xl border border-gray-100 animate-fade-in">
+      <DialogContent className="sm:max-w-xl w-[95vw] max-w-[500px] max-h-[90vh] overflow-y-auto p-4 sm:p-6 lg:p-8 rounded-2xl shadow-2xl border border-gray-100 animate-fade-in">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-green-800 tracking-tight mb-2 flex items-center gap-2">
-            <Camera className="h-6 w-6 text-green-600" /> 환경 문제 제보하기
+          <DialogTitle className="text-lg sm:text-xl lg:text-2xl font-bold text-green-800 tracking-tight mb-2 flex items-center gap-2">
+            <Camera className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" /> 환경 문제 제보하기
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* 긴급 제보 스위치 */}
-          <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-red-400 via-red-300 to-orange-200 rounded-xl border-2 border-red-500 shadow-md animate-soft-pulse">
+          <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-gradient-to-r from-red-400 via-red-300 to-orange-200 rounded-xl border-2 border-red-500 shadow-md animate-soft-pulse">
             <Switch id="urgent-report" checked={isUrgent} onCheckedChange={setIsUrgent} />
-            <Label htmlFor="urgent-report" className="text-base font-bold text-red-800 flex items-center gap-1">
-              🚨 긴급 제보 <span className="text-xs font-semibold text-red-700">(즉시 처리가 필요한 심각한 환경 문제)</span>
+            <Label htmlFor="urgent-report" className="text-sm sm:text-base font-bold text-red-800 flex items-center gap-1">
+              🚨 긴급 제보 <span className="text-xs font-semibold text-red-700 hidden sm:inline">(즉시 처리가 필요한 심각한 환경 문제)</span>
             </Label>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="title" className="text-base font-semibold">제목 *</Label>
+            <Label htmlFor="title" className="text-sm sm:text-base font-semibold">제목 *</Label>
             <Input
               id="title"
               placeholder="문제 제목을 입력하세요"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="text-base px-4 py-3 rounded-lg border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200"
+              className="text-sm sm:text-base px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="location" className="text-base font-semibold">위치 *</Label>
+            <Label htmlFor="location" className="text-sm sm:text-base font-semibold">위치 *</Label>
             {currentLocation && (
               <div className="flex items-center gap-2 mb-2">
                 <Switch id="use-current-location" checked={useCurrentLocation} onCheckedChange={setUseCurrentLocation} />
-                <Label htmlFor="use-current-location" className="text-sm text-gray-700">
+                <Label htmlFor="use-current-location" className="text-xs sm:text-sm text-gray-700">
                   현재 GPS 위치 사용 <span className="text-xs text-gray-400">(정확도: ±{Math.round(Math.random() * 20 + 5)}m)</span>
                 </Label>
               </div>
@@ -1221,7 +1301,7 @@ export default function EnvironmentalMapPlatform() {
               }
               onChange={(e) => setLocation(e.target.value)}
               disabled={useCurrentLocation}
-              className="text-base px-4 py-3 rounded-lg border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 disabled:bg-gray-100"
+              className="text-sm sm:text-base px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 disabled:bg-gray-100"
             />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1654,21 +1734,26 @@ export default function EnvironmentalMapPlatform() {
       <header className="bg-white shadow-sm border-b sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
+            {/* 로고 영역 */}
+            <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
               <div className="flex items-center space-x-2 cursor-pointer" onClick={() => setCurrentView("map")}> 
-                <Leaf className="h-8 w-8 text-green-600" />
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">GCF Lab</h1>
+                <Leaf className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
+                <div className="hidden sm:block">
+                  <h1 className="text-lg sm:text-xl font-bold text-gray-900">GCF Lab</h1>
                   <p className="text-xs text-gray-500">환경 모니터링 플랫폼</p>
+                </div>
+                <div className="sm:hidden">
+                  <h1 className="text-base font-bold text-gray-900">GCF Lab</h1>
                 </div>
               </div>
             </div>
 
-            <nav className="hidden md:flex space-x-8">
+            {/* 데스크톱 네비게이션 */}
+            <nav className="hidden lg:flex space-x-6 xl:space-x-8">
               <button
                 onClick={() => setCurrentView("map")}
-                className={`font-medium flex items-center space-x-1 ${
-                  currentView === "map" ? "text-green-600" : "text-gray-700 hover:text-green-600"
+                className={`font-medium flex items-center space-x-1 px-3 py-2 rounded-lg transition-colors ${
+                  currentView === "map" ? "text-green-600 bg-green-50" : "text-gray-700 hover:text-green-600 hover:bg-gray-50"
                 }`}
               >
                 <MapPin className="h-4 w-4" />
@@ -1676,8 +1761,8 @@ export default function EnvironmentalMapPlatform() {
               </button>
               <button
                 onClick={() => setCurrentView("stats")}
-                className={`font-medium flex items-center space-x-1 ${
-                  currentView === "stats" ? "text-green-600" : "text-gray-700 hover:text-green-600"
+                className={`font-medium flex items-center space-x-1 px-3 py-2 rounded-lg transition-colors ${
+                  currentView === "stats" ? "text-green-600 bg-green-50" : "text-gray-700 hover:text-green-600 hover:bg-gray-50"
                 }`}
               >
                 <BarChart3 className="h-4 w-4" />
@@ -1685,8 +1770,8 @@ export default function EnvironmentalMapPlatform() {
               </button>
               <button
                 onClick={() => setCurrentView("analysis")}
-                className={`font-medium flex items-center space-x-1 ${
-                  currentView === "analysis" ? "text-green-600" : "text-gray-700 hover:text-green-600"
+                className={`font-medium flex items-center space-x-1 px-3 py-2 rounded-lg transition-colors ${
+                  currentView === "analysis" ? "text-green-600 bg-green-50" : "text-gray-700 hover:text-green-600 hover:bg-gray-50"
                 }`}
               >
                 <TrendingUp className="h-4 w-4" />
@@ -1694,8 +1779,8 @@ export default function EnvironmentalMapPlatform() {
               </button>
               <button
                 onClick={() => setCurrentView("community")}
-                className={`font-medium flex items-center space-x-1 ${
-                  currentView === "community" ? "text-green-600" : "text-gray-700 hover:text-green-600"
+                className={`font-medium flex items-center space-x-1 px-3 py-2 rounded-lg transition-colors ${
+                  currentView === "community" ? "text-green-600 bg-green-50" : "text-gray-700 hover:text-green-600 hover:bg-gray-50"
                 }`}
               >
                 <Users className="h-4 w-4" />
@@ -1704,54 +1789,54 @@ export default function EnvironmentalMapPlatform() {
             </nav>
 
             {/* 모바일 메뉴 버튼 */}
-            <div className="md:hidden">
+            <div className="lg:hidden">
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <Button variant="ghost" size="sm" className="p-2">
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md w-[95vw] max-w-[300px]">
                   <DialogHeader>
-                    <DialogTitle>메뉴</DialogTitle>
+                    <DialogTitle className="text-lg font-bold">메뉴</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-2">
                     <button
                       onClick={() => setCurrentView("map")}
-                      className={`w-full text-left p-3 rounded-lg flex items-center space-x-2 ${
+                      className={`w-full text-left p-3 rounded-lg flex items-center space-x-3 transition-colors ${
                         currentView === "map" ? "bg-green-50 text-green-600" : "hover:bg-gray-50"
                       }`}
                     >
-                      <MapPin className="h-4 w-4" />
+                      <MapPin className="h-5 w-5" />
                       <span>환경 지도</span>
                     </button>
                     <button
                       onClick={() => setCurrentView("stats")}
-                      className={`w-full text-left p-3 rounded-lg flex items-center space-x-2 ${
+                      className={`w-full text-left p-3 rounded-lg flex items-center space-x-3 transition-colors ${
                         currentView === "stats" ? "bg-green-50 text-green-600" : "hover:bg-gray-50"
                       }`}
                     >
-                      <BarChart3 className="h-4 w-4" />
+                      <BarChart3 className="h-5 w-5" />
                       <span>통계 및 데이터</span>
                     </button>
                     <button
                       onClick={() => setCurrentView("analysis")}
-                      className={`w-full text-left p-3 rounded-lg flex items-center space-x-2 ${
+                      className={`w-full text-left p-3 rounded-lg flex items-center space-x-3 transition-colors ${
                         currentView === "analysis" ? "bg-green-50 text-green-600" : "hover:bg-gray-50"
                       }`}
                     >
-                      <TrendingUp className="h-4 w-4" />
+                      <TrendingUp className="h-5 w-5" />
                       <span>분석</span>
                     </button>
                     <button
                       onClick={() => setCurrentView("community")}
-                      className={`w-full text-left p-3 rounded-lg flex items-center space-x-2 ${
+                      className={`w-full text-left p-3 rounded-lg flex items-center space-x-3 transition-colors ${
                         currentView === "community" ? "bg-green-50 text-green-600" : "hover:bg-gray-50"
                       }`}
                     >
-                      <Users className="h-4 w-4" />
+                      <Users className="h-5 w-5" />
                       <span>커뮤니티</span>
                     </button>
                   </div>
@@ -1759,13 +1844,14 @@ export default function EnvironmentalMapPlatform() {
               </Dialog>
             </div>
 
-            <div className="flex items-center space-x-4">
+            {/* 우측 액션 버튼들 */}
+            <div className="flex items-center space-x-2 sm:space-x-4">
               {/* 알림 벨 (로그인 시만) */}
               {isLoggedIn && (
                 <div className="relative">
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="ghost" size="sm" className="relative">
+                      <Button variant="ghost" size="sm" className="relative p-2">
                         <Bell className="h-5 w-5" />
                         {unreadCount > 0 && (
                           <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500">
@@ -1774,7 +1860,7 @@ export default function EnvironmentalMapPlatform() {
                         )}
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
+                    <DialogContent className="sm:max-w-md w-[95vw] max-w-[400px] max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle className="flex items-center justify-between">
                           <span>알림</span>
@@ -1835,34 +1921,38 @@ export default function EnvironmentalMapPlatform() {
                 </div>
               )}
 
-              {/* 제보하기 버튼 (항상 노출) */}
-              <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
-                <DialogTrigger asChild>
-                  <Button
-                    className="flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-green-400 via-emerald-400 to-blue-400 text-white font-bold text-base shadow-md hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-200"
-                    style={{ height: '40px', minWidth: '130px', letterSpacing: '0.01em' }}
-                    onClick={(e) => {
-                      if (!isLoggedIn) {
-                        e.preventDefault();
-                        setShowLoginRequired(true);
-                      }
-                    }}
-                  >
-                    <Camera className="h-5 w-5 text-white drop-shadow" />
-                    제보하기
-                  </Button>
-                </DialogTrigger>
-                {isLoggedIn && (
-                  <ReportDialog onSubmit={handleReportSubmit} currentLocation={currentLocation} setShowReportDialog={setShowReportDialog} />
-                )}
-              </Dialog>
+              {/* 제보하기 버튼 */}
+              <div className="flex-shrink-0">
+                <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
+                  <DialogTrigger asChild>
+                    <Button
+                      className="flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 rounded-full bg-gradient-to-r from-green-400 via-emerald-400 to-blue-400 text-white font-bold text-sm sm:text-base shadow-md hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-200"
+                      style={{ height: '40px', minWidth: '100px', letterSpacing: '0.01em' }}
+                      onClick={(e) => {
+                        if (!isLoggedIn) {
+                          e.preventDefault();
+                          setShowLoginRequired(true);
+                        }
+                      }}
+                    >
+                      <Camera className="h-4 w-4 sm:h-5 sm:w-5 text-white drop-shadow" />
+                      <span className="hidden sm:inline">제보하기</span>
+                      <span className="sm:hidden">제보</span>
+                    </Button>
+                  </DialogTrigger>
+                  {isLoggedIn && (
+                    <ReportDialog onSubmit={handleReportSubmit} currentLocation={currentLocation} setShowReportDialog={setShowReportDialog} />
+                  )}
+                </Dialog>
+              </div>
+
               {/* 로그인 필요 안내 모달 */}
               <Dialog open={showLoginRequired} onOpenChange={setShowLoginRequired}>
-                <DialogContent className="max-w-xs w-full rounded-2xl shadow-2xl border border-gray-100 animate-fade-in flex flex-col items-center justify-center text-center">
+                <DialogContent className="max-w-xs w-[95vw] max-w-[300px] rounded-2xl shadow-2xl border border-gray-100 animate-fade-in flex flex-col items-center justify-center text-center">
                   <DialogHeader>
                     <DialogTitle className="text-lg font-bold text-red-600 mb-2">로그인이 필요한 기능입니다</DialogTitle>
                   </DialogHeader>
-                  <p className="mb-4 text-gray-700">제보 등록을 위해 로그인이 필요합니다.<br/>로그인 후 이용해 주세요.</p>
+                  <p className="mb-4 text-gray-700 text-sm">제보 등록을 위해 로그인이 필요합니다.<br/>로그인 후 이용해 주세요.</p>
                   <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg mt-2" onClick={() => { setShowLoginRequired(false); setShowAuthDialog(true); }}>로그인하러 가기</Button>
                   <Button variant="outline" className="w-full mt-2" onClick={() => setShowLoginRequired(false)}>닫기</Button>
                 </DialogContent>
@@ -1873,7 +1963,7 @@ export default function EnvironmentalMapPlatform() {
                 <div className="flex items-center space-x-2">
                   <Menu as="div" className="relative">
                     <Menu.Button className="flex items-center focus:outline-none">
-                      <Avatar>
+                      <Avatar className="h-8 w-8">
                         <AvatarFallback>
                           <User className="h-4 w-4" />
                         </AvatarFallback>
@@ -1883,7 +1973,7 @@ export default function EnvironmentalMapPlatform() {
                       <Menu.Item>
                         {({ active }) => (
                           <button
-                            className={`w-full text-left px-4 py-2 ${active ? "bg-gray-100" : ""}`}
+                            className={`w-full text-left px-4 py-2 text-sm ${active ? "bg-gray-100" : ""}`}
                             onClick={() => setCurrentView("myinfo")}
                           >
                             내 정보
@@ -1893,7 +1983,7 @@ export default function EnvironmentalMapPlatform() {
                       <Menu.Item>
                         {({ active }) => (
                           <button
-                            className={`w-full text-left px-4 py-2 ${active ? "bg-gray-100" : ""}`}
+                            className={`w-full text-left px-4 py-2 text-sm ${active ? "bg-gray-100" : ""}`}
                             onClick={() => setCurrentView("myreports")}
                           >
                             내 제보 내역
@@ -1906,16 +1996,17 @@ export default function EnvironmentalMapPlatform() {
                     <p className="text-sm font-medium">{currentUser?.name}</p>
                     {currentUser?.isAdmin && <p className="text-xs text-blue-600">관리자</p>}
                   </div>
-                  <Button variant="ghost" size="sm" onClick={handleLogout}>
+                  <Button variant="ghost" size="sm" onClick={handleLogout} className="p-2">
                     <LogOut className="h-4 w-4" />
                   </Button>
                 </div>
               ) : (
                 <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
                   <DialogTrigger asChild>
-                    <Button variant="outline">
-                      <LogIn className="h-4 w-4 mr-2" />
-                      로그인
+                    <Button variant="outline" size="sm" className="px-3 py-2">
+                      <LogIn className="h-4 w-4 mr-1 sm:mr-2" />
+                      <span className="hidden sm:inline">로그인</span>
+                      <span className="sm:hidden">로그인</span>
                     </Button>
                   </DialogTrigger>
                   <AuthDialog onLogin={handleLogin} onSignup={handleSignup} />
@@ -1937,11 +2028,11 @@ export default function EnvironmentalMapPlatform() {
           <div className="fixed inset-0 z-40 bg-black/10 backdrop-blur-[3px] pointer-events-auto transition-all duration-200" />
         )}
         <div className={selectedReport ? "pointer-events-none select-none blur-[3px] transition-all duration-200" : "transition-all duration-200"}>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
             {/* 내 정보 화면 */}
             {currentView === "myinfo" && isLoggedIn && (
-              <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow">
-                <h2 className="text-2xl font-bold mb-4">내 정보</h2>
+              <div className="max-w-md mx-auto mt-6 sm:mt-10 p-4 sm:p-6 bg-white rounded-lg shadow">
+                <h2 className="text-xl sm:text-2xl font-bold mb-4">내 정보</h2>
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
@@ -1960,7 +2051,7 @@ export default function EnvironmentalMapPlatform() {
                   }}
                   className="space-y-4"
                 >
-                  <label className="block mb-2 font-medium">이름(닉네임)</label>
+                  <label className="block mb-2 font-medium text-sm sm:text-base">이름(닉네임)</label>
                   <input
                     name="name"
                     defaultValue={currentUser?.name}
@@ -2108,21 +2199,21 @@ export default function EnvironmentalMapPlatform() {
                           <div className="text-sm text-gray-600">총 제보건수</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-blue-600">{stats.thisWeek}</div>
-                          <div className="text-sm text-gray-600">이번 주</div>
+                          <div className="text-xl sm:text-2xl font-bold text-blue-600">{stats.thisWeek}</div>
+                          <div className="text-xs sm:text-sm text-gray-600">이번 주</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
-                          <div className="text-sm text-gray-600">제보접수</div>
+                          <div className="text-xl sm:text-2xl font-bold text-yellow-600">{stats.pending}</div>
+                          <div className="text-xs sm:text-sm text-gray-600">제보접수</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-red-600">{stats.processing}</div>
-                          <div className="text-sm text-gray-600">처리중</div>
+                          <div className="text-xl sm:text-2xl font-bold text-red-600">{stats.processing}</div>
+                          <div className="text-xs sm:text-sm text-gray-600">처리중</div>
                         </div>
                       </div>
                       <Separator className="my-4" />
                       <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
+                        <div className="flex justify-between text-xs sm:text-sm">
                           <span>처리 완료율</span>
                           <span>{Math.round((stats.resolved / stats.total) * 100)}%</span>
                         </div>
@@ -2130,20 +2221,21 @@ export default function EnvironmentalMapPlatform() {
                       </div>
                     </CardContent>
                   </Card>
+                  
                   {/* 고급 검색 및 필터 */}
                   <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center space-x-2">
-                        <Search className="h-5 w-5" />
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base sm:text-lg flex items-center space-x-2">
+                        <Search className="h-4 w-4 sm:h-5 sm:w-5" />
                         <span>검색 및 필터</span>
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-3 sm:space-y-4">
                       <div className="relative">
                         <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                         <Input
                           placeholder="제목, 위치, 내용 검색"
-                          className="pl-10"
+                          className="pl-10 text-sm sm:text-base"
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                           onKeyDown={(e) => { if (e.key === 'Enter') handleSearch() }}
@@ -2151,9 +2243,9 @@ export default function EnvironmentalMapPlatform() {
                       </div>
                       <div className="space-y-3">
                         <div>
-                          <Label className="text-sm font-medium">제보 유형</Label>
+                          <Label className="text-xs sm:text-sm font-medium">제보 유형</Label>
                           <Select value={filters.type} onValueChange={(value) => setFilters({ ...filters, type: value })}>
-                            <SelectTrigger>
+                            <SelectTrigger className="text-sm sm:text-base">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -2166,12 +2258,12 @@ export default function EnvironmentalMapPlatform() {
                           </Select>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium">처리 상태</Label>
+                          <Label className="text-xs sm:text-sm font-medium">처리 상태</Label>
                           <Select
                             value={filters.status}
                             onValueChange={(value) => setFilters({ ...filters, status: value })}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="text-sm sm:text-base">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -2183,12 +2275,12 @@ export default function EnvironmentalMapPlatform() {
                           </Select>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium">심각도</Label>
+                          <Label className="text-xs sm:text-sm font-medium">심각도</Label>
                           <Select
                             value={filters.severity}
                             onValueChange={(value) => setFilters({ ...filters, severity: value })}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="text-sm sm:text-base">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -2200,12 +2292,12 @@ export default function EnvironmentalMapPlatform() {
                           </Select>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium">기간</Label>
+                          <Label className="text-xs sm:text-sm font-medium">기간</Label>
                           <Select
                             value={filters.dateRange}
                             onValueChange={(value) => setFilters({ ...filters, dateRange: value })}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="text-sm sm:text-base">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -2217,9 +2309,9 @@ export default function EnvironmentalMapPlatform() {
                           </Select>
                         </div>
                       </div>
-                      <div className="flex justify-between items-center mt-2 gap-2">
+                      <div className="flex flex-col sm:flex-row justify-between items-center mt-2 gap-2">
                         <Button
-                          className="bg-green-600 hover:bg-green-700 px-4 py-2 text-sm font-semibold text-white"
+                          className="bg-green-600 hover:bg-green-700 px-4 py-2 text-sm font-semibold text-white w-full sm:w-auto"
                           onClick={handleSearch}
                         >
                           검색하기
@@ -2227,7 +2319,7 @@ export default function EnvironmentalMapPlatform() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="px-3 py-1 text-xs"
+                          className="px-3 py-1 text-xs w-full sm:w-auto"
                           onClick={() => { setFilters({ type: 'all', status: 'all', dateRange: 'all', severity: 'all' }); setSearchApplied(false); }}
                         >
                           필터 초기화
@@ -2235,10 +2327,11 @@ export default function EnvironmentalMapPlatform() {
                       </div>
                     </CardContent>
                   </Card>
+                  
                   {/* 최근 제보 */}
                   <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">최근 제보</CardTitle>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base sm:text-lg">최근 제보</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
@@ -2248,11 +2341,11 @@ export default function EnvironmentalMapPlatform() {
                             className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                             onClick={() => setSelectedReport(report)}
                           >
-                            <div className="flex items-start space-x-3">
-                              <div className="text-lg">{getTypeIcon(report.type)}</div>
+                            <div className="flex items-start space-x-2 sm:space-x-3">
+                              <div className="text-base sm:text-lg flex-shrink-0">{getTypeIcon(report.type)}</div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center space-x-2">
-                                  <h4 className="text-sm font-medium truncate">{report.title}</h4>
+                                  <h4 className="text-xs sm:text-sm font-medium truncate">{report.title}</h4>
                                   <div className={`w-2 h-2 rounded-full ${getSeverityColor(report.severity)}`} />
                                 </div>
                                 <p className="text-xs text-gray-600 truncate">{report.location}</p>
@@ -2270,6 +2363,7 @@ export default function EnvironmentalMapPlatform() {
                 </div>
               </div>
             )}
+            
             {/* 통계 및 데이터 화면 */}
             {currentView === "stats" && <StatsView reports={reports} stats={stats} />}
             {/* 분석 화면 */}
@@ -2283,15 +2377,19 @@ export default function EnvironmentalMapPlatform() {
                 isLoggedIn={isLoggedIn}
               />
             )}
-            {/* 5. 환경 문제 제보하기 하단에 검색 결과 섹션 추가 */}
+            
+            {/* 검색 결과 섹션 */}
             {searchApplied && (
-              <div className="mt-8">
-                <h3 className="text-lg font-bold mb-3">검색 결과</h3>
+              <div className="mt-6 sm:mt-8">
+                <h3 className="text-base sm:text-lg font-bold mb-3">검색 결과</h3>
                 {searchResults.length === 0 ? (
-                  <div className="text-gray-400 text-center py-8">검색 결과가 없습니다.</div>
+                  <div className="text-gray-400 text-center py-6 sm:py-8 text-sm sm:text-base">검색 결과가 없습니다.</div>
                 ) : (
-                  <div className="grid gap-4">
+                  <div className="grid gap-3 sm:gap-4">
                     {searchResults.map((report) => (
+                      <div key={report.id} className="p-3 sm:p-4 border rounded-lg bg-white shadow-sm flex flex-col gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-lg sm:text-xl">{getTypeIcon(report.type)}</span>
                       <div key={report.id} className="p-4 border rounded-lg bg-white shadow-sm flex flex-col gap-2">
                         <div className="flex items-center gap-2">
                           <span className="text-xl">{getTypeIcon(report.type)}</span>
