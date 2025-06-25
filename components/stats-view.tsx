@@ -21,6 +21,7 @@ interface ChartData {
 export function StatsView({ reports, stats }: StatsViewProps) {
   const { toast } = useToast()
   const [chartData, setChartData] = useState<ChartData | null>(null)
+  const [isDownloading, setIsDownloading] = useState(false)
 
   // 월별 데이터 생성
   useEffect(() => {
@@ -59,7 +60,7 @@ export function StatsView({ reports, stats }: StatsViewProps) {
     setChartData(monthlyData)
   }, [reports])
 
-  const handleDownloadReport = () => {
+  const handleDownloadReport = async () => {
     if (!reports || reports.length === 0) {
       toast({
         title: "다운로드 불가",
@@ -69,6 +70,7 @@ export function StatsView({ reports, stats }: StatsViewProps) {
       return
     }
 
+    setIsDownloading(true)
     try {
       // CSV 데이터 생성
       const csvContent = [
@@ -76,7 +78,7 @@ export function StatsView({ reports, stats }: StatsViewProps) {
         ...reports.map(report => [
           report.id,
           report.title,
-          report.type,
+          getTypeLabel(report.type),
           report.severity,
           report.status,
           report.date,
@@ -108,6 +110,8 @@ export function StatsView({ reports, stats }: StatsViewProps) {
         description: "파일 다운로드 중 오류가 발생했습니다.",
         variant: "destructive",
       })
+    } finally {
+      setIsDownloading(false)
     }
   }
 
@@ -135,9 +139,13 @@ export function StatsView({ reports, stats }: StatsViewProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">통계 및 데이터</h2>
-        <Button variant="outline" onClick={handleDownloadReport}>
+        <Button 
+          variant="outline" 
+          onClick={handleDownloadReport} 
+          disabled={isDownloading}
+        >
           <Download className="h-4 w-4 mr-2" />
-          리포트 다운로드
+          {isDownloading ? "다운로드 중..." : "리포트 다운로드"}
         </Button>
       </div>
 
@@ -200,122 +208,95 @@ export function StatsView({ reports, stats }: StatsViewProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {["waste", "air", "water", "noise"].map((type) => {
-                const count = reports.filter((r) => r.type === type).length
-                const percentage = reports.length > 0 ? (count / reports.length) * 100 : 0
-                return (
-                  <div key={type} className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="flex items-center space-x-2">
-                        <span>{getTypeLabel(type)}</span>
-                      </span>
-                      <span className="text-sm font-medium">{count}건</span>
-                    </div>
-                    <Progress value={percentage} className="h-2" />
+              {Object.entries(
+                reports.reduce((acc, report) => {
+                  acc[report.type] = (acc[report.type] || 0) + 1
+                  return acc
+                }, {} as Record<string, number>)
+              ).map(([type, count]) => (
+                <div key={type} className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-2xl">{getTypeIcon(type)}</span>
+                    <span className="font-medium">{getTypeLabel(type)}</span>
                   </div>
-                )
-              })}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-lg font-bold">{count}</span>
+                    <Badge variant="outline">
+                      {Math.round((count / reports.length) * 100)}%
+                    </Badge>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>월별 제보 추이</CardTitle>
+            <CardTitle>심각도별 분포</CardTitle>
           </CardHeader>
           <CardContent>
-            {chartData ? (
-              <div className="space-y-4">
-                {Object.entries(chartData).map(([month, count]) => {
-                  const maxCount = Math.max(...Object.values(chartData))
-                  const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0
-                  return (
-                    <div key={month} className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>{month}</span>
-                        <span className="font-medium">{count}건</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${Math.max(percentage, 5)}%` }}
-                        />
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            ) : (
-              <div className="h-64 flex items-center justify-center text-gray-500">
-                <div className="text-center">
-                  <PieChart className="h-16 w-16 mx-auto mb-4" />
-                  <p>차트 데이터 준비 중...</p>
+            <div className="space-y-4">
+              {Object.entries(
+                reports.reduce((acc, report) => {
+                  acc[report.severity] = (acc[report.severity] || 0) + 1
+                  return acc
+                }, {} as Record<string, number>)
+              ).map(([severity, count]) => (
+                <div key={severity} className="flex items-center justify-between">
+                  <span className="font-medium capitalize">{severity}</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-lg font-bold">{count}</span>
+                    <Badge 
+                      variant="outline"
+                      className={
+                        severity === "high" ? "border-red-200 text-red-700" :
+                        severity === "medium" ? "border-yellow-200 text-yellow-700" :
+                        "border-green-200 text-green-700"
+                      }
+                    >
+                      {Math.round((count / reports.length) * 100)}%
+                    </Badge>
+                  </div>
                 </div>
-              </div>
-            )}
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* 상세 데이터 테이블 */}
+      {/* 월별 트렌드 차트 */}
       <Card>
         <CardHeader>
-          <CardTitle>상세 제보 목록</CardTitle>
+          <CardTitle>월별 제보 트렌드</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2">ID</th>
-                  <th className="text-left p-2">제목</th>
-                  <th className="text-left p-2">유형</th>
-                  <th className="text-left p-2">심각도</th>
-                  <th className="text-left p-2">상태</th>
-                  <th className="text-left p-2">제보일</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reports.map((report) => (
-                  <tr key={report.id} className="border-b hover:bg-gray-50">
-                    <td className="p-2">{report.id}</td>
-                    <td className="p-2 font-medium">{report.title}</td>
-                    <td className="p-2">
-                      <span className="flex items-center space-x-1">
-                        <span>{getTypeIcon(report.type)}</span>
-                        <span className="capitalize">{report.type}</span>
-                      </span>
-                    </td>
-                    <td className="p-2">
-                      <div
-                        className={`w-3 h-3 rounded-full ${
-                          report.severity === "high"
-                            ? "bg-red-500"
-                            : report.severity === "medium"
-                              ? "bg-yellow-500"
-                              : "bg-green-500"
-                        }`}
-                      />
-                    </td>
-                    <td className="p-2">
-                      <Badge
-                        className={
-                          report.status === "처리완료"
-                            ? "bg-green-100 text-green-800"
-                            : report.status === "처리중"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-yellow-100 text-yellow-800"
-                        }
-                      >
-                        {report.status}
-                      </Badge>
-                    </td>
-                    <td className="p-2">{report.date}</td>
-                  </tr>
+          {chartData ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-6 gap-2">
+                {Object.entries(chartData).map(([month, count]) => (
+                  <div key={month} className="text-center">
+                    <div className="text-sm text-gray-600 mb-1">{month}</div>
+                    <div className="text-lg font-bold">{count}</div>
+                    <div 
+                      className="bg-blue-200 rounded mt-1"
+                      style={{ 
+                        height: `${Math.max(4, (count / Math.max(...Object.values(chartData))) * 100)}px` 
+                      }}
+                    />
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+              <div className="text-center text-sm text-gray-500">
+                최근 12개월간의 제보 현황
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <PieChart className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+              <p className="text-gray-600">차트 데이터 준비 중...</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

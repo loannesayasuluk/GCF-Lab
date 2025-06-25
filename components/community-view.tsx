@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Users, MessageSquare, Calendar, Heart, ChevronDown, ChevronUp } from "lucide-react"
+import { Plus, Users, MessageSquare, Calendar, Heart, ChevronDown, ChevronUp, ThumbsUp, Reply } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -32,6 +32,10 @@ interface NewComments {
   [key: number]: string
 }
 
+interface LikedPosts {
+  [key: number]: boolean
+}
+
 export function CommunityView({ posts, onAddPost, currentUser, isLoggedIn }: CommunityViewProps) {
   const [showNewPostDialog, setShowNewPostDialog] = useState(false)
   const [newPostTitle, setNewPostTitle] = useState("")
@@ -41,7 +45,18 @@ export function CommunityView({ posts, onAddPost, currentUser, isLoggedIn }: Com
   const [expandedPosts, setExpandedPosts] = useState<ExpandedPosts>({})
   const [comments, setComments] = useState<Comments>({})
   const [newComments, setNewComments] = useState<NewComments>({})
+  const [likedPosts, setLikedPosts] = useState<LikedPosts>({})
+  const [postLikes, setPostLikes] = useState<{[key: number]: number}>({})
   const { toast } = useToast()
+
+  // 초기 좋아요 수 설정
+  useState(() => {
+    const initialLikes: {[key: number]: number} = {}
+    posts.forEach(post => {
+      initialLikes[post.id] = post.likes
+    })
+    setPostLikes(initialLikes)
+  })
 
   const handleSubmitPost = () => {
     if (!newPostTitle.trim() || !newPostContent.trim() || !newPostCategory) {
@@ -91,9 +106,32 @@ export function CommunityView({ posts, onAddPost, currentUser, isLoggedIn }: Com
       return
     }
     
-    toast({
-      title: "공감 완료",
-      description: "게시글에 공감했습니다.",
+    setLikedPosts(prev => {
+      const newLikedPosts = { ...prev }
+      if (newLikedPosts[postId]) {
+        // 좋아요 취소
+        newLikedPosts[postId] = false
+        setPostLikes(prev => ({
+          ...prev,
+          [postId]: Math.max(0, (prev[postId] || 0) - 1)
+        }))
+        toast({
+          title: "공감 취소",
+          description: "공감을 취소했습니다.",
+        })
+      } else {
+        // 좋아요 추가
+        newLikedPosts[postId] = true
+        setPostLikes(prev => ({
+          ...prev,
+          [postId]: (prev[postId] || 0) + 1
+        }))
+        toast({
+          title: "공감 완료",
+          description: "게시글에 공감했습니다.",
+        })
+      }
+      return newLikedPosts
     })
   }
 
@@ -156,6 +194,16 @@ export function CommunityView({ posts, onAddPost, currentUser, isLoggedIn }: Com
     }
   }
 
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case '모임': return 'bg-blue-100 text-blue-800'
+      case '정보': return 'bg-green-100 text-green-800'
+      case '질문': return 'bg-yellow-100 text-yellow-800'
+      case '제안': return 'bg-purple-100 text-purple-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -199,8 +247,8 @@ export function CommunityView({ posts, onAddPost, currentUser, isLoggedIn }: Com
                       <SelectContent>
                         <SelectItem value="모임">모임</SelectItem>
                         <SelectItem value="정보">정보</SelectItem>
-                        <SelectItem value="팁">팁</SelectItem>
                         <SelectItem value="질문">질문</SelectItem>
+                        <SelectItem value="제안">제안</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -217,7 +265,9 @@ export function CommunityView({ posts, onAddPost, currentUser, isLoggedIn }: Com
                     <Button variant="outline" onClick={() => setShowNewPostDialog(false)}>
                       취소
                     </Button>
-                    <Button onClick={handleSubmitPost}>작성</Button>
+                    <Button onClick={handleSubmitPost}>
+                      작성 완료
+                    </Button>
                   </div>
                 </div>
               </DialogContent>
@@ -226,164 +276,140 @@ export function CommunityView({ posts, onAddPost, currentUser, isLoggedIn }: Com
         </div>
       </div>
 
-      {/* 커뮤니티 가이드 (접힌 메뉴) */}
+      {/* 커뮤니티 가이드 */}
       {showGuide && (
-        <Card className="mb-6">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">커뮤니티 가이드</CardTitle>
+        <Card className="bg-blue-50 border-blue-200">
+          <CardHeader>
+            <CardTitle className="text-blue-900 flex items-center space-x-2">
+              <Users className="h-5 w-5" />
+              <span>커뮤니티 이용 가이드</span>
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <h4 className="font-medium text-blue-800 mb-2">🤝 함께 만드는 깨끗한 환경</h4>
-                <p className="text-sm text-blue-700">
-                  우리 모두가 참여하여 더 나은 환경을 만들어갑니다. 정확한 정보 공유와 건설적인 토론을 통해 실질적인
-                  해결책을 찾아보세요.
-                </p>
+          <CardContent className="text-blue-800">
+            <div className="space-y-3">
+              <div className="flex items-start space-x-2">
+                <span className="font-medium">•</span>
+                <span>환경 보호 관련 정보를 공유하고 토론할 수 있습니다.</span>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-3 border rounded-lg">
-                  <h5 className="font-medium mb-2">✅ 권장사항</h5>
-                  <ul className="text-sm text-gray-600 space-y-1">
-                    <li>• 정확하고 유용한 정보 공유</li>
-                    <li>• 서로 존중하는 대화</li>
-                    <li>• 환경 개선을 위한 건설적 제안</li>
-                    <li>• 지역 환경 활동 참여 독려</li>
-                  </ul>
-                </div>
-                <div className="p-3 border rounded-lg">
-                  <h5 className="font-medium mb-2">❌ 주의사항</h5>
-                  <ul className="text-sm text-gray-600 space-y-1">
-                    <li>• 허위 정보나 과장된 내용</li>
-                    <li>• 개인 정보 노출</li>
-                    <li>• 상업적 광고나 홍보</li>
-                    <li>• 타인에 대한 비방이나 욕설</li>
-                  </ul>
-                </div>
+              <div className="flex items-start space-x-2">
+                <span className="font-medium">•</span>
+                <span>모임, 정보, 질문, 제안 카테고리로 분류되어 있습니다.</span>
+              </div>
+              <div className="flex items-start space-x-2">
+                <span className="font-medium">•</span>
+                <span>댓글로 의견을 나누고 공감 버튼으로 반응할 수 있습니다.</span>
+              </div>
+              <div className="flex items-start space-x-2">
+                <span className="font-medium">•</span>
+                <span>서로를 존중하고 건설적인 대화를 나누어 주세요.</span>
               </div>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* 커뮤니티 통계 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <Users className="h-8 w-8 text-blue-600" />
-              <div>
-                <p className="text-sm text-gray-600">활성 사용자</p>
-                <p className="text-3xl font-bold text-blue-600">1,234</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <MessageSquare className="h-8 w-8 text-green-600" />
-              <div>
-                <p className="text-sm text-gray-600">총 게시글</p>
-                <p className="text-3xl font-bold text-green-600">{posts.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <Calendar className="h-8 w-8 text-purple-600" />
-              <div>
-                <p className="text-sm text-gray-600">이번 주 활동</p>
-                <p className="text-3xl font-bold text-purple-600">89</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* 게시글 목록 */}
       <div className="space-y-4">
         {posts.map((post) => (
-          <Card key={post.id}>
-            <CardContent className="p-6">
+          <Card key={post.id} className="hover:shadow-md transition-shadow">
+            <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
-                    <Badge variant="outline">{post.category}</Badge>
-                    <span className="text-sm text-gray-500">by {post.author}</span>
-                    <span className="text-sm text-gray-500">•</span>
+                    <Badge className={getCategoryColor(post.category)}>
+                      {post.category}
+                    </Badge>
                     <span className="text-sm text-gray-500">{post.date}</span>
                   </div>
-                  <h3 className="text-lg font-medium mb-2">{post.title}</h3>
-                  <p className="text-gray-600 mb-4">{post.content}</p>
-                  <div className="flex items-center space-x-4">
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleLike(post.id)}
-                    >
-                      <Heart className="h-4 w-4 mr-1" />
-                      {post.likes || 0}
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleComment(post.id)}
-                    >
-                      <MessageSquare className="h-4 w-4 mr-1" />
-                      {comments[post.id]?.length || 0}
-                    </Button>
-                  </div>
-                  
-                  {/* 댓글 섹션 */}
-                  {expandedPosts[post.id] && (
-                    <div className="mt-4 pt-4 border-t">
-                      <div className="space-y-3">
-                        {/* 기존 댓글들 */}
-                        {comments[post.id]?.map((comment) => (
-                          <div key={comment.id} className="p-3 bg-gray-50 rounded-lg">
-                            <div className="flex items-center space-x-2 mb-1">
-                              <span className="text-sm font-medium">{comment.author}</span>
-                              <span className="text-xs text-gray-500">{comment.date}</span>
-                            </div>
-                            <p className="text-sm text-gray-700">{comment.content}</p>
-                          </div>
-                        ))}
-                        
-                        {/* 새 댓글 작성 */}
-                        <div className="space-y-2">
-                          <Textarea
-                            placeholder="댓글을 입력하세요..."
-                            value={newComments[post.id] || ""}
-                            onChange={(e) => setNewComments(prev => ({
-                              ...prev,
-                              [post.id]: e.target.value
-                            }))}
-                            rows={2}
-                            className="text-sm"
-                          />
-                          <div className="flex justify-end">
-                            <Button 
-                              size="sm"
-                              onClick={() => handleSubmitComment(post.id)}
-                            >
-                              댓글 작성
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  <CardTitle className="text-lg">{post.title}</CardTitle>
+                  <p className="text-sm text-gray-600 mt-1">작성자: {post.author}</p>
                 </div>
               </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700 mb-4">{post.content}</p>
+              
+              {/* 액션 버튼 */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleLike(post.id)}
+                    className={`flex items-center space-x-1 ${
+                      likedPosts[post.id] ? 'text-red-600' : 'text-gray-600'
+                    }`}
+                  >
+                    <Heart className={`h-4 w-4 ${likedPosts[post.id] ? 'fill-current' : ''}`} />
+                    <span>{postLikes[post.id] || post.likes}</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleComment(post.id)}
+                    className="flex items-center space-x-1 text-gray-600"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    <span>{(comments[post.id] || []).length + (post.comments || 0)}</span>
+                  </Button>
+                </div>
+              </div>
+
+              {/* 댓글 섹션 */}
+              {expandedPosts[post.id] && (
+                <div className="mt-4 pt-4 border-t">
+                  <h4 className="font-medium mb-3">댓글</h4>
+                  
+                  {/* 기존 댓글들 */}
+                  <div className="space-y-3 mb-4">
+                    {(comments[post.id] || []).map((comment) => (
+                      <div key={comment.id} className="bg-gray-50 p-3 rounded-lg">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-medium text-sm">{comment.author}</span>
+                          <span className="text-xs text-gray-500">{comment.date}</span>
+                        </div>
+                        <p className="text-sm text-gray-700">{comment.content}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* 새 댓글 작성 */}
+                  <div className="space-y-2">
+                    <Textarea
+                      placeholder="댓글을 입력하세요..."
+                      value={newComments[post.id] || ""}
+                      onChange={(e) => setNewComments(prev => ({
+                        ...prev,
+                        [post.id]: e.target.value
+                      }))}
+                      rows={2}
+                    />
+                    <div className="flex justify-end">
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleSubmitComment(post.id)}
+                        disabled={!newComments[post.id]?.trim()}
+                      >
+                        댓글 작성
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {posts.length === 0 && (
+        <Card>
+          <CardContent className="text-center py-8">
+            <Users className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+            <p className="text-gray-600">아직 게시글이 없습니다.</p>
+            <p className="text-sm text-gray-500 mt-2">첫 번째 게시글을 작성해보세요!</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 } 
