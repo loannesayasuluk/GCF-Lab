@@ -215,13 +215,15 @@ export function StatsView({ reports, stats }: StatsViewProps) {
                 }, {} as Record<string, number>)
               ).map(([type, count]) => (
                 <div key={type} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-2xl">{getTypeIcon(type)}</span>
-                    <span className="font-medium">{getTypeLabel(type)}</span>
+                  <div className="flex items-center space-x-4">
+                    <span className="text-3xl">
+                      {type === 'waste' ? '🗑️' : type === 'air' ? '💨' : type === 'water' ? '💧' : type === 'noise' ? '🔊' : ''}
+                    </span>
+                    <span className="text-lg font-medium">{getTypeLabel(type)}</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-lg font-bold">{count}</span>
-                    <Badge variant="outline">
+                    <span className="text-xl font-bold">{count}</span>
+                    <Badge variant="outline" className="text-base px-3 py-1">
                       {Math.round((count / reports.length) * 100)}%
                     </Badge>
                   </div>

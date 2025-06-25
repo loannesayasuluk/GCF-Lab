@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Plus, Users, MessageSquare, Calendar, Heart, ChevronDown, ChevronUp, ThumbsUp, Reply } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -49,14 +49,20 @@ export function CommunityView({ posts, onAddPost, currentUser, isLoggedIn }: Com
   const [postLikes, setPostLikes] = useState<{[key: number]: number}>({})
   const { toast } = useToast()
 
-  // 초기 좋아요 수 설정
-  useState(() => {
+  // 초기 좋아요 수 및 댓글 수 설정 (posts 변경 시 동기화)
+  useEffect(() => {
     const initialLikes: {[key: number]: number} = {}
     posts.forEach(post => {
       initialLikes[post.id] = post.likes
     })
     setPostLikes(initialLikes)
-  })
+    // 댓글도 동기화
+    const initialComments: Comments = {}
+    posts.forEach(post => {
+      initialComments[post.id] = []
+    })
+    setComments(initialComments)
+  }, [posts])
 
   const handleSubmitPost = () => {
     if (!newPostTitle.trim() || !newPostContent.trim() || !newPostCategory) {
@@ -209,6 +215,23 @@ export function CommunityView({ posts, onAddPost, currentUser, isLoggedIn }: Com
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">커뮤니티</h2>
         <div className="flex items-center space-x-2">
+          {/* 글쓰기 버튼 */}
+          <Button
+            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium px-5 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            onClick={() => {
+              if (!isLoggedIn) {
+                toast({
+                  title: "로그인 필요",
+                  description: "글을 작성하려면 로그인이 필요합니다.",
+                  variant: "destructive",
+                })
+              } else {
+                setShowNewPostDialog(true)
+              }
+            }}
+          >
+            <Plus className="h-4 w-4 mr-2" />글쓰기
+          </Button>
           {/* 커뮤니티 가이드 버튼 */}
           <Button 
             variant="outline" 
@@ -218,61 +241,6 @@ export function CommunityView({ posts, onAddPost, currentUser, isLoggedIn }: Com
             {showGuide ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             가이드
           </Button>
-          {isLoggedIn && (
-            <Dialog open={showNewPostDialog} onOpenChange={setShowNewPostDialog}>
-              <DialogTrigger asChild>
-                <Button className="bg-green-600 hover:bg-green-700">
-                  <Plus className="h-4 w-4 mr-2" />새 글 작성
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>새 글 작성</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label>제목</Label>
-                    <Input
-                      placeholder="제목을 입력하세요"
-                      value={newPostTitle}
-                      onChange={(e) => setNewPostTitle(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label>카테고리</Label>
-                    <Select value={newPostCategory} onValueChange={(value: CommunityPost['category']) => setNewPostCategory(value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="카테고리 선택" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="모임">모임</SelectItem>
-                        <SelectItem value="정보">정보</SelectItem>
-                        <SelectItem value="질문">질문</SelectItem>
-                        <SelectItem value="제안">제안</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>내용</Label>
-                    <Textarea
-                      placeholder="내용을 입력하세요"
-                      value={newPostContent}
-                      onChange={(e) => setNewPostContent(e.target.value)}
-                      rows={4}
-                    />
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button variant="outline" onClick={() => setShowNewPostDialog(false)}>
-                      취소
-                    </Button>
-                    <Button onClick={handleSubmitPost}>
-                      작성 완료
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          )}
         </div>
       </div>
 

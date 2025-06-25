@@ -773,6 +773,7 @@ export default function EnvironmentalMapPlatform() {
                 <CardContent className="p-0 relative z-0" style={{ minHeight: '400px' }}>
                   <SimpleMap
                     reports={displayReports}
+                    selectedReport={selectedReport}
                     onReportSelect={(report) => setSelectedReport(report)}
                     currentLocation={currentLocation}
                   />
@@ -1014,33 +1015,33 @@ export default function EnvironmentalMapPlatform() {
                 <div className="animate-in slide-in-from-right-4 duration-500">
                   <h4 className="font-semibold text-lg mb-4 flex items-center space-x-2">
                     <div className="relative">
-                      <Brain className="h-5 w-5 text-purple-600" />
+                      <Brain className="h-5 w-5 text-purple-600 animate-bounce" />
                       <div className="absolute -top-1 -right-1 w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
                     </div>
-                    <span>AI 분석 결과</span>
+                    <span className="bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text text-transparent font-bold">AI 분석 결과</span>
+                    <span className="ml-2 px-2 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold animate-fade-in">Powered by AI</span>
                   </h4>
-                  
                   <div className="space-y-4">
                     {/* 분석 요약 */}
-                    <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg border border-purple-200">
+                    <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg border border-purple-200 shadow-md animate-fade-in">
                       <h5 className="font-medium text-purple-800 mb-2 flex items-center space-x-2">
-                        <Activity className="h-4 w-4" />
+                        <Activity className="h-4 w-4 animate-spin-slow" />
                         <span>분석 요약</span>
                       </h5>
                       <p className="text-purple-700 leading-relaxed">{selectedReport.aiAnalysis.summary}</p>
                     </div>
 
                     {/* 키워드 */}
-                    <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="bg-blue-50 p-4 rounded-lg animate-fade-in">
                       <h5 className="font-medium text-blue-800 mb-3 flex items-center space-x-2">
-                        <Target className="h-4 w-4" />
+                        <Target className="h-4 w-4 animate-pulse" />
                         <span>주요 키워드</span>
                       </h5>
                       <div className="flex flex-wrap gap-2">
                         {selectedReport.aiAnalysis.keywords.map((keyword, index) => (
                           <Badge 
                             key={index} 
-                            className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200 transition-colors"
+                            className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200 transition-colors animate-bounce"
                           >
                             {keyword}
                           </Badge>
@@ -1050,30 +1051,30 @@ export default function EnvironmentalMapPlatform() {
 
                     {/* 분석 세부사항 */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-green-50 p-4 rounded-lg">
+                      <div className="bg-green-50 p-4 rounded-lg animate-fade-in">
                         <h5 className="font-medium text-green-800 mb-2 flex items-center space-x-2">
-                          <PieChart className="h-4 w-4" />
+                          <PieChart className="h-4 w-4 animate-bounce" />
                           <span>분류</span>
                         </h5>
                         <p className="text-green-700">{selectedReport.aiAnalysis.category}</p>
                       </div>
-                      <div className="bg-yellow-50 p-4 rounded-lg">
+                      <div className="bg-yellow-50 p-4 rounded-lg animate-fade-in">
                         <h5 className="font-medium text-yellow-800 mb-2 flex items-center space-x-2">
-                          <AlertCircle className="h-4 w-4" />
+                          <AlertCircle className="h-4 w-4 animate-bounce" />
                           <span>긴급도</span>
                         </h5>
                         <p className="text-yellow-700">{selectedReport.aiAnalysis.urgency}</p>
                       </div>
-                      <div className="bg-red-50 p-4 rounded-lg">
+                      <div className="bg-red-50 p-4 rounded-lg animate-fade-in">
                         <h5 className="font-medium text-red-800 mb-2 flex items-center space-x-2">
-                          <TrendingUp className="h-4 w-4" />
+                          <TrendingUp className="h-4 w-4 animate-bounce" />
                           <span>예상 비용</span>
                         </h5>
                         <p className="text-red-700">{selectedReport.aiAnalysis.estimatedCost}</p>
                       </div>
-                      <div className="bg-indigo-50 p-4 rounded-lg">
+                      <div className="bg-indigo-50 p-4 rounded-lg animate-fade-in">
                         <h5 className="font-medium text-indigo-800 mb-2 flex items-center space-x-2">
-                          <Clock className="h-4 w-4" />
+                          <Clock className="h-4 w-4 animate-bounce" />
                           <span>예상 소요시간</span>
                         </h5>
                         <p className="text-indigo-700">{selectedReport.aiAnalysis.expectedDuration}</p>

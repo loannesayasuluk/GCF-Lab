@@ -523,7 +523,9 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
 
   // 마커 클릭 시 상세 안내 카드 위치 계산 (Leaflet) - 화면 밖 나가기 방지 개선
   const handleMarkerClick = (report: Report, e?: any) => {
-    onReportSelect(report)
+    if (typeof onReportSelect === 'function') {
+      onReportSelect(report)
+    }
     if (windowSize.width < 640) {
       setDetailCardPos(null)
       return
