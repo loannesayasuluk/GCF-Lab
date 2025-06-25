@@ -530,14 +530,14 @@ export default function EnvironmentalMapPlatform() {
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
       <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* 로고 및 타이틀 */}
-            <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => window.location.href = '/'}>
-              <Leaf className="h-8 w-8 text-green-600 group-hover:scale-110 transition-transform" />
+            <div className="flex items-center space-x-2 sm:space-x-3 cursor-pointer group" onClick={() => window.location.href = '/'}>
+              <Leaf className="h-8 w-8 sm:h-10 sm:w-10 text-green-600 group-hover:scale-110 transition-transform" />
               <div className="flex flex-col leading-tight">
-                <span className="text-2xl font-bold text-gray-900">GCF Lab</span>
-                <span className="text-xs text-gray-500">환경 지도 플랫폼</span>
+                <span className="text-lg sm:text-2xl font-bold text-gray-900">GCF Lab</span>
+                <span className="text-xs sm:text-sm text-gray-500">환경 지도 플랫폼</span>
               </div>
             </div>
 
