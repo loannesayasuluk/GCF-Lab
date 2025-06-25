@@ -310,7 +310,7 @@ export default function EnvironmentalMapPlatform() {
     }
 
     return (
-      <DialogContent className="sm:max-w-md w-[95vw] max-w-[450px] max-h-[90vh] overflow-y-auto p-6 sm:p-8">
+      <DialogContent className="w-full max-w-lg sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg p-4 sm:p-8">
         <DialogHeader>
           <DialogTitle className="text-xl sm:text-2xl font-bold text-center">로그인 / 회원가입</DialogTitle>
         </DialogHeader>
@@ -350,7 +350,7 @@ export default function EnvironmentalMapPlatform() {
                 placeholder="이메일을 입력하세요"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
+                className="w-full py-3 px-4 text-lg sm:py-2 sm:text-base rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 disabled={isLoading}
               />
             </div>
@@ -362,7 +362,7 @@ export default function EnvironmentalMapPlatform() {
                 placeholder="비밀번호를 입력하세요"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
+                className="w-full py-3 px-4 text-lg sm:py-2 sm:text-base rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 disabled={isLoading}
               />
             </div>
@@ -390,7 +390,7 @@ export default function EnvironmentalMapPlatform() {
                 placeholder="이름을 입력하세요"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
+                className="w-full py-3 px-4 text-lg sm:py-2 sm:text-base rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 disabled={isLoading}
               />
             </div>
@@ -402,7 +402,7 @@ export default function EnvironmentalMapPlatform() {
                 placeholder="이메일을 입력하세요"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
+                className="w-full py-3 px-4 text-lg sm:py-2 sm:text-base rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 disabled={isLoading}
               />
             </div>
@@ -414,7 +414,7 @@ export default function EnvironmentalMapPlatform() {
                 placeholder="비밀번호를 입력하세요 (6자 이상)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
+                className="w-full py-3 px-4 text-lg sm:py-2 sm:text-base rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 disabled={isLoading}
               />
             </div>
