@@ -551,12 +551,12 @@ export default function EnvironmentalMapPlatform() {
           {/* PC 헤더 */}
           <div className="hidden md:flex justify-between items-center h-16">
             {/* 로고 */}
-            <a href="/" className="flex flex-col justify-center items-start group select-none focus:outline-none">
-              <div className="flex items-center space-x-2">
+            <a href="/" className="flex flex-col items-start group select-none focus:outline-none">
+              <div className="flex items-baseline gap-2">
                 <Leaf className="h-8 w-8 text-green-600" />
                 <span className="text-2xl font-extrabold text-gray-900 tracking-tight group-hover:text-green-700 transition-colors">GCF LAB</span>
               </div>
-              <span className="text-xs sm:text-sm text-gray-500 font-medium ml-10 -mt-1 group-hover:text-green-600 transition-colors">인공지능 환경 제보 플랫폼</span>
+              <span className="text-sm text-gray-500 font-medium mt-1 ml-10 group-hover:text-green-600 transition-colors">인공지능 환경 제보 플랫폼</span>
             </a>
             {/* 네비게이션 */}
             <nav className="flex space-x-8">
