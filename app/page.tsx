@@ -43,6 +43,8 @@ import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 import SimpleMap from "@/components/simple-map"
 import { Menu } from "@headlessui/react"
+import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 // OpenAI AI 분석 호출 함수
 async function fetchAISummary(content: string) {
@@ -422,51 +424,69 @@ export default function EnvironmentalMapPlatform() {
   }
 
   // 로그인 처리
-  const handleLogin = (email, password) => {
+  const handleLogin = async (email, password) => {
     if (email && password) {
-      const isAdmin = email === "ahncsjyw@naver.com"
-      const userObj = {
-        email,
-        name: email.split("@")[0],
-        isAdmin,
-        joinDate: "2024-01-01",
-      };
-      setIsLoggedIn(true)
-      setCurrentUser(userObj)
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("currentUser", JSON.stringify(userObj));
-      setShowAuthDialog(false)
-      setCurrentView("map")
-      toast({
-        title: "로그인 성공",
-        description: `환영합니다, ${email.split("@")[0]}님!`,
-      })
-      addNotification(`${email.split("@")[0]}님이 로그인했습니다.`, "success")
+      // Firestore에서 이메일/비밀번호로 사용자 조회
+      const q = query(
+        collection(db, "users"),
+        where("email", "==", email),
+        where("password", "==", password)
+      );
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        const userData = snapshot.docs[0].data();
+        setIsLoggedIn(true);
+        setCurrentUser(userData);
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("currentUser", JSON.stringify(userData));
+        setShowAuthDialog(false);
+        setCurrentView("map");
+        toast({
+          title: "로그인 성공",
+          description: `환영합니다, ${userData.name}님!`,
+        });
+        addNotification(`${userData.name}님이 로그인했습니다.`, "success");
+      } else {
+        toast({
+          title: "로그인 실패",
+          description: "이메일 또는 비밀번호가 올바르지 않습니다.",
+          variant: "destructive",
+        });
+      }
     }
-  }
+  };
 
   // 회원가입 처리
-  const handleSignup = (email, password, name) => {
+  const handleSignup = async (email, password, name) => {
     if (email && password && name) {
-      const isAdmin = email === "ahncsjyw@naver.com"
-      const userObj = {
+      // 1. 중복 체크 (이메일)
+      const q = query(
+        collection(db, "users"),
+        where("email", "==", email)
+      );
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        toast({
+          title: "회원가입 실패",
+          description: "이미 가입된 이메일입니다.",
+          variant: "destructive",
+        });
+        return;
+      }
+      // 2. Firestore에 회원 정보 저장
+      await addDoc(collection(db, "users"), {
         email,
+        password, // 실제 서비스에서는 암호화 필요!
         name,
-        isAdmin,
-        joinDate: new Date().toISOString().split("T")[0],
-      };
-      setIsLoggedIn(true)
-      setCurrentUser(userObj)
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("currentUser", JSON.stringify(userObj));
-      setShowAuthDialog(false)
-      setCurrentView("map")
+        joindate: new Date().toISOString().split("T")[0],
+      });
       toast({
         title: "회원가입 성공",
         description: "계정이 생성되었습니다!",
-      })
+      });
+      setShowAuthDialog(false);
     }
-  }
+  };
 
   // 로그아웃 처리
   const handleLogout = () => {
@@ -475,6 +495,7 @@ export default function EnvironmentalMapPlatform() {
     setShowAdminPanel(false)
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("currentUser");
+    setCurrentView("map"); // 로그아웃 시 메인으로 이동
     toast({
       title: "로그아웃",
       description: "안전하게 로그아웃되었습니다.",
@@ -488,14 +509,14 @@ export default function EnvironmentalMapPlatform() {
         title: "로그인 필요",
         description: "제보하려면 먼저 로그인해주세요.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     try {
-      let location = currentLocation
+      let location = currentLocation;
       if (!location) {
-        location = await getCurrentLocation()
+        location = await getCurrentLocation();
       }
 
       // 실제 OpenAI API 호출
@@ -507,7 +528,6 @@ export default function EnvironmentalMapPlatform() {
       }
 
       const newReport = {
-        id: reports.length + 1,
         ...reportData,
         reporter: currentUser?.name || "익명",
         date: new Date().toISOString().split("T")[0],
@@ -516,25 +536,28 @@ export default function EnvironmentalMapPlatform() {
         aiAnalysis,
         assignedTo: null,
         processingNotes: "",
-      }
+      };
 
-      setReports([newReport, ...reports])
-      setShowReportDialog(false)
+      // Firestore에 저장
+      await addDoc(collection(db, "reports"), newReport);
+
+      setReports([newReport, ...reports]);
+      setShowReportDialog(false);
 
       toast({
         title: "제보 완료",
         description: "환경 문제 제보가 접수되었습니다.",
-      })
+      });
 
-      addNotification(`새로운 환경 문제가 신고되었습니다: ${newReport.title}`, "warning")
+      addNotification(`새로운 환경 문제가 신고되었습니다: ${newReport.title}`, "warning");
     } catch (error) {
       toast({
         title: "위치 정보 오류",
         description: "GPS 위치를 가져올 수 없습니다. 수동으로 위치를 선택해주세요.",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   // 신고 상태 업데이트
   const updateReportStatus = (reportId, newStatus, assignedTo = null, notes = "") => {
@@ -1484,7 +1507,7 @@ export default function EnvironmentalMapPlatform() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 cursor-pointer" onClick={() => setCurrentView("map")}> 
                 <Leaf className="h-8 w-8 text-green-600" />
                 <div>
                   <h1 className="text-xl font-bold text-gray-900">GCF Lab</h1>
@@ -1733,7 +1756,38 @@ export default function EnvironmentalMapPlatform() {
         )}
         <div className={selectedReport ? "pointer-events-none select-none blur-[3px] transition-all duration-200" : "transition-all duration-200"}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-            {/* 메인 지도 화면 (기본) */}
+            {/* 내 정보 화면 */}
+            {currentView === "myinfo" && isLoggedIn && (
+              <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow">
+                <h2 className="text-2xl font-bold mb-4">내 정보</h2>
+                <p><b>이름:</b> {currentUser?.name}</p>
+                <p><b>이메일:</b> {currentUser?.email}</p>
+                <p><b>가입일:</b> {currentUser?.joinDate}</p>
+                {currentUser?.isAdmin && <p className="text-blue-600">관리자 계정</p>}
+              </div>
+            )}
+            {/* 내 제보 내역 화면 */}
+            {currentView === "myreports" && isLoggedIn && (
+              <div className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-lg shadow">
+                <h2 className="text-2xl font-bold mb-4">내 제보 내역</h2>
+                {reports.filter(r => r.reporter === currentUser?.name).length === 0 ? (
+                  <p>아직 작성한 제보가 없습니다.</p>
+                ) : (
+                  <ul className="space-y-4">
+                    {reports
+                      .filter(r => r.reporter === currentUser?.name)
+                      .map((report) => (
+                        <li key={report.id} className="border-b pb-2">
+                          <b>{report.title}</b> <span className="text-xs text-gray-500">({report.date})</span>
+                          <div className="text-sm text-gray-700">{report.description}</div>
+                          <div className="text-xs text-gray-400">상태: {report.status}</div>
+                        </li>
+                      ))}
+                  </ul>
+                )}
+              </div>
+            )}
+            {/* 기존 메인 지도 화면 (기본) */}
             {(currentView === "map" || !currentView) && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
                 {/* 지도 영역 */}
@@ -1746,27 +1800,6 @@ export default function EnvironmentalMapPlatform() {
                           <Badge variant="outline" className="text-xs">
                             {filteredReports.length}건 표시
                           </Badge>
-                          <span className="relative flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-full bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-500 text-white shadow-lg overflow-hidden group hover:shadow-xl transition-all duration-300" style={{ minWidth: 200 }}>
-                            {/* 배경 그라데이션 애니메이션 */}
-                            <span className="absolute inset-0 rounded-full pointer-events-none animate-pulse opacity-20 bg-gradient-to-r from-emerald-300 via-teal-300 to-blue-400" />
-                            {/* 메인 그라데이션 배경 */}
-                            <span className="absolute inset-0 rounded-full pointer-events-none bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-500" />
-                            {/* Soft pulse 애니메이션 */}
-                            <span className="absolute inset-0 rounded-full pointer-events-none animate-soft-pulse opacity-30 bg-gradient-to-r from-emerald-200 via-teal-200 to-blue-300" />
-                            {/* 아이콘 */}
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-white relative z-10 group-hover:scale-110 transition-transform duration-200">
-                              <path d="M12 2C7 7 2 13 12 22C22 13 17 7 12 2Z" fill="currentColor"/>
-                              <circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.8"/>
-                            </svg>
-                            {/* 텍스트 */}
-                            <span className="relative z-10 font-bold tracking-wide" style={{ letterSpacing: '0.02em', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
-                              실시간 환경 이슈를 한눈에!
-                            </span>
-                            {/* 우측 화살표 아이콘 */}
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-white relative z-10 group-hover:translate-x-1 transition-transform duration-200">
-                              <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          </span>
                         </div>
                       </div>
                     </CardHeader>
