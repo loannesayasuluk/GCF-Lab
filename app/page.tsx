@@ -106,7 +106,7 @@ export default function EnvironmentalMapPlatform() {
       title: "강북구 공원 쓰레기 무단투기",
       location: "강북구 번동 공원",
       type: "waste",
-      severity: "medium",
+      severity: "보통",
       reporter: "김철수",
       date: "2024-01-20",
       status: "제보접수",
@@ -127,7 +127,7 @@ export default function EnvironmentalMapPlatform() {
       title: "성북구 대기오염 심각",
       location: "성북구 동소문로",
       type: "air",
-      severity: "high",
+      severity: "높음",
       reporter: "이영희",
       date: "2024-01-19",
       status: "처리중",
@@ -142,7 +142,7 @@ export default function EnvironmentalMapPlatform() {
       title: "종로구 하천 오염",
       location: "종로구 청운동 하천",
       type: "water",
-      severity: "high",
+      severity: "높음",
       reporter: "박민수",
       date: "2024-01-18",
       status: "처리완료",
@@ -157,7 +157,7 @@ export default function EnvironmentalMapPlatform() {
       title: "마포구 야간 소음",
       location: "마포구 합정동",
       type: "noise",
-      severity: "medium",
+      severity: "보통",
       reporter: "최지영",
       date: "2024-01-17",
       status: "제보접수",
@@ -170,7 +170,7 @@ export default function EnvironmentalMapPlatform() {
       title: "용산구 폐건축자재 불법투기",
       location: "용산구 한강대로",
       type: "waste",
-      severity: "low",
+      severity: "낮음",
       reporter: "정수민",
       date: "2024-01-16",
       status: "처리중",
@@ -192,26 +192,44 @@ export default function EnvironmentalMapPlatform() {
       likes: 15,
       comments: 8,
       category: "모임",
+      isLiked: false,
+      commentsList: []
     },
     {
       id: 2,
       title: "미세먼지 측정 결과 공유",
       author: "데이터분석가",
       date: "2024-01-19",
-      content: "이번 주 우리 지역 미세먼지 농도 분석 결과를 공유합니다.",
-      likes: 23,
-      comments: 12,
+      content: "이번 주 미세먼지 측정 결과를 공유합니다. 전반적으로 양호한 수준을 보이고 있습니다.",
+      likes: 12,
+      comments: 5,
       category: "정보",
+      isLiked: false,
+      commentsList: []
     },
     {
       id: 3,
-      title: "환경 보호를 위한 실천 방법",
-      author: "환경전문가",
+      title: "환경 교육 프로그램 추천해주세요",
+      author: "초보환경인",
       date: "2024-01-18",
-      content: "일상에서 쉽게 실천할 수 있는 환경 보호 방법들을 소개합니다.",
-      likes: 45,
-      comments: 18,
-      category: "팁",
+      content: "환경에 대해 더 배우고 싶은데, 좋은 교육 프로그램이나 강의를 추천해주세요.",
+      likes: 8,
+      comments: 12,
+      category: "질문",
+      isLiked: false,
+      commentsList: []
+    },
+    {
+      id: 4,
+      title: "플라스틱 사용 줄이기 캠페인 제안",
+      author: "그린라이프",
+      date: "2024-01-17",
+      content: "우리 동네에서 플라스틱 사용을 줄이는 캠페인을 진행해보는 건 어떨까요?",
+      likes: 25,
+      comments: 15,
+      category: "제안",
+      isLiked: false,
+      commentsList: []
     }
   ])
 
@@ -507,7 +525,9 @@ export default function EnvironmentalMapPlatform() {
       ...postData,
       id: Date.now(),
       likes: 0,
-      comments: 0
+      comments: 0,
+      isLiked: false,
+      commentsList: []
     }
     setCommunityPosts(prev => [newPost, ...prev])
   }
@@ -529,7 +549,11 @@ export default function EnvironmentalMapPlatform() {
   const handleAddComment = (postId: number, comment: { author: string; content: string; date: string }) => {
     setCommunityPosts(prevPosts => prevPosts.map(post =>
       post.id === postId
-        ? { ...post, comments: (typeof post.comments === 'number' ? 1 : (post.comments?.length || 0)) + 1, commentsList: [...(post.commentsList || []), comment] }
+        ? { 
+            ...post, 
+            comments: post.comments + 1, 
+            commentsList: [...(post.commentsList || []), comment] 
+          }
         : post
     ))
   }
@@ -538,7 +562,11 @@ export default function EnvironmentalMapPlatform() {
   const handleToggleLike = (postId: number, isLike: boolean) => {
     setCommunityPosts(prevPosts => prevPosts.map(post =>
       post.id === postId
-        ? { ...post, likes: Math.max(0, (post.likes || 0) + (isLike ? 1 : -1)) }
+        ? { 
+            ...post, 
+            likes: Math.max(0, post.likes + (isLike ? 1 : -1)),
+            isLiked: isLike
+          }
         : post
     ))
   }
@@ -552,11 +580,16 @@ export default function EnvironmentalMapPlatform() {
           <div className="hidden md:flex justify-between items-center h-16">
             {/* 로고 */}
             <a href="/" className="flex flex-col items-start group select-none focus:outline-none">
-              <div className="flex items-baseline gap-2">
-                <Leaf className="h-8 w-8 text-green-600" />
-                <span className="text-2xl font-extrabold text-gray-900 tracking-tight group-hover:text-green-700 transition-colors">GCF LAB</span>
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <Leaf className="h-12 w-12 text-emerald-500 group-hover:text-emerald-600 transition-all duration-300 transform group-hover:scale-110" />
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-4xl font-black text-gray-900 tracking-tight group-hover:text-emerald-700 transition-colors duration-300 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text group-hover:from-emerald-700 group-hover:to-emerald-500">GCF LAB</span>
+                  <span className="text-sm text-gray-500 font-medium mt-1 group-hover:text-emerald-600 transition-colors duration-300">인공지능 환경 제보 플랫폼</span>
+                </div>
               </div>
-              <span className="text-sm text-gray-500 font-medium mt-1 ml-10 group-hover:text-green-600 transition-colors">인공지능 환경 제보 플랫폼</span>
             </a>
             {/* 네비게이션 */}
             <nav className="flex space-x-8">
@@ -582,7 +615,11 @@ export default function EnvironmentalMapPlatform() {
                   </Menu>
                 </>
               ) : (
-                <Button onClick={() => setShowAuthDialog(true)} className="bg-green-600 hover:bg-green-700 text-base px-6 py-3">로그인</Button>
+                <Button onClick={() => setShowAuthDialog(true)} className="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white font-bold px-10 py-4 rounded-xl shadow-2xl hover:shadow-emerald-500/25 transition-all duration-500 transform hover:scale-105 hover:-translate-y-1">
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  <LogIn className="h-6 w-6 mr-3 relative z-10" />
+                  <span className="relative z-10 text-lg">로그인</span>
+                </Button>
               )}
             </div>
           </div>
@@ -675,9 +712,9 @@ export default function EnvironmentalMapPlatform() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">전체 심각도</SelectItem>
-                  <SelectItem value="low">낮음</SelectItem>
-                  <SelectItem value="medium">보통</SelectItem>
-                  <SelectItem value="high">높음</SelectItem>
+                  <SelectItem value="낮음">낮음</SelectItem>
+                  <SelectItem value="보통">보통</SelectItem>
+                  <SelectItem value="높음">높음</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Plus, Users, MessageSquare, Calendar, Heart, ChevronDown, ChevronUp, ThumbsUp, Reply } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -26,16 +26,8 @@ interface ExpandedPosts {
   [key: number]: boolean
 }
 
-interface Comments {
-  [key: number]: Comment[]
-}
-
 interface NewComments {
   [key: number]: string
-}
-
-interface LikedPosts {
-  [key: number]: boolean
 }
 
 export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, currentUser, isLoggedIn }: CommunityViewProps) {
@@ -45,26 +37,8 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
   const [newPostCategory, setNewPostCategory] = useState<CommunityPost['category'] | "">("")
   const [showGuide, setShowGuide] = useState(false)
   const [expandedPosts, setExpandedPosts] = useState<ExpandedPosts>({})
-  const [comments, setComments] = useState<Comments>({})
   const [newComments, setNewComments] = useState<NewComments>({})
-  const [likedPosts, setLikedPosts] = useState<LikedPosts>({})
-  const [postLikes, setPostLikes] = useState<{[key: number]: number}>({})
   const { toast } = useToast()
-
-  // 초기 좋아요 수 및 댓글 수 설정 (posts 변경 시 동기화)
-  useEffect(() => {
-    const initialLikes: {[key: number]: number} = {}
-    posts.forEach(post => {
-      initialLikes[post.id] = post.likes
-    })
-    setPostLikes(initialLikes)
-    // 댓글도 동기화
-    const initialComments: Comments = {}
-    posts.forEach(post => {
-      initialComments[post.id] = []
-    })
-    setComments(initialComments)
-  }, [posts])
 
   const handleSubmitPost = () => {
     if (!newPostTitle.trim() || !newPostContent.trim() || !newPostCategory) {
@@ -113,24 +87,18 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
       })
       return
     }
-    setLikedPosts(prev => {
-      const newLikedPosts = { ...prev }
-      if (newLikedPosts[postId]) {
-        newLikedPosts[postId] = false
-        onToggleLike(postId, false)
-        toast({
-          title: "공감 취소",
-          description: "공감을 취소했습니다.",
-        })
-      } else {
-        newLikedPosts[postId] = true
-        onToggleLike(postId, true)
-        toast({
-          title: "공감 완료",
-          description: "게시글에 공감했습니다.",
-        })
-      }
-      return newLikedPosts
+    
+    // 현재 포스트의 좋아요 상태 확인
+    const currentPost = posts.find(post => post.id === postId)
+    if (!currentPost) return
+    
+    // 좋아요 토글 (현재 상태의 반대로)
+    const isCurrentlyLiked = currentPost.isLiked || false
+    onToggleLike(postId, !isCurrentlyLiked)
+    
+    toast({
+      title: isCurrentlyLiked ? "공감 취소" : "공감 완료",
+      description: isCurrentlyLiked ? "공감을 취소했습니다." : "게시글에 공감했습니다.",
     })
   }
 
@@ -160,26 +128,19 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
       })
       return
     }
+    
     try {
-      const newComment: Comment = {
-        id: Date.now(),
-        content: comment.trim(),
+      onAddComment(postId, {
         author: currentUser?.name || "익명",
+        content: comment.trim(),
         date: new Date().toLocaleDateString()
-      }
-      setComments(prev => ({
-        ...prev,
-        [postId]: [...(prev[postId] || []), newComment]
-      }))
+      })
+      
       setNewComments(prev => ({
         ...prev,
         [postId]: ""
       }))
-      onAddComment(postId, {
-        author: newComment.author,
-        content: newComment.content,
-        date: newComment.date
-      })
+      
       toast({
         title: "댓글 작성 완료",
         description: "댓글이 등록되었습니다.",
@@ -297,40 +258,20 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
-                      if (!isLoggedIn) {
-                        toast({
-                          title: "로그인 필요",
-                          description: "공감하려면 로그인이 필요합니다.",
-                          variant: "destructive",
-                        })
-                        return
-                      }
-                      handleLike(post.id)
-                    }}
-                    className={`flex items-center space-x-1 ${likedPosts[post.id] ? 'text-red-600' : 'text-gray-600'}`}
+                    onClick={() => handleLike(post.id)}
+                    className={`flex items-center space-x-1 ${post.isLiked ? 'text-red-600' : 'text-gray-600'}`}
                   >
-                    <Heart className={`h-4 w-4 ${likedPosts[post.id] ? 'fill-current' : ''}`} />
-                    <span>{postLikes[post.id] || post.likes}</span>
+                    <Heart className={`h-4 w-4 ${post.isLiked ? 'fill-current' : ''}`} />
+                    <span>{post.likes}</span>
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
-                      if (!isLoggedIn) {
-                        toast({
-                          title: "로그인 필요",
-                          description: "댓글을 작성하려면 로그인이 필요합니다.",
-                          variant: "destructive",
-                        })
-                        return
-                      }
-                      handleComment(post.id)
-                    }}
+                    onClick={() => handleComment(post.id)}
                     className="flex items-center space-x-1 text-gray-600"
                   >
                     <MessageSquare className="h-4 w-4" />
-                    <span>{(comments[post.id] || []).length + (post.comments || 0)}</span>
+                    <span>{post.comments}</span>
                   </Button>
                 </div>
               </div>
@@ -342,8 +283,8 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
                   
                   {/* 기존 댓글들 */}
                   <div className="space-y-3 mb-4">
-                    {(comments[post.id] || []).map((comment) => (
-                      <div key={comment.id} className="bg-gray-50 p-3 rounded-lg">
+                    {(post.commentsList || []).map((comment, index) => (
+                      <div key={index} className="bg-gray-50 p-3 rounded-lg">
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-medium text-sm">{comment.author}</span>
                           <span className="text-xs text-gray-500">{comment.date}</span>
@@ -390,6 +331,58 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
           </CardContent>
         </Card>
       )}
+
+      {/* 글쓰기 다이얼로그 */}
+      <Dialog open={showNewPostDialog} onOpenChange={setShowNewPostDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>새 게시글 작성</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="title">제목</Label>
+              <Input
+                id="title"
+                value={newPostTitle}
+                onChange={(e) => setNewPostTitle(e.target.value)}
+                placeholder="게시글 제목을 입력하세요"
+              />
+            </div>
+            <div>
+              <Label htmlFor="category">카테고리</Label>
+              <Select value={newPostCategory} onValueChange={(value: CommunityPost['category']) => setNewPostCategory(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="카테고리를 선택하세요" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="모임">모임</SelectItem>
+                  <SelectItem value="정보">정보</SelectItem>
+                  <SelectItem value="질문">질문</SelectItem>
+                  <SelectItem value="제안">제안</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="content">내용</Label>
+              <Textarea
+                id="content"
+                value={newPostContent}
+                onChange={(e) => setNewPostContent(e.target.value)}
+                placeholder="게시글 내용을 입력하세요"
+                rows={6}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowNewPostDialog(false)}>
+                취소
+              </Button>
+              <Button onClick={handleSubmitPost}>
+                작성 완료
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 } 

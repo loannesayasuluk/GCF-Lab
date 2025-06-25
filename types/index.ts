@@ -4,7 +4,7 @@ export interface Report {
   title: string
   location: string
   type: 'waste' | 'air' | 'water' | 'noise'
-  severity: 'low' | 'medium' | 'high'
+  severity: '낮음' | '보통' | '높음'
   reporter: string
   date: string
   status: '제보접수' | '처리중' | '처리완료'
@@ -37,7 +37,13 @@ export interface CommunityPost {
   content: string
   likes: number
   comments: number
-  category: '모임' | '정보' | '팁' | '질문'
+  category: '모임' | '정보' | '팁' | '질문' | '제안'
+  isLiked?: boolean
+  commentsList?: Array<{
+    author: string
+    content: string
+    date: string
+  }>
 }
 
 // 댓글 타입
@@ -70,7 +76,7 @@ export interface Filters {
   type: 'all' | 'waste' | 'air' | 'water' | 'noise'
   status: 'all' | '제보접수' | '처리중' | '처리완료'
   dateRange: 'all' | 'today' | 'week' | 'month'
-  severity: 'all' | 'low' | 'medium' | 'high'
+  severity: 'all' | '낮음' | '보통' | '높음'
 }
 
 // 위치 타입
