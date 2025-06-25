@@ -43,8 +43,10 @@ import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 import SimpleMap from "@/components/simple-map"
 import { Menu } from "@headlessui/react"
-import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
+import { collection, addDoc, getDocs, query, where, updateDoc, deleteDoc, doc, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from "firebase/auth";
 
 // OpenAI AI 분석 호출 함수
 async function fetchAISummary(content: string) {
@@ -404,87 +406,187 @@ export default function EnvironmentalMapPlatform() {
     }
   }
 
-  // 실시간 알림 추가
-  const addNotification = (message, type = "info") => {
+  // 알림 추가 (Firestore 연동)
+  const addNotification = async (message, type = "info", targetUserId = null) => {
     const newNotification = {
       id: Date.now(),
       message,
-      type,
-      timestamp: new Date().toLocaleString(),
+      type, // "info", "warning", "success", "error"
+      timestamp: new Date().toISOString(),
       read: false,
+      targetUserId: targetUserId || currentUser?.uid, // 특정 사용자에게만 알림
+      createdAt: new Date().toISOString(),
     }
-    setNotifications((prev) => [newNotification, ...prev])
-    setUnreadCount((prev) => prev + 1)
-  }
-
-  // 알림 읽음 처리
-  const markNotificationAsRead = (id) => {
-    setNotifications((prev) => prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif)))
-    setUnreadCount((prev) => Math.max(0, prev - 1))
-  }
-
-  // 로그인 처리
-  const handleLogin = async (email, password) => {
-    if (email && password) {
-      // Firestore에서 이메일/비밀번호로 사용자 조회
-      const q = query(
-        collection(db, "users"),
-        where("email", "==", email),
-        where("password", "==", password)
-      );
-      const snapshot = await getDocs(q);
-      if (!snapshot.empty) {
-        const userData = snapshot.docs[0].data();
-        setIsLoggedIn(true);
-        setCurrentUser(userData);
-        localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("currentUser", JSON.stringify(userData));
-        setShowAuthDialog(false);
-        setCurrentView("map");
-        toast({
-          title: "로그인 성공",
-          description: `환영합니다, ${userData.name}님!`,
-        });
-        addNotification(`${userData.name}님이 로그인했습니다.`, "success");
-      } else {
-        toast({
-          title: "로그인 실패",
-          description: "이메일 또는 비밀번호가 올바르지 않습니다.",
-          variant: "destructive",
-        });
+    
+    try {
+      // Firestore에 알림 저장
+      await addDoc(collection(db, "notifications"), newNotification);
+      
+      // 현재 사용자에게만 알림 표시
+      if (!targetUserId || targetUserId === currentUser?.uid) {
+        setNotifications((prev) => [newNotification, ...prev]);
+        setUnreadCount((prev) => prev + 1);
       }
+    } catch (error) {
+      console.error("알림 저장 실패:", error);
+    }
+  }
+
+  // 알림 읽음 처리 (Firestore 연동)
+  const markNotificationAsRead = async (id) => {
+    try {
+      // Firestore에서 알림 상태 업데이트
+      const notificationRef = doc(db, "notifications", String(id));
+      await updateDoc(notificationRef, { read: true });
+      
+      // 로컬 상태 업데이트
+      setNotifications((prev) => prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif)));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error("알림 읽음 처리 실패:", error);
+    }
+  }
+
+  // 모든 알림 읽음 처리
+  const markAllNotificationsAsRead = async () => {
+    try {
+      const unreadNotifications = notifications.filter(n => !n.read);
+      
+      // Firestore에서 일괄 업데이트
+      const batch = writeBatch(db);
+      unreadNotifications.forEach(notification => {
+        const notificationRef = doc(db, "notifications", String(notification.id));
+        batch.update(notificationRef, { read: true });
+      });
+      await batch.commit();
+      
+      // 로컬 상태 업데이트
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error("일괄 읽음 처리 실패:", error);
+    }
+  }
+
+  // 알림 삭제
+  const deleteNotification = async (id) => {
+    try {
+      // Firestore에서 알림 삭제
+      await deleteDoc(doc(db, "notifications", String(id)));
+      
+      // 로컬 상태 업데이트
+      const notification = notifications.find(n => n.id === id);
+      setNotifications(prev => prev.filter(n => n.id !== id));
+      if (notification && !notification.read) {
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+    } catch (error) {
+      console.error("알림 삭제 실패:", error);
+    }
+  }
+
+  // 로그인 처리 (Firebase Auth)
+  const handleLogin = async (email, password) => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const isAdmin = ADMIN_EMAILS.includes(userCredential.user.email);
+      const name = isAdmin ? ADMIN_NAME : userCredential.user.displayName;
+      setIsLoggedIn(true);
+      setCurrentUser({
+        email: userCredential.user.email,
+        name,
+        uid: userCredential.user.uid,
+        isAdmin,
+      });
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("currentUser", JSON.stringify({
+        email: userCredential.user.email,
+        name,
+        uid: userCredential.user.uid,
+        isAdmin,
+      }));
+      
+      // 사용자 알림 불러오기
+      await loadUserNotifications(userCredential.user.uid);
+      
+      setShowAuthDialog(false);
+      setCurrentView("map");
+      toast({
+        title: "로그인 성공",
+        description: `환영합니다, ${name || userCredential.user.email}님!`,
+      });
+    } catch (error) {
+      toast({
+        title: "로그인 실패",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
-  // 회원가입 처리
-  const handleSignup = async (email, password, name) => {
-    if (email && password && name) {
-      // 1. 중복 체크 (이메일)
+  // 사용자 알림 불러오기
+  const loadUserNotifications = async (userId) => {
+    try {
       const q = query(
-        collection(db, "users"),
-        where("email", "==", email)
+        collection(db, "notifications"),
+        where("targetUserId", "==", userId),
+        where("createdAt", ">=", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()) // 최근 30일
       );
-      const snapshot = await getDocs(q);
-      if (!snapshot.empty) {
-        toast({
-          title: "회원가입 실패",
-          description: "이미 가입된 이메일입니다.",
-          variant: "destructive",
-        });
-        return;
-      }
-      // 2. Firestore에 회원 정보 저장
-      await addDoc(collection(db, "users"), {
-        email,
-        password, // 실제 서비스에서는 암호화 필요!
-        name,
-        joindate: new Date().toISOString().split("T")[0],
+      const querySnapshot = await getDocs(q);
+      const userNotifications = [];
+      let unreadCount = 0;
+      
+      querySnapshot.forEach((doc) => {
+        const notification = { ...doc.data(), id: doc.id };
+        userNotifications.push(notification);
+        if (!notification.read) {
+          unreadCount++;
+        }
       });
+      
+      // 최신순으로 정렬
+      userNotifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      
+      setNotifications(userNotifications);
+      setUnreadCount(unreadCount);
+    } catch (error) {
+      console.error("알림 불러오기 실패:", error);
+    }
+  };
+
+  // 회원가입 처리 (Firebase Auth)
+  const handleSignup = async (email, password, name) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName: name });
       toast({
         title: "회원가입 성공",
-        description: "계정이 생성되었습니다!",
+        description: "이메일 인증 메일이 발송되었습니다.",
       });
       setShowAuthDialog(false);
+    } catch (error) {
+      toast({
+        title: "회원가입 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // 비밀번호 찾기 (Firebase Auth)
+  const handlePasswordReset = async (email) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast({
+        title: "비밀번호 재설정 메일 발송",
+        description: "입력하신 이메일로 비밀번호 재설정 링크가 전송되었습니다.",
+      });
+    } catch (error) {
+      toast({
+        title: "비밀번호 재설정 실패",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -530,6 +632,7 @@ export default function EnvironmentalMapPlatform() {
       const newReport = {
         ...reportData,
         reporter: currentUser?.name || "익명",
+        reporterUid: currentUser?.uid,  // Firebase UID 추가
         date: new Date().toISOString().split("T")[0],
         status: "제보접수",
         coordinates: location || { lat: 37.5665 + Math.random() * 0.1, lng: 126.978 + Math.random() * 0.1 },
@@ -560,24 +663,66 @@ export default function EnvironmentalMapPlatform() {
   };
 
   // 신고 상태 업데이트
-  const updateReportStatus = (reportId, newStatus, assignedTo = null, notes = "") => {
-    setReports((prev) =>
-      prev.map((report) =>
-        report.id === reportId
-          ? {
-              ...report,
-              status: newStatus,
-              assignedTo: assignedTo || report.assignedTo,
-              processingNotes: notes || report.processingNotes,
-              ...(newStatus === "처리완료" && { resolvedDate: new Date().toISOString().split("T")[0] }),
-            }
-          : report,
-      ),
-    )
+  const updateReportStatus = async (reportId, newStatus, assignedTo = null, notes = "") => {
+    const report = reports.find((r) => r.id === reportId);
+    if (!report) return;
 
-    const report = reports.find((r) => r.id === reportId)
-    if (report) {
-      addNotification(`${report.title} 상태가 ${newStatus}로 변경되었습니다.`, "info")
+    try {
+      // Firestore에서 제보 상태 업데이트
+      const reportRef = doc(db, "reports", String(reportId));
+      await updateDoc(reportRef, {
+        status: newStatus,
+        assignedTo: assignedTo || report.assignedTo,
+        processingNotes: notes || report.processingNotes,
+        ...(newStatus === "처리완료" && { resolvedDate: new Date().toISOString().split("T")[0] }),
+      });
+
+      // 로컬 상태 업데이트
+      setReports((prev) =>
+        prev.map((report) =>
+          report.id === reportId
+            ? {
+                ...report,
+                status: newStatus,
+                assignedTo: assignedTo || report.assignedTo,
+                processingNotes: notes || report.processingNotes,
+                ...(newStatus === "처리완료" && { resolvedDate: new Date().toISOString().split("T")[0] }),
+              }
+            : report,
+        ),
+      );
+
+      // 제보 작성자에게 개인 알림 전송
+      if (report.reporterUid) {
+        let notificationMessage = "";
+        let notificationType = "info";
+        
+        switch (newStatus) {
+          case "처리중":
+            notificationMessage = `귀하의 제보 "${report.title}"이 처리 중입니다.`;
+            notificationType = "info";
+            break;
+          case "처리완료":
+            notificationMessage = `귀하의 제보 "${report.title}"이 완료되었습니다.`;
+            notificationType = "success";
+            break;
+          default:
+            notificationMessage = `귀하의 제보 "${report.title}" 상태가 ${newStatus}로 변경되었습니다.`;
+            notificationType = "info";
+        }
+        
+        await addNotification(notificationMessage, notificationType, report.reporterUid);
+      }
+
+      // 관리자에게 전체 알림
+      addNotification(`${report.title} 상태가 ${newStatus}로 변경되었습니다.`, "info");
+    } catch (error) {
+      console.error("제보 상태 업데이트 실패:", error);
+      toast({
+        title: "상태 업데이트 실패",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   }
 
@@ -1500,6 +1645,9 @@ export default function EnvironmentalMapPlatform() {
     }
   }, []);
 
+  const ADMIN_EMAILS = ["ahncsjyw@naver.com"];
+  const ADMIN_NAME = "사도요한";
+
   return (
     <div>
       {/* Header */}
@@ -1628,7 +1776,19 @@ export default function EnvironmentalMapPlatform() {
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md">
                       <DialogHeader>
-                        <DialogTitle>알림</DialogTitle>
+                        <DialogTitle className="flex items-center justify-between">
+                          <span>알림</span>
+                          {unreadCount > 0 && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={markAllNotificationsAsRead}
+                              className="text-xs"
+                            >
+                              모두 읽음
+                            </Button>
+                          )}
+                        </DialogTitle>
                       </DialogHeader>
                       <div className="max-h-96 overflow-y-auto space-y-2">
                         {notifications.length === 0 ? (
@@ -1637,13 +1797,35 @@ export default function EnvironmentalMapPlatform() {
                           notifications.map((notif) => (
                             <div
                               key={notif.id}
-                              className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                              className={`p-3 rounded-lg border transition-colors ${
                                 notif.read ? "bg-gray-50" : "bg-blue-50 border-blue-200"
                               }`}
-                              onClick={() => markNotificationAsRead(notif.id)}
                             >
-                              <p className="text-sm font-medium">{notif.message}</p>
-                              <p className="text-xs text-gray-500 mt-1">{notif.timestamp}</p>
+                              <div className="flex items-start justify-between">
+                                <div 
+                                  className="flex-1 cursor-pointer"
+                                  onClick={() => markNotificationAsRead(notif.id)}
+                                >
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className={`w-2 h-2 rounded-full ${
+                                      notif.type === "success" ? "bg-green-500" :
+                                      notif.type === "warning" ? "bg-yellow-500" :
+                                      notif.type === "error" ? "bg-red-500" :
+                                      "bg-blue-500"
+                                    }`} />
+                                    <p className="text-sm font-medium">{notif.message}</p>
+                                  </div>
+                                  <p className="text-xs text-gray-500">
+                                    {new Date(notif.timestamp).toLocaleString()}
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={() => deleteNotification(notif.id)}
+                                  className="ml-2 text-gray-400 hover:text-red-500 transition-colors"
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                              </div>
                             </div>
                           ))
                         )}
@@ -1760,27 +1942,120 @@ export default function EnvironmentalMapPlatform() {
             {currentView === "myinfo" && isLoggedIn && (
               <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow">
                 <h2 className="text-2xl font-bold mb-4">내 정보</h2>
-                <p><b>이름:</b> {currentUser?.name}</p>
-                <p><b>이메일:</b> {currentUser?.email}</p>
-                <p><b>가입일:</b> {currentUser?.joinDate}</p>
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    const form = e.target;
+                    const newName = form.name.value;
+                    if (newName && newName !== currentUser?.name) {
+                      try {
+                        await updateProfile(auth.currentUser, { displayName: newName });
+                        setCurrentUser({ ...currentUser, name: newName });
+                        localStorage.setItem("currentUser", JSON.stringify({ ...currentUser, name: newName }));
+                        toast({ title: "이름 변경 완료", description: "닉네임이 변경되었습니다." });
+                      } catch (err) {
+                        toast({ title: "이름 변경 실패", description: err.message, variant: "destructive" });
+                      }
+                    }
+                  }}
+                  className="space-y-4"
+                >
+                  <label className="block mb-2 font-medium">이름(닉네임)</label>
+                  <input
+                    name="name"
+                    defaultValue={currentUser?.name}
+                    className="border rounded px-3 py-2 w-full mb-2"
+                  />
+                  <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">이름 변경</button>
+                </form>
+                <p className="mt-4"><b>이메일:</b> {currentUser?.email}</p>
+                <p><b>가입일:</b> {currentUser?.joinDate || "-"}</p>
                 {currentUser?.isAdmin && <p className="text-blue-600">관리자 계정</p>}
+                <button
+                  className="mt-6 w-full bg-blue-500 text-white py-2 rounded"
+                  onClick={async () => {
+                    try {
+                      await sendPasswordResetEmail(auth, currentUser?.email);
+                      toast({ title: "비밀번호 재설정 메일 발송", description: "입력하신 이메일로 비밀번호 재설정 링크가 전송되었습니다." });
+                    } catch (err) {
+                      toast({ title: "비밀번호 재설정 실패", description: err.message, variant: "destructive" });
+                    }
+                  }}
+                >
+                  비밀번호 재설정 메일 보내기
+                </button>
               </div>
             )}
             {/* 내 제보 내역 화면 */}
             {currentView === "myreports" && isLoggedIn && (
               <div className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-lg shadow">
                 <h2 className="text-2xl font-bold mb-4">내 제보 내역</h2>
-                {reports.filter(r => r.reporter === currentUser?.name).length === 0 ? (
+                {reports.filter(r => r.reporterUid === currentUser?.uid).length === 0 ? (
                   <p>아직 작성한 제보가 없습니다.</p>
                 ) : (
                   <ul className="space-y-4">
                     {reports
-                      .filter(r => r.reporter === currentUser?.name)
-                      .map((report) => (
-                        <li key={report.id} className="border-b pb-2">
-                          <b>{report.title}</b> <span className="text-xs text-gray-500">({report.date})</span>
-                          <div className="text-sm text-gray-700">{report.description}</div>
-                          <div className="text-xs text-gray-400">상태: {report.status}</div>
+                      .filter(r => r.reporterUid === currentUser?.uid)
+                      .map((report, idx) => (
+                        <li key={report.id || report.date + report.title + idx} className="border-b pb-2">
+                          <form
+                            onSubmit={async e => {
+                              e.preventDefault();
+                              const form = e.target;
+                              const updated = {
+                                ...report,
+                                title: form.title.value,
+                                description: form.description.value,
+                                type: form.type.value,
+                                severity: form.severity.value,
+                              };
+                              setReports(prev => prev.map(r => (r === report ? updated : r)));
+                              if (report.id) {
+                                try {
+                                  await updateDoc(doc(db, "reports", String(report.id)), updated);
+                                  toast({ title: "제보 수정 완료", description: "제보 내용이 수정되었습니다." });
+                                } catch (err) {
+                                  toast({ title: "수정 실패", description: err.message, variant: "destructive" });
+                                }
+                              }
+                            }}
+                            className="space-y-2"
+                          >
+                            <input name="title" defaultValue={report.title} className="border rounded px-2 py-1 w-full" />
+                            <textarea name="description" defaultValue={report.description} className="border rounded px-2 py-1 w-full" />
+                            <select name="type" defaultValue={report.type} className="border rounded px-2 py-1">
+                              <option value="waste">폐기물</option>
+                              <option value="air">대기오염</option>
+                              <option value="water">수질오염</option>
+                              <option value="noise">소음</option>
+                            </select>
+                            <select name="severity" defaultValue={report.severity} className="border rounded px-2 py-1">
+                              <option value="high">심각</option>
+                              <option value="medium">보통</option>
+                              <option value="low">경미</option>
+                            </select>
+                            <button type="submit" className="bg-green-600 text-white px-3 py-1 rounded">수정</button>
+                            {currentUser?.isAdmin && (
+                              <button
+                                type="button"
+                                className="bg-red-500 text-white px-3 py-1 rounded ml-2"
+                                onClick={async () => {
+                                  setReports(prev => prev.filter(r => r !== report));
+                                  if (report.id) {
+                                    try {
+                                      await deleteDoc(doc(db, "reports", String(report.id)));
+                                      toast({ title: "제보 삭제", description: "제보가 삭제되었습니다." });
+                                    } catch (err) {
+                                      toast({ title: "삭제 실패", description: err.message, variant: "destructive" });
+                                    }
+                                  }
+                                }}
+                              >
+                                삭제
+                              </button>
+                            )}
+                          </form>
+                          <div className="text-xs text-gray-400 mt-1">상태: {report.status}</div>
                         </li>
                       ))}
                   </ul>
@@ -2106,6 +2381,68 @@ export default function EnvironmentalMapPlatform() {
               ) : (
                 <div className="mb-4 p-4 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 text-sm leading-relaxed">
                   {selectedReport.description}
+                </div>
+              )}
+
+              {/* 4. 수정/삭제 버튼 (본인 제보이거나 관리자인 경우) */}
+              {(selectedReport.reporterUid === currentUser?.uid || currentUser?.isAdmin) && (
+                <div className="flex gap-2 mt-4">
+                  {/* 수정 버튼: 제보 작성자만 */}
+                  {selectedReport.reporterUid === currentUser?.uid && (
+                    <button
+                      className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
+                      onClick={() => {
+                        // 수정 모드로 전환
+                        const newTitle = prompt("제목을 수정하세요:", selectedReport.title);
+                        if (newTitle && newTitle !== selectedReport.title) {
+                          const newDescription = prompt("내용을 수정하세요:", selectedReport.description);
+                          if (newDescription) {
+                            const updated = {
+                              ...selectedReport,
+                              title: newTitle,
+                              description: newDescription,
+                            };
+                            setReports(prev => prev.map(r => (r === selectedReport ? updated : r)));
+                            if (selectedReport.id) {
+                              updateDoc(doc(db, "reports", String(selectedReport.id)), updated)
+                                .then(() => {
+                                  toast({ title: "제보 수정 완료", description: "제보 내용이 수정되었습니다." });
+                                  setSelectedReport(updated);
+                                })
+                                .catch(err => {
+                                  toast({ title: "수정 실패", description: err.message, variant: "destructive" });
+                                });
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      수정
+                    </button>
+                  )}
+                  {/* 삭제 버튼: 관리자만 */}
+                  {currentUser?.isAdmin && (
+                    <button
+                      className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
+                      onClick={() => {
+                        if (confirm("정말로 이 제보를 삭제하시겠습니까?")) {
+                          setReports(prev => prev.filter(r => r !== selectedReport));
+                          if (selectedReport.id) {
+                            deleteDoc(doc(db, "reports", String(selectedReport.id)))
+                              .then(() => {
+                                toast({ title: "제보 삭제", description: "제보가 삭제되었습니다." });
+                                setSelectedReport(null);
+                              })
+                              .catch(err => {
+                                toast({ title: "삭제 실패", description: err.message, variant: "destructive" });
+                              });
+                          }
+                        }
+                      }}
+                    >
+                      삭제
+                    </button>
+                  )}
                 </div>
               )}
 
