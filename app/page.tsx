@@ -576,30 +576,26 @@ export default function EnvironmentalMapPlatform() {
       {/* 헤더 */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* PC 헤더 */}
-          <div className="hidden md:flex justify-between items-center h-16">
-            {/* 로고 */}
-            <a href="/" className="flex flex-col items-start group select-none focus:outline-none">
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <Leaf className="h-12 w-12 text-emerald-500 group-hover:text-emerald-600 transition-all duration-300 transform group-hover:scale-110" />
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-4xl font-black text-gray-900 tracking-tight group-hover:text-emerald-700 transition-colors duration-300 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text group-hover:from-emerald-700 group-hover:to-emerald-500">GCF LAB</span>
-                  <span className="text-sm text-gray-500 font-medium mt-1 group-hover:text-emerald-600 transition-colors duration-300">인공지능 환경 제보 플랫폼</span>
-                </div>
-              </div>
+          <div className="flex justify-between items-center h-24 md:h-28">
+            {/* 로고 (왼쪽) */}
+            <a href="/" className="flex flex-row items-center gap-5 group select-none focus:outline-none">
+              <span className="flex items-center justify-center bg-gradient-to-br from-green-300 via-emerald-400 to-green-600 rounded-full p-3 shadow-lg">
+                <Leaf className="h-14 w-14 text-emerald-700 group-hover:text-emerald-900 transition-all duration-300" />
+              </span>
+              <span className="flex flex-col justify-center">
+                <span className="text-5xl font-extrabold tracking-tight text-gray-900 group-hover:text-emerald-700 transition-colors" style={{ fontFamily: 'Pretendard, Noto Sans KR, sans-serif' }}>GCF LAB</span>
+                <span className="text-base md:text-lg text-gray-500 font-medium mt-1 group-hover:text-emerald-600 transition-colors">인공지능 환경 제보 플랫폼</span>
+              </span>
             </a>
-            {/* 네비게이션 */}
-            <nav className="flex space-x-8">
-              <button onClick={() => setCurrentView("map")} className={`px-3 py-2 rounded-md text-base font-semibold transition-colors ${currentView === "map" ? "bg-green-100 text-green-700" : "text-gray-500 hover:text-gray-700"}`}>지도</button>
-              <button onClick={() => setCurrentView("stats")} className={`px-3 py-2 rounded-md text-base font-semibold transition-colors ${currentView === "stats" ? "bg-green-100 text-green-700" : "text-gray-500 hover:text-gray-700"}`}>통계</button>
-              <button onClick={() => setCurrentView("analysis")} className={`px-3 py-2 rounded-md text-base font-semibold transition-colors ${currentView === "analysis" ? "bg-green-100 text-green-700" : "text-gray-500 hover:text-gray-700"}`}>분석</button>
-              <button onClick={() => setCurrentView("community")} className={`px-3 py-2 rounded-md text-base font-semibold transition-colors ${currentView === "community" ? "bg-green-100 text-green-700" : "text-gray-500 hover:text-gray-700"}`}>커뮤니티</button>
+            {/* 네비게이션 (중앙) */}
+            <nav className="flex-1 flex justify-center items-center space-x-10">
+              <button onClick={() => setCurrentView("map")} className={`px-5 py-2 rounded-xl text-lg font-bold transition-colors ${currentView === "map" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>지도</button>
+              <button onClick={() => setCurrentView("stats")} className={`px-5 py-2 rounded-xl text-lg font-bold transition-colors ${currentView === "stats" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>통계</button>
+              <button onClick={() => setCurrentView("analysis")} className={`px-5 py-2 rounded-xl text-lg font-bold transition-colors ${currentView === "analysis" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>분석</button>
+              <button onClick={() => setCurrentView("community")} className={`px-5 py-2 rounded-xl text-lg font-bold transition-colors ${currentView === "community" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>커뮤니티</button>
             </nav>
-            {/* 사용자 메뉴 */}
-            <div className="flex items-center space-x-4">
+            {/* 로그인 버튼 (오른쪽) */}
+            <div className="flex items-center">
               {isLoggedIn ? (
                 <>
                   <Button onClick={() => setShowReportDialog(true)} className="bg-green-600 hover:bg-green-700 text-base px-6 py-3">제보하기</Button>
@@ -615,33 +611,13 @@ export default function EnvironmentalMapPlatform() {
                   </Menu>
                 </>
               ) : (
-                <Button onClick={() => setShowAuthDialog(true)} className="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white font-bold px-10 py-4 rounded-xl shadow-2xl hover:shadow-emerald-500/25 transition-all duration-500 transform hover:scale-105 hover:-translate-y-1">
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                  <LogIn className="h-6 w-6 mr-3 relative z-10" />
-                  <span className="relative z-10 text-lg">로그인</span>
+                <Button onClick={() => setShowAuthDialog(true)} className="relative overflow-hidden bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white font-extrabold text-xl px-12 py-5 rounded-2xl shadow-2xl hover:shadow-emerald-500/25 transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 flex items-center gap-3">
+                  <LogIn className="h-7 w-7 mr-2 relative z-10" />
+                  <span className="relative z-10">로그인</span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
                 </Button>
               )}
             </div>
-          </div>
-          {/* 모바일 헤더 */}
-          <div className="flex md:hidden justify-between items-center h-16">
-            <a href="/" className="flex items-center space-x-2">
-              <Leaf className="h-8 w-8 text-green-600" />
-              <span className="text-xl font-extrabold text-gray-900 tracking-tight">GCF LAB</span>
-            </a>
-            {/* 햄버거 메뉴 */}
-            <Menu as="div" className="relative">
-              <Menu.Button className="flex items-center justify-center w-12 h-12 rounded-full focus:outline-none">
-                <svg className="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
-              </Menu.Button>
-              <Menu.Items className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                <Menu.Item>{({ active }) => (<button onClick={() => setCurrentView("map")} className={`${active ? 'bg-green-100 text-green-700' : 'text-gray-700'} block px-4 py-3 text-lg w-full text-left`}>지도</button>)}</Menu.Item>
-                <Menu.Item>{({ active }) => (<button onClick={() => setCurrentView("stats")} className={`${active ? 'bg-green-100 text-green-700' : 'text-gray-700'} block px-4 py-3 text-lg w-full text-left`}>통계</button>)}</Menu.Item>
-                <Menu.Item>{({ active }) => (<button onClick={() => setCurrentView("analysis")} className={`${active ? 'bg-green-100 text-green-700' : 'text-gray-700'} block px-4 py-3 text-lg w-full text-left`}>분석</button>)}</Menu.Item>
-                <Menu.Item>{({ active }) => (<button onClick={() => setCurrentView("community")} className={`${active ? 'bg-green-100 text-green-700' : 'text-gray-700'} block px-4 py-3 text-lg w-full text-left`}>커뮤니티</button>)}</Menu.Item>
-                <Menu.Item>{({ active }) => (isLoggedIn ? (<button onClick={handleLogout} className={`${active ? 'bg-gray-100' : ''} block px-4 py-3 text-lg text-red-600 w-full text-left`}>로그아웃</button>) : (<button onClick={() => setShowAuthDialog(true)} className={`${active ? 'bg-green-100 text-green-700' : 'text-gray-700'} block px-4 py-3 text-lg w-full text-left`}>로그인</button>))}</Menu.Item>
-              </Menu.Items>
-            </Menu>
           </div>
         </div>
       </header>
