@@ -42,6 +42,7 @@ import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 import SimpleMap from "@/components/simple-map"
+import { Menu } from "@headlessui/react"
 
 // OpenAI AI 분석 호출 함수
 async function fetchAISummary(content: string) {
@@ -1665,11 +1666,37 @@ export default function EnvironmentalMapPlatform() {
               {/* 사용자 정보 (로그인 시만) */}
               {isLoggedIn ? (
                 <div className="flex items-center space-x-2">
-                  <Avatar>
-                    <AvatarFallback>
-                      <User className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
+                  <Menu as="div" className="relative">
+                    <Menu.Button className="flex items-center focus:outline-none">
+                      <Avatar>
+                        <AvatarFallback>
+                          <User className="h-4 w-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                    </Menu.Button>
+                    <Menu.Items className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-50">
+                      <Menu.Item>
+                        {({ active }) => (
+                          <button
+                            className={`w-full text-left px-4 py-2 ${active ? "bg-gray-100" : ""}`}
+                            onClick={() => setCurrentView("myinfo")}
+                          >
+                            내 정보
+                          </button>
+                        )}
+                      </Menu.Item>
+                      <Menu.Item>
+                        {({ active }) => (
+                          <button
+                            className={`w-full text-left px-4 py-2 ${active ? "bg-gray-100" : ""}`}
+                            onClick={() => setCurrentView("myreports")}
+                          >
+                            내 제보 내역
+                          </button>
+                        )}
+                      </Menu.Item>
+                    </Menu.Items>
+                  </Menu>
                   <div className="hidden sm:block">
                     <p className="text-sm font-medium">{currentUser?.name}</p>
                     {currentUser?.isAdmin && <p className="text-xs text-blue-600">관리자</p>}
