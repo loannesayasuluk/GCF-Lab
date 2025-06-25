@@ -548,7 +548,8 @@ export default function EnvironmentalMapPlatform() {
       {/* 헤더 */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          {/* PC 헤더 */}
+          <div className="hidden md:flex justify-between items-center h-16">
             {/* 로고 */}
             <a href="/" className="flex flex-col justify-center items-start group select-none focus:outline-none">
               <div className="flex items-center space-x-2">
@@ -557,131 +558,53 @@ export default function EnvironmentalMapPlatform() {
               </div>
               <span className="text-xs sm:text-sm text-gray-500 font-medium ml-10 -mt-1 group-hover:text-green-600 transition-colors">인공지능 환경 제보 플랫폼</span>
             </a>
-
             {/* 네비게이션 */}
-            <nav className="hidden md:flex space-x-8">
-              <button
-                onClick={() => setCurrentView("map")}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  currentView === "map"
-                    ? "bg-green-100 text-green-700"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                지도
-              </button>
-              <button
-                onClick={() => setCurrentView("stats")}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  currentView === "stats"
-                    ? "bg-green-100 text-green-700"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                통계
-              </button>
-              <button
-                onClick={() => setCurrentView("analysis")}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  currentView === "analysis"
-                    ? "bg-green-100 text-green-700"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                분석
-              </button>
-              <button
-                onClick={() => setCurrentView("community")}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  currentView === "community"
-                    ? "bg-green-100 text-green-700"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                커뮤니티
-              </button>
+            <nav className="flex space-x-8">
+              <button onClick={() => setCurrentView("map")} className={`px-3 py-2 rounded-md text-base font-semibold transition-colors ${currentView === "map" ? "bg-green-100 text-green-700" : "text-gray-500 hover:text-gray-700"}`}>지도</button>
+              <button onClick={() => setCurrentView("stats")} className={`px-3 py-2 rounded-md text-base font-semibold transition-colors ${currentView === "stats" ? "bg-green-100 text-green-700" : "text-gray-500 hover:text-gray-700"}`}>통계</button>
+              <button onClick={() => setCurrentView("analysis")} className={`px-3 py-2 rounded-md text-base font-semibold transition-colors ${currentView === "analysis" ? "bg-green-100 text-green-700" : "text-gray-500 hover:text-gray-700"}`}>분석</button>
+              <button onClick={() => setCurrentView("community")} className={`px-3 py-2 rounded-md text-base font-semibold transition-colors ${currentView === "community" ? "bg-green-100 text-green-700" : "text-gray-500 hover:text-gray-700"}`}>커뮤니티</button>
             </nav>
-
             {/* 사용자 메뉴 */}
             <div className="flex items-center space-x-4">
               {isLoggedIn ? (
                 <>
-                  <Button
-                    onClick={() => setShowReportDialog(true)}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    제보하기
-                  </Button>
-                  <div className="relative">
-                    <Button variant="ghost" size="sm">
-                      <Bell className="h-4 w-4" />
-                      {unreadCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                          {unreadCount}
-                        </span>
-                      )}
-                    </Button>
-                  </div>
+                  <Button onClick={() => setShowReportDialog(true)} className="bg-green-600 hover:bg-green-700 text-base px-6 py-3">제보하기</Button>
                   <Menu as="div" className="relative">
                     <Menu.Button className="flex items-center space-x-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback>
-                          {currentUser?.name?.charAt(0) || "U"}
-                        </AvatarFallback>
-                      </Avatar>
+                      <Avatar className="h-8 w-8"><AvatarFallback>{currentUser?.name?.charAt(0) || "U"}</AvatarFallback></Avatar>
                     </Menu.Button>
                     <Menu.Items className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                      <Menu.Item>
-                        {({ active }) => (
-                          <button
-                            className={`${
-                              active ? 'bg-gray-100' : ''
-                            } block px-4 py-2 text-sm text-gray-700 w-full text-left`}
-                          >
-                            프로필
-                          </button>
-                        )}
-                      </Menu.Item>
-                      {currentUser?.isAdmin && (
-                        <Menu.Item>
-                          {({ active }) => (
-                            <button
-                              onClick={() => setShowAdminPanel(true)}
-                              className={`${
-                                active ? 'bg-gray-100' : ''
-                              } block px-4 py-2 text-sm text-gray-700 w-full text-left`}
-                            >
-                              관리자 패널
-                            </button>
-                          )}
-                        </Menu.Item>
-                      )}
-                      <Menu.Item>
-                        {({ active }) => (
-                          <button
-                            onClick={handleLogout}
-                            className={`${
-                              active ? 'bg-gray-100' : ''
-                            } block px-4 py-2 text-sm text-gray-700 w-full text-left`}
-                          >
-                            로그아웃
-                          </button>
-                        )}
-                      </Menu.Item>
+                      <Menu.Item>{({ active }) => (<button className={`${active ? 'bg-gray-100' : ''} block px-4 py-2 text-base text-gray-700 w-full text-left`}>프로필</button>)}</Menu.Item>
+                      {currentUser?.isAdmin && (<Menu.Item>{({ active }) => (<button onClick={() => setShowAdminPanel(true)} className={`${active ? 'bg-gray-100' : ''} block px-4 py-2 text-base text-gray-700 w-full text-left`}>관리자 패널</button>)}</Menu.Item>)}
+                      <Menu.Item>{({ active }) => (<button onClick={handleLogout} className={`${active ? 'bg-gray-100' : ''} block px-4 py-2 text-base text-gray-700 w-full text-left`}>로그아웃</button>)}</Menu.Item>
                     </Menu.Items>
                   </Menu>
                 </>
               ) : (
-                <Button
-                  onClick={() => setShowAuthDialog(true)}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <LogIn className="h-4 w-4 mr-2" />
-                  로그인
-                </Button>
+                <Button onClick={() => setShowAuthDialog(true)} className="bg-green-600 hover:bg-green-700 text-base px-6 py-3">로그인</Button>
               )}
             </div>
+          </div>
+          {/* 모바일 헤더 */}
+          <div className="flex md:hidden justify-between items-center h-16">
+            <a href="/" className="flex items-center space-x-2">
+              <Leaf className="h-8 w-8 text-green-600" />
+              <span className="text-xl font-extrabold text-gray-900 tracking-tight">GCF LAB</span>
+            </a>
+            {/* 햄버거 메뉴 */}
+            <Menu as="div" className="relative">
+              <Menu.Button className="flex items-center justify-center w-12 h-12 rounded-full focus:outline-none">
+                <svg className="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
+              </Menu.Button>
+              <Menu.Items className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                <Menu.Item>{({ active }) => (<button onClick={() => setCurrentView("map")} className={`${active ? 'bg-green-100 text-green-700' : 'text-gray-700'} block px-4 py-3 text-lg w-full text-left`}>지도</button>)}</Menu.Item>
+                <Menu.Item>{({ active }) => (<button onClick={() => setCurrentView("stats")} className={`${active ? 'bg-green-100 text-green-700' : 'text-gray-700'} block px-4 py-3 text-lg w-full text-left`}>통계</button>)}</Menu.Item>
+                <Menu.Item>{({ active }) => (<button onClick={() => setCurrentView("analysis")} className={`${active ? 'bg-green-100 text-green-700' : 'text-gray-700'} block px-4 py-3 text-lg w-full text-left`}>분석</button>)}</Menu.Item>
+                <Menu.Item>{({ active }) => (<button onClick={() => setCurrentView("community")} className={`${active ? 'bg-green-100 text-green-700' : 'text-gray-700'} block px-4 py-3 text-lg w-full text-left`}>커뮤니티</button>)}</Menu.Item>
+                <Menu.Item>{({ active }) => (isLoggedIn ? (<button onClick={handleLogout} className={`${active ? 'bg-gray-100' : ''} block px-4 py-3 text-lg text-red-600 w-full text-left`}>로그아웃</button>) : (<button onClick={() => setShowAuthDialog(true)} className={`${active ? 'bg-green-100 text-green-700' : 'text-gray-700'} block px-4 py-3 text-lg w-full text-left`}>로그인</button>))}</Menu.Item>
+              </Menu.Items>
+            </Menu>
           </div>
         </div>
       </header>
