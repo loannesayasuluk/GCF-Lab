@@ -16,6 +16,8 @@ import { CommunityPost, Comment, User } from "@/types"
 interface CommunityViewProps {
   posts: CommunityPost[]
   onAddPost: (post: Omit<CommunityPost, 'id' | 'likes' | 'comments'>) => void
+  onAddComment: (postId: number, comment: { author: string; content: string; date: string }) => void
+  onToggleLike: (postId: number, isLike: boolean) => void
   currentUser: User | null
   isLoggedIn: boolean
 }
@@ -36,7 +38,7 @@ interface LikedPosts {
   [key: number]: boolean
 }
 
-export function CommunityView({ posts, onAddPost, currentUser, isLoggedIn }: CommunityViewProps) {
+export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, currentUser, isLoggedIn }: CommunityViewProps) {
   const [showNewPostDialog, setShowNewPostDialog] = useState(false)
   const [newPostTitle, setNewPostTitle] = useState("")
   const [newPostContent, setNewPostContent] = useState("")
@@ -111,27 +113,18 @@ export function CommunityView({ posts, onAddPost, currentUser, isLoggedIn }: Com
       })
       return
     }
-    
     setLikedPosts(prev => {
       const newLikedPosts = { ...prev }
       if (newLikedPosts[postId]) {
-        // 좋아요 취소
         newLikedPosts[postId] = false
-        setPostLikes(prev => ({
-          ...prev,
-          [postId]: Math.max(0, (prev[postId] || 0) - 1)
-        }))
+        onToggleLike(postId, false)
         toast({
           title: "공감 취소",
           description: "공감을 취소했습니다.",
         })
       } else {
-        // 좋아요 추가
         newLikedPosts[postId] = true
-        setPostLikes(prev => ({
-          ...prev,
-          [postId]: (prev[postId] || 0) + 1
-        }))
+        onToggleLike(postId, true)
         toast({
           title: "공감 완료",
           description: "게시글에 공감했습니다.",
@@ -167,7 +160,6 @@ export function CommunityView({ posts, onAddPost, currentUser, isLoggedIn }: Com
       })
       return
     }
-
     try {
       const newComment: Comment = {
         id: Date.now(),
@@ -175,17 +167,19 @@ export function CommunityView({ posts, onAddPost, currentUser, isLoggedIn }: Com
         author: currentUser?.name || "익명",
         date: new Date().toLocaleDateString()
       }
-
       setComments(prev => ({
         ...prev,
         [postId]: [...(prev[postId] || []), newComment]
       }))
-      
       setNewComments(prev => ({
         ...prev,
         [postId]: ""
       }))
-      
+      onAddComment(postId, {
+        author: newComment.author,
+        content: newComment.content,
+        date: newComment.date
+      })
       toast({
         title: "댓글 작성 완료",
         description: "댓글이 등록되었습니다.",

@@ -525,6 +525,24 @@ export default function EnvironmentalMapPlatform() {
     setSearchApplied(false)
   }
 
+  // 커뮤니티 댓글 추가
+  const handleAddComment = (postId: number, comment: { author: string; content: string; date: string }) => {
+    setCommunityPosts(prevPosts => prevPosts.map(post =>
+      post.id === postId
+        ? { ...post, comments: (typeof post.comments === 'number' ? 1 : (post.comments?.length || 0)) + 1, commentsList: [...(post.commentsList || []), comment] }
+        : post
+    ))
+  }
+
+  // 커뮤니티 공감(좋아요) 추가/취소
+  const handleToggleLike = (postId: number, isLike: boolean) => {
+    setCommunityPosts(prevPosts => prevPosts.map(post =>
+      post.id === postId
+        ? { ...post, likes: Math.max(0, (post.likes || 0) + (isLike ? 1 : -1)) }
+        : post
+    ))
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
@@ -861,6 +879,8 @@ export default function EnvironmentalMapPlatform() {
           <CommunityView
             posts={communityPosts}
             onAddPost={handleCommunityPost}
+            onAddComment={handleAddComment}
+            onToggleLike={handleToggleLike}
             currentUser={currentUser}
             isLoggedIn={isLoggedIn}
           />
