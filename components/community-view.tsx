@@ -106,7 +106,7 @@ export function CommunityView({ posts, onAddPost, currentUser, isLoggedIn }: Com
     if (!isLoggedIn) {
       toast({
         title: "로그인 필요",
-        description: "공감하기 위해서는 로그인이 필요합니다.",
+        description: "공감하려면 로그인이 필요합니다.",
         variant: "destructive",
       })
       return
@@ -303,10 +303,18 @@ export function CommunityView({ posts, onAddPost, currentUser, isLoggedIn }: Com
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleLike(post.id)}
-                    className={`flex items-center space-x-1 ${
-                      likedPosts[post.id] ? 'text-red-600' : 'text-gray-600'
-                    }`}
+                    onClick={() => {
+                      if (!isLoggedIn) {
+                        toast({
+                          title: "로그인 필요",
+                          description: "공감하려면 로그인이 필요합니다.",
+                          variant: "destructive",
+                        })
+                        return
+                      }
+                      handleLike(post.id)
+                    }}
+                    className={`flex items-center space-x-1 ${likedPosts[post.id] ? 'text-red-600' : 'text-gray-600'}`}
                   >
                     <Heart className={`h-4 w-4 ${likedPosts[post.id] ? 'fill-current' : ''}`} />
                     <span>{postLikes[post.id] || post.likes}</span>
@@ -314,7 +322,17 @@ export function CommunityView({ posts, onAddPost, currentUser, isLoggedIn }: Com
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleComment(post.id)}
+                    onClick={() => {
+                      if (!isLoggedIn) {
+                        toast({
+                          title: "로그인 필요",
+                          description: "댓글을 작성하려면 로그인이 필요합니다.",
+                          variant: "destructive",
+                        })
+                        return
+                      }
+                      handleComment(post.id)
+                    }}
                     className="flex items-center space-x-1 text-gray-600"
                   >
                     <MessageSquare className="h-4 w-4" />

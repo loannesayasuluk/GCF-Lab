@@ -216,14 +216,14 @@ export function StatsView({ reports, stats }: StatsViewProps) {
               ).map(([type, count]) => (
                 <div key={type} className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <span className="text-3xl">
+                    <span className="text-4xl">
                       {type === 'waste' ? '🗑️' : type === 'air' ? '💨' : type === 'water' ? '💧' : type === 'noise' ? '🔊' : ''}
                     </span>
-                    <span className="text-lg font-medium">{getTypeLabel(type)}</span>
+                    <span className="text-xl font-semibold ml-2">{getTypeLabel(type)}</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-xl font-bold">{count}</span>
-                    <Badge variant="outline" className="text-base px-3 py-1">
+                    <span className="text-2xl font-bold">{count}</span>
+                    <Badge variant="outline" className="text-lg px-4 py-1">
                       {Math.round((count / reports.length) * 100)}%
                     </Badge>
                   </div>
