@@ -536,7 +536,7 @@ export default function EnvironmentalMapPlatform() {
             <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => window.location.href = '/'}>
               <Leaf className="h-8 w-8 text-green-600 group-hover:scale-110 transition-transform" />
               <div className="flex flex-col leading-tight">
-                <span className="text-xl font-bold text-gray-900">GCF Lab</span>
+                <span className="text-2xl font-bold text-gray-900">GCF Lab</span>
                 <span className="text-xs text-gray-500">환경 지도 플랫폼</span>
               </div>
             </div>
