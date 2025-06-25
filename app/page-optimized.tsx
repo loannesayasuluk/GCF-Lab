@@ -30,6 +30,7 @@ import {
   ChevronDown,
   ChevronUp,
   Heart,
+  Brain,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -583,15 +584,28 @@ export default function EnvironmentalMapPlatform() {
 
             {/* 사용자 메뉴 */}
             <div className="flex items-center space-x-4">
+              {/* 제보하기 버튼 - 로그인 여부와 관계없이 표시 */}
+              <Button
+                onClick={() => {
+                  if (!isLoggedIn) {
+                    setShowAuthDialog(true)
+                    toast({
+                      title: "로그인 필요",
+                      description: "제보를 작성하려면 로그인이 필요합니다.",
+                      variant: "destructive",
+                    })
+                  } else {
+                    setShowReportDialog(true)
+                  }
+                }}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                제보하기
+              </Button>
+
               {isLoggedIn ? (
                 <>
-                  <Button
-                    onClick={() => setShowReportDialog(true)}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    제보하기
-                  </Button>
                   <div className="relative">
                     <Button variant="ghost" size="sm">
                       <Bell className="h-4 w-4" />
@@ -759,7 +773,7 @@ export default function EnvironmentalMapPlatform() {
                 <CardContent className="p-0 relative z-0" style={{ minHeight: '400px' }}>
                   <SimpleMap
                     reports={displayReports}
-                    onReportClick={setSelectedReport}
+                    onReportSelect={(report) => setSelectedReport(report)}
                     currentLocation={currentLocation}
                   />
                 </CardContent>
@@ -870,75 +884,225 @@ export default function EnvironmentalMapPlatform() {
 
       {/* 제보 상세 카드 */}
       {selectedReport && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <CardHeader>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
+          <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom-4 duration-300">
+            <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 border-b">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg sm:text-xl">{selectedReport.title}</CardTitle>
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Badge 
+                      className={`${
+                        selectedReport.severity === "high" 
+                          ? "bg-red-100 text-red-800 border-red-200" 
+                          : selectedReport.severity === "medium" 
+                            ? "bg-yellow-100 text-yellow-800 border-yellow-200" 
+                            : "bg-green-100 text-green-800 border-green-200"
+                      }`}
+                    >
+                      {selectedReport.severity === "high" ? "🔴 심각" : 
+                       selectedReport.severity === "medium" ? "🟡 보통" : "🟢 경미"}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {selectedReport.type === "waste" ? "🗑️ 폐기물" :
+                       selectedReport.type === "air" ? "💨 대기오염" :
+                       selectedReport.type === "water" ? "💧 수질오염" :
+                       selectedReport.type === "noise" ? "🔊 소음" : selectedReport.type}
+                    </Badge>
+                    <Badge 
+                      className={`${
+                        selectedReport.status === "처리완료" 
+                          ? "bg-green-100 text-green-800 border-green-200" 
+                          : selectedReport.status === "처리중" 
+                            ? "bg-blue-100 text-blue-800 border-blue-200" 
+                            : "bg-yellow-100 text-yellow-800 border-yellow-200"
+                      }`}
+                    >
+                      {selectedReport.status}
+                    </Badge>
+                  </div>
+                  <CardTitle className="text-xl sm:text-2xl text-gray-900">{selectedReport.title}</CardTitle>
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setSelectedReport(null)}
+                  className="hover:bg-gray-100 rounded-full p-2"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-5 w-5" />
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium">위치:</span> {selectedReport.location}
+            <CardContent className="p-6 space-y-6">
+              {/* 기본 정보 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <MapPin className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">위치</span>
+                    <span className="font-medium">{selectedReport.location}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <UserIcon className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">제보자</span>
+                    <span className="font-medium">{selectedReport.reporter}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">제보일</span>
+                    <span className="font-medium">{selectedReport.date}</span>
+                  </div>
                 </div>
-                <div>
-                  <span className="font-medium">제보자:</span> {selectedReport.reporter}
-                </div>
-                <div>
-                  <span className="font-medium">유형:</span> {selectedReport.type}
-                </div>
-                <div>
-                  <span className="font-medium">심각도:</span> {selectedReport.severity}
-                </div>
-                <div>
-                  <span className="font-medium">상태:</span> {selectedReport.status}
-                </div>
-                <div>
-                  <span className="font-medium">제보일:</span> {selectedReport.date}
+                <div className="space-y-3">
+                  {selectedReport.assignedTo && (
+                    <div className="flex items-center space-x-2">
+                      <Users className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm text-gray-600">담당자</span>
+                      <span className="font-medium">{selectedReport.assignedTo}</span>
+                    </div>
+                  )}
+                  {selectedReport.resolvedDate && (
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm text-gray-600">해결일</span>
+                      <span className="font-medium text-green-600">{selectedReport.resolvedDate}</span>
+                    </div>
+                  )}
                 </div>
               </div>
               
               <Separator />
               
+              {/* 상세 설명 */}
               <div>
-                <h4 className="font-medium mb-2">상세 설명</h4>
-                <p className="text-sm text-gray-600">{selectedReport.description}</p>
+                <h4 className="font-semibold text-lg mb-3 flex items-center space-x-2">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                  <span>상세 설명</span>
+                </h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-gray-700 leading-relaxed">{selectedReport.description}</p>
+                </div>
               </div>
 
-              {selectedReport.assignedTo && (
-                <div>
-                  <h4 className="font-medium mb-2">담당자</h4>
-                  <p className="text-sm text-gray-600">{selectedReport.assignedTo}</p>
-                </div>
-              )}
-
+              {/* 처리 노트 */}
               {selectedReport.processingNotes && (
                 <div>
-                  <h4 className="font-medium mb-2">처리 노트</h4>
-                  <p className="text-sm text-gray-600">{selectedReport.processingNotes}</p>
+                  <h4 className="font-semibold text-lg mb-3 flex items-center space-x-2">
+                    <Clock className="h-5 w-5 text-orange-600" />
+                    <span>처리 노트</span>
+                  </h4>
+                  <div className="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-200">
+                    <p className="text-orange-800">{selectedReport.processingNotes}</p>
+                  </div>
                 </div>
               )}
 
-              {selectedReport.aiAnalysis && (
+              {/* 해결 보고서 */}
+              {selectedReport.resolutionReport && (
                 <div>
-                  <h4 className="font-medium mb-2">AI 분석 결과</h4>
-                  <div className="bg-blue-50 p-3 rounded-lg">
-                    <p className="text-sm text-blue-800 mb-2">{selectedReport.aiAnalysis.summary}</p>
-                    <div className="flex flex-wrap gap-1">
-                      {selectedReport.aiAnalysis.keywords.map((keyword, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {keyword}
-                        </Badge>
-                      ))}
+                  <h4 className="font-semibold text-lg mb-3 flex items-center space-x-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span>해결 보고서</span>
+                  </h4>
+                  <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-200">
+                    <p className="text-green-800">{selectedReport.resolutionReport}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* AI 분석 결과 */}
+              {selectedReport.aiAnalysis && (
+                <div className="animate-in slide-in-from-right-4 duration-500">
+                  <h4 className="font-semibold text-lg mb-4 flex items-center space-x-2">
+                    <div className="relative">
+                      <Brain className="h-5 w-5 text-purple-600" />
+                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
                     </div>
+                    <span>AI 분석 결과</span>
+                  </h4>
+                  
+                  <div className="space-y-4">
+                    {/* 분석 요약 */}
+                    <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg border border-purple-200">
+                      <h5 className="font-medium text-purple-800 mb-2 flex items-center space-x-2">
+                        <Activity className="h-4 w-4" />
+                        <span>분석 요약</span>
+                      </h5>
+                      <p className="text-purple-700 leading-relaxed">{selectedReport.aiAnalysis.summary}</p>
+                    </div>
+
+                    {/* 키워드 */}
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h5 className="font-medium text-blue-800 mb-3 flex items-center space-x-2">
+                        <Target className="h-4 w-4" />
+                        <span>주요 키워드</span>
+                      </h5>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedReport.aiAnalysis.keywords.map((keyword, index) => (
+                          <Badge 
+                            key={index} 
+                            className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200 transition-colors"
+                          >
+                            {keyword}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 분석 세부사항 */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-green-50 p-4 rounded-lg">
+                        <h5 className="font-medium text-green-800 mb-2 flex items-center space-x-2">
+                          <PieChart className="h-4 w-4" />
+                          <span>분류</span>
+                        </h5>
+                        <p className="text-green-700">{selectedReport.aiAnalysis.category}</p>
+                      </div>
+                      <div className="bg-yellow-50 p-4 rounded-lg">
+                        <h5 className="font-medium text-yellow-800 mb-2 flex items-center space-x-2">
+                          <AlertCircle className="h-4 w-4" />
+                          <span>긴급도</span>
+                        </h5>
+                        <p className="text-yellow-700">{selectedReport.aiAnalysis.urgency}</p>
+                      </div>
+                      <div className="bg-red-50 p-4 rounded-lg">
+                        <h5 className="font-medium text-red-800 mb-2 flex items-center space-x-2">
+                          <TrendingUp className="h-4 w-4" />
+                          <span>예상 비용</span>
+                        </h5>
+                        <p className="text-red-700">{selectedReport.aiAnalysis.estimatedCost}</p>
+                      </div>
+                      <div className="bg-indigo-50 p-4 rounded-lg">
+                        <h5 className="font-medium text-indigo-800 mb-2 flex items-center space-x-2">
+                          <Clock className="h-4 w-4" />
+                          <span>예상 소요시간</span>
+                        </h5>
+                        <p className="text-indigo-700">{selectedReport.aiAnalysis.expectedDuration}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 이미지 */}
+              {selectedReport.images && selectedReport.images.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-lg mb-3 flex items-center space-x-2">
+                    <Camera className="h-5 w-5 text-gray-600" />
+                    <span>첨부 이미지</span>
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedReport.images.map((image, index) => (
+                      <div key={index} className="relative group">
+                        <img 
+                          src={image} 
+                          alt={`제보 이미지 ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg border hover:scale-105 transition-transform duration-200"
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+                          <Eye className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}

@@ -1,30 +1,12 @@
 "use client"
 
 import { Separator } from "@/components/ui/separator"
+import { Report } from "@/types"
 
 import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { X, MapPin, RotateCcw } from "lucide-react"
-
-interface Report {
-  id: number
-  title: string
-  location: string
-  type: string
-  severity: string
-  reporter: string
-  date: string
-  status: string
-  description: string
-  coordinates: { lat: number; lng: number }
-  images?: string[]
-  aiAnalysis?: any
-  assignedTo?: string
-  processingNotes?: string
-  resolvedDate?: string
-  resolutionReport?: string
-}
 
 interface SimpleMapProps {
   reports: Report[]

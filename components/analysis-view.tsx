@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Target, Activity, TrendingUp, BarChart3, PieChart, Brain, Lightbulb, AlertTriangle } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Target, Activity, TrendingUp, BarChart3, PieChart, Brain, Lightbulb, AlertTriangle, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -30,6 +30,15 @@ export function AnalysisView({ reports }: AnalysisViewProps) {
   const { toast } = useToast()
   const [analysisResults, setAnalysisResults] = useState<AnalysisResults | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [hasAutoAnalyzed, setHasAutoAnalyzed] = useState(false)
+
+  // 컴포넌트 마운트 시 자동으로 AI 분석 실행
+  useEffect(() => {
+    if (!hasAutoAnalyzed && reports.length > 0) {
+      setHasAutoAnalyzed(true)
+      handleAIAnalysis()
+    }
+  }, [reports, hasAutoAnalyzed])
 
   const handleAIAnalysis = async () => {
     if (!reports || reports.length === 0) {
@@ -144,9 +153,65 @@ export function AnalysisView({ reports }: AnalysisViewProps) {
           className="bg-blue-600 text-white hover:bg-blue-700"
         >
           <Brain className="h-4 w-4 mr-2" />
-          {isAnalyzing ? "AI 분석 중..." : "AI 분석 실행"}
+          {isAnalyzing ? "AI 분석 중..." : "AI 분석 재실행"}
         </Button>
       </div>
+
+      {/* AI 분석 안내 */}
+      {!analysisResults && !isAnalyzing && (
+        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="relative">
+                <Brain className="h-8 w-8 text-blue-600" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-blue-900">AI 자동 분석</h3>
+                <p className="text-blue-700">환경 제보 데이터를 AI가 자동으로 분석합니다.</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="flex items-center space-x-2">
+                <Sparkles className="h-4 w-4 text-purple-600" />
+                <span className="text-purple-800">패턴 분석</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <TrendingUp className="h-4 w-4 text-green-600" />
+                <span className="text-green-800">트렌드 예측</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Target className="h-4 w-4 text-orange-600" />
+                <span className="text-orange-800">위험 지역 식별</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 분석 중 로딩 */}
+      {isAnalyzing && (
+        <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+          <CardContent className="p-8 text-center">
+            <div className="flex items-center justify-center space-x-3 mb-4">
+              <div className="relative">
+                <Brain className="h-10 w-10 text-purple-600 animate-pulse" />
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-purple-400 rounded-full animate-ping"></div>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-purple-900">AI 분석 중...</h3>
+                <p className="text-purple-700">환경 데이터를 분석하고 있습니다.</p>
+              </div>
+            </div>
+            <Progress value={undefined} className="w-full max-w-md mx-auto" />
+            <div className="mt-4 space-y-2 text-sm text-purple-600">
+              <p>• 제보 패턴 분석 중</p>
+              <p>• 지역별 위험도 평가 중</p>
+              <p>• 처리 효율성 분석 중</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* AI 분석 결과 */}
       {analysisResults && (
@@ -256,7 +321,7 @@ export function AnalysisView({ reports }: AnalysisViewProps) {
       )}
 
       {/* 기본 통계 정보 */}
-      {!analysisResults && (
+      {!analysisResults && !isAnalyzing && (
         <Card>
           <CardHeader>
             <CardTitle>기본 통계 정보</CardTitle>
