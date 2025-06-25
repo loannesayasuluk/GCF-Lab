@@ -117,10 +117,10 @@ export function StatsView({ reports, stats }: StatsViewProps) {
 
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'waste': return '🗑️ 폐기물'
-      case 'air': return '💨 대기오염'
-      case 'water': return '💧 수질오염'
-      case 'noise': return '🔊 소음'
+      case 'waste': return '폐기물'
+      case 'air': return '대기오염'
+      case 'water': return '수질오염'
+      case 'noise': return '소음'
       default: return type
     }
   }
