@@ -532,10 +532,13 @@ export default function EnvironmentalMapPlatform() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* 로고 */}
-            <div className="flex items-center space-x-3">
-              <Leaf className="h-8 w-8 text-green-600" />
-              <h1 className="text-xl font-bold text-gray-900">환경 제보 플랫폼</h1>
-            </div>
+            <a href="/" className="flex flex-col justify-center items-start group select-none focus:outline-none">
+              <div className="flex items-center space-x-2">
+                <Leaf className="h-8 w-8 text-green-600" />
+                <span className="text-2xl font-extrabold text-gray-900 tracking-tight group-hover:text-green-700 transition-colors">GCF LAB</span>
+              </div>
+              <span className="text-xs sm:text-sm text-gray-500 font-medium ml-10 -mt-1 group-hover:text-green-600 transition-colors">인공지능 환경 제보 플랫폼</span>
+            </a>
 
             {/* 네비게이션 */}
             <nav className="hidden md:flex space-x-8">
@@ -759,7 +762,8 @@ export default function EnvironmentalMapPlatform() {
                 <CardContent className="p-0 relative z-0" style={{ minHeight: '400px' }}>
                   <SimpleMap
                     reports={displayReports}
-                    onReportClick={setSelectedReport}
+                    selectedReport={selectedReport}
+                    onReportSelect={setSelectedReport}
                     currentLocation={currentLocation}
                   />
                 </CardContent>
