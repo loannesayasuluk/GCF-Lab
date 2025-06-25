@@ -1081,16 +1081,16 @@ export default function EnvironmentalMapPlatform() {
     }
 
     return (
-      <DialogContent className="sm:max-w-md w-[95vw] max-w-[400px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md w-[95vw] max-w-[450px] max-h-[90vh] overflow-y-auto p-6 sm:p-8">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-center">로그인 / 회원가입</DialogTitle>
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-center">로그인 / 회원가입</DialogTitle>
         </DialogHeader>
         
         {/* 탭 버튼 */}
-        <div className="flex space-x-1 p-1 bg-gray-100 rounded-lg mb-6">
+        <div className="flex space-x-1 p-2 bg-gray-100 rounded-lg mb-6">
           <button
             onClick={() => setActiveTab("login")}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+            className={`flex-1 py-3 px-4 rounded-md text-base font-medium transition-all ${
               activeTab === "login"
                 ? "bg-white text-green-600 shadow-sm"
                 : "text-gray-600 hover:text-gray-900"
@@ -1100,7 +1100,7 @@ export default function EnvironmentalMapPlatform() {
           </button>
           <button
             onClick={() => setActiveTab("signup")}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+            className={`flex-1 py-3 px-4 rounded-md text-base font-medium transition-all ${
               activeTab === "signup"
                 ? "bg-white text-green-600 shadow-sm"
                 : "text-gray-600 hover:text-gray-900"
@@ -1112,85 +1112,85 @@ export default function EnvironmentalMapPlatform() {
 
         {/* 로그인 폼 */}
         {activeTab === "login" && (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="login-email" className="text-sm font-medium">이메일</Label>
+          <div className="space-y-5">
+            <div className="space-y-3">
+              <Label htmlFor="login-email" className="text-base font-medium">이메일</Label>
               <Input
                 id="login-email"
                 type="email"
                 placeholder="이메일을 입력하세요"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
                 disabled={isLoading}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="login-password" className="text-sm font-medium">비밀번호</Label>
+            <div className="space-y-3">
+              <Label htmlFor="login-password" className="text-base font-medium">비밀번호</Label>
               <Input
                 id="login-password"
                 type="password"
                 placeholder="비밀번호를 입력하세요"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
                 disabled={isLoading}
               />
             </div>
             <Button 
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 rounded-lg transition-colors" 
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-4 rounded-lg transition-colors text-base" 
               onClick={handleLogin}
               disabled={isLoading}
             >
               {isLoading ? "로그인 중..." : "로그인"}
             </Button>
-            <div className="text-center text-xs text-gray-600 bg-gray-50 p-3 rounded-lg">
-              <p>관리자 계정으로 로그인하려면</p>
-              <p>이메일에 "admin" 또는 "관리자"를 포함하세요</p>
+            <div className="text-center text-sm text-gray-600 bg-gray-50 p-4 rounded-lg">
+              <p className="text-base">관리자 계정으로 로그인하려면</p>
+              <p className="text-sm">이메일에 "admin" 또는 "관리자"를 포함하세요</p>
             </div>
           </div>
         )}
 
         {/* 회원가입 폼 */}
         {activeTab === "signup" && (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="signup-name" className="text-sm font-medium">이름</Label>
+          <div className="space-y-5">
+            <div className="space-y-3">
+              <Label htmlFor="signup-name" className="text-base font-medium">이름</Label>
               <Input
                 id="signup-name"
                 placeholder="이름을 입력하세요"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
                 disabled={isLoading}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="signup-email" className="text-sm font-medium">이메일</Label>
+            <div className="space-y-3">
+              <Label htmlFor="signup-email" className="text-base font-medium">이메일</Label>
               <Input
                 id="signup-email"
                 type="email"
                 placeholder="이메일을 입력하세요"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
                 disabled={isLoading}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="signup-password" className="text-sm font-medium">비밀번호</Label>
+            <div className="space-y-3">
+              <Label htmlFor="signup-password" className="text-base font-medium">비밀번호</Label>
               <Input
                 id="signup-password"
                 type="password"
                 placeholder="비밀번호를 입력하세요 (6자 이상)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
                 disabled={isLoading}
               />
             </div>
             <Button 
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 rounded-lg transition-colors" 
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-4 rounded-lg transition-colors text-base" 
               onClick={handleSignup}
               disabled={isLoading}
             >
@@ -1733,17 +1733,17 @@ export default function EnvironmentalMapPlatform() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-16 sm:h-20">
             {/* 로고 영역 */}
             <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
               <div className="flex items-center space-x-2 cursor-pointer" onClick={() => setCurrentView("map")}> 
-                <Leaf className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
+                <Leaf className="h-8 w-8 sm:h-8 sm:w-8 text-green-600" />
                 <div className="hidden sm:block">
                   <h1 className="text-lg sm:text-xl font-bold text-gray-900">GCF Lab</h1>
                   <p className="text-xs text-gray-500">환경 모니터링 플랫폼</p>
                 </div>
                 <div className="sm:hidden">
-                  <h1 className="text-base font-bold text-gray-900">GCF Lab</h1>
+                  <h1 className="text-lg font-bold text-gray-900">GCF Lab</h1>
                 </div>
               </div>
             </div>
@@ -1792,51 +1792,51 @@ export default function EnvironmentalMapPlatform() {
             <div className="lg:hidden">
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="ghost" size="sm" className="p-2">
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <Button variant="ghost" size="sm" className="p-3 h-12 w-12">
+                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md w-[95vw] max-w-[300px]">
+                <DialogContent className="sm:max-w-md w-[95vw] max-w-[350px]">
                   <DialogHeader>
-                    <DialogTitle className="text-lg font-bold">메뉴</DialogTitle>
+                    <DialogTitle className="text-xl font-bold">메뉴</DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <button
                       onClick={() => setCurrentView("map")}
-                      className={`w-full text-left p-3 rounded-lg flex items-center space-x-3 transition-colors ${
+                      className={`w-full text-left p-4 rounded-lg flex items-center space-x-4 transition-colors text-lg ${
                         currentView === "map" ? "bg-green-50 text-green-600" : "hover:bg-gray-50"
                       }`}
                     >
-                      <MapPin className="h-5 w-5" />
+                      <MapPin className="h-6 w-6" />
                       <span>환경 지도</span>
                     </button>
                     <button
                       onClick={() => setCurrentView("stats")}
-                      className={`w-full text-left p-3 rounded-lg flex items-center space-x-3 transition-colors ${
+                      className={`w-full text-left p-4 rounded-lg flex items-center space-x-4 transition-colors text-lg ${
                         currentView === "stats" ? "bg-green-50 text-green-600" : "hover:bg-gray-50"
                       }`}
                     >
-                      <BarChart3 className="h-5 w-5" />
+                      <BarChart3 className="h-6 w-6" />
                       <span>통계 및 데이터</span>
                     </button>
                     <button
                       onClick={() => setCurrentView("analysis")}
-                      className={`w-full text-left p-3 rounded-lg flex items-center space-x-3 transition-colors ${
+                      className={`w-full text-left p-4 rounded-lg flex items-center space-x-4 transition-colors text-lg ${
                         currentView === "analysis" ? "bg-green-50 text-green-600" : "hover:bg-gray-50"
                       }`}
                     >
-                      <TrendingUp className="h-5 w-5" />
+                      <TrendingUp className="h-6 w-6" />
                       <span>분석</span>
                     </button>
                     <button
                       onClick={() => setCurrentView("community")}
-                      className={`w-full text-left p-3 rounded-lg flex items-center space-x-3 transition-colors ${
+                      className={`w-full text-left p-4 rounded-lg flex items-center space-x-4 transition-colors text-lg ${
                         currentView === "community" ? "bg-green-50 text-green-600" : "hover:bg-gray-50"
                       }`}
                     >
-                      <Users className="h-5 w-5" />
+                      <Users className="h-6 w-6" />
                       <span>커뮤니티</span>
                     </button>
                   </div>
@@ -1845,16 +1845,16 @@ export default function EnvironmentalMapPlatform() {
             </div>
 
             {/* 우측 액션 버튼들 */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="flex items-center space-x-3 sm:space-x-4">
               {/* 알림 벨 (로그인 시만) */}
               {isLoggedIn && (
                 <div className="relative">
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="ghost" size="sm" className="relative p-2">
-                        <Bell className="h-5 w-5" />
+                      <Button variant="ghost" size="sm" className="relative p-3 h-12 w-12">
+                        <Bell className="h-6 w-6" />
                         {unreadCount > 0 && (
-                          <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500">
+                          <Badge className="absolute -top-1 -right-1 h-6 w-6 rounded-full p-0 flex items-center justify-center text-sm bg-red-500">
                             {unreadCount}
                           </Badge>
                         )}
@@ -1862,28 +1862,28 @@ export default function EnvironmentalMapPlatform() {
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md w-[95vw] max-w-[400px] max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
-                        <DialogTitle className="flex items-center justify-between">
+                        <DialogTitle className="flex items-center justify-between text-lg">
                           <span>알림</span>
                           {unreadCount > 0 && (
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={markAllNotificationsAsRead}
-                              className="text-xs"
+                              className="text-sm px-4 py-2"
                             >
                               모두 읽음
                             </Button>
                           )}
                         </DialogTitle>
                       </DialogHeader>
-                      <div className="max-h-96 overflow-y-auto space-y-2">
+                      <div className="max-h-96 overflow-y-auto space-y-3">
                         {notifications.length === 0 ? (
-                          <p className="text-gray-500 text-center py-4">새로운 알림이 없습니다.</p>
+                          <p className="text-gray-500 text-center py-6 text-base">새로운 알림이 없습니다.</p>
                         ) : (
                           notifications.map((notif) => (
                             <div
                               key={notif.id}
-                              className={`p-3 rounded-lg border transition-colors ${
+                              className={`p-4 rounded-lg border transition-colors ${
                                 notif.read ? "bg-gray-50" : "bg-blue-50 border-blue-200"
                               }`}
                             >
@@ -1892,24 +1892,24 @@ export default function EnvironmentalMapPlatform() {
                                   className="flex-1 cursor-pointer"
                                   onClick={() => markNotificationAsRead(notif.id)}
                                 >
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className={`w-2 h-2 rounded-full ${
+                                  <div className="flex items-center gap-3 mb-2">
+                                    <span className={`w-3 h-3 rounded-full ${
                                       notif.type === "success" ? "bg-green-500" :
                                       notif.type === "warning" ? "bg-yellow-500" :
                                       notif.type === "error" ? "bg-red-500" :
                                       "bg-blue-500"
                                     }`} />
-                                    <p className="text-sm font-medium">{notif.message}</p>
+                                    <p className="text-base font-medium">{notif.message}</p>
                                   </div>
-                                  <p className="text-xs text-gray-500">
+                                  <p className="text-sm text-gray-500">
                                     {new Date(notif.timestamp).toLocaleString()}
                                   </p>
                                 </div>
                                 <button
                                   onClick={() => deleteNotification(notif.id)}
-                                  className="ml-2 text-gray-400 hover:text-red-500 transition-colors"
+                                  className="ml-3 text-gray-400 hover:text-red-500 transition-colors p-2"
                                 >
-                                  <X className="h-4 w-4" />
+                                  <X className="h-5 w-5" />
                                 </button>
                               </div>
                             </div>
@@ -1926,8 +1926,8 @@ export default function EnvironmentalMapPlatform() {
                 <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
                   <DialogTrigger asChild>
                     <Button
-                      className="flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 rounded-full bg-gradient-to-r from-green-400 via-emerald-400 to-blue-400 text-white font-bold text-sm sm:text-base shadow-md hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-200"
-                      style={{ height: '40px', minWidth: '100px', letterSpacing: '0.01em' }}
+                      className="flex items-center gap-2 px-4 sm:px-5 py-3 sm:py-2 rounded-full bg-gradient-to-r from-green-400 via-emerald-400 to-blue-400 text-white font-bold text-base shadow-md hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-200 h-12 sm:h-10"
+                      style={{ minWidth: '120px', letterSpacing: '0.01em' }}
                       onClick={(e) => {
                         if (!isLoggedIn) {
                           e.preventDefault();
@@ -1935,7 +1935,7 @@ export default function EnvironmentalMapPlatform() {
                         }
                       }}
                     >
-                      <Camera className="h-4 w-4 sm:h-5 sm:w-5 text-white drop-shadow" />
+                      <Camera className="h-5 w-5 sm:h-5 sm:w-5 text-white drop-shadow" />
                       <span className="hidden sm:inline">제보하기</span>
                       <span className="sm:hidden">제보</span>
                     </Button>
@@ -1948,32 +1948,32 @@ export default function EnvironmentalMapPlatform() {
 
               {/* 로그인 필요 안내 모달 */}
               <Dialog open={showLoginRequired} onOpenChange={setShowLoginRequired}>
-                <DialogContent className="max-w-xs w-[95vw] max-w-[300px] rounded-2xl shadow-2xl border border-gray-100 animate-fade-in flex flex-col items-center justify-center text-center">
+                <DialogContent className="max-w-xs w-[95vw] max-w-[350px] rounded-2xl shadow-2xl border border-gray-100 animate-fade-in flex flex-col items-center justify-center text-center">
                   <DialogHeader>
-                    <DialogTitle className="text-lg font-bold text-red-600 mb-2">로그인이 필요한 기능입니다</DialogTitle>
+                    <DialogTitle className="text-xl font-bold text-red-600 mb-3">로그인이 필요한 기능입니다</DialogTitle>
                   </DialogHeader>
-                  <p className="mb-4 text-gray-700 text-sm">제보 등록을 위해 로그인이 필요합니다.<br/>로그인 후 이용해 주세요.</p>
-                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg mt-2" onClick={() => { setShowLoginRequired(false); setShowAuthDialog(true); }}>로그인하러 가기</Button>
-                  <Button variant="outline" className="w-full mt-2" onClick={() => setShowLoginRequired(false)}>닫기</Button>
+                  <p className="mb-6 text-gray-700 text-base">제보 등록을 위해 로그인이 필요합니다.<br/>로그인 후 이용해 주세요.</p>
+                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg py-3 text-base" onClick={() => { setShowLoginRequired(false); setShowAuthDialog(true); }}>로그인하러 가기</Button>
+                  <Button variant="outline" className="w-full mt-3 py-3 text-base" onClick={() => setShowLoginRequired(false)}>닫기</Button>
                 </DialogContent>
               </Dialog>
 
               {/* 사용자 정보 (로그인 시만) */}
               {isLoggedIn ? (
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   <Menu as="div" className="relative">
                     <Menu.Button className="flex items-center focus:outline-none">
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-10 w-10 sm:h-8 sm:w-8">
                         <AvatarFallback>
-                          <User className="h-4 w-4" />
+                          <User className="h-5 w-5" />
                         </AvatarFallback>
                       </Avatar>
                     </Menu.Button>
-                    <Menu.Items className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-50">
+                    <Menu.Items className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-50">
                       <Menu.Item>
                         {({ active }) => (
                           <button
-                            className={`w-full text-left px-4 py-2 text-sm ${active ? "bg-gray-100" : ""}`}
+                            className={`w-full text-left px-4 py-3 text-base ${active ? "bg-gray-100" : ""}`}
                             onClick={() => setCurrentView("myinfo")}
                           >
                             내 정보
@@ -1983,7 +1983,7 @@ export default function EnvironmentalMapPlatform() {
                       <Menu.Item>
                         {({ active }) => (
                           <button
-                            className={`w-full text-left px-4 py-2 text-sm ${active ? "bg-gray-100" : ""}`}
+                            className={`w-full text-left px-4 py-3 text-base ${active ? "bg-gray-100" : ""}`}
                             onClick={() => setCurrentView("myreports")}
                           >
                             내 제보 내역
@@ -1996,17 +1996,16 @@ export default function EnvironmentalMapPlatform() {
                     <p className="text-sm font-medium">{currentUser?.name}</p>
                     {currentUser?.isAdmin && <p className="text-xs text-blue-600">관리자</p>}
                   </div>
-                  <Button variant="ghost" size="sm" onClick={handleLogout} className="p-2">
-                    <LogOut className="h-4 w-4" />
+                  <Button variant="ghost" size="sm" onClick={handleLogout} className="p-3 h-12 w-12">
+                    <LogOut className="h-5 w-5" />
                   </Button>
                 </div>
               ) : (
                 <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
                   <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="px-3 py-2">
-                      <LogIn className="h-4 w-4 mr-1 sm:mr-2" />
-                      <span className="hidden sm:inline">로그인</span>
-                      <span className="sm:hidden">로그인</span>
+                    <Button variant="outline" size="sm" className="px-4 py-3 h-12 text-base">
+                      <LogIn className="h-5 w-5 mr-2" />
+                      <span>로그인</span>
                     </Button>
                   </DialogTrigger>
                   <AuthDialog onLogin={handleLogin} onSignup={handleSignup} />
@@ -2155,21 +2154,21 @@ export default function EnvironmentalMapPlatform() {
             )}
             {/* 기존 메인 지도 화면 (기본) */}
             {(currentView === "map" || !currentView) && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                 {/* 지도 영역 */}
-                <div className="order-1 lg:order-2 lg:col-span-2">
-                  <Card className="h-[600px] relative z-0">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg">환경 제보 지도</CardTitle>
+                <div className="order-1 xl:order-2 xl:col-span-2">
+                  <Card className="h-[500px] sm:h-[600px] lg:h-[700px] relative z-0">
+                    <CardHeader className="pb-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <CardTitle className="text-lg sm:text-xl">환경 제보 지도</CardTitle>
                         <div className="flex items-center space-x-2">
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-sm px-3 py-1">
                             {filteredReports.length}건 표시
                           </Badge>
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="p-0 relative z-0" style={{ minHeight: '700px' }}>
+                    <CardContent className="p-0 relative z-0" style={{ minHeight: '400px' }}>
                       <SimpleMap
                         reports={filteredReports}
                         selectedReport={selectedReport}
@@ -2182,38 +2181,39 @@ export default function EnvironmentalMapPlatform() {
                     </CardContent>
                   </Card>
                 </div>
+                
                 {/* 사이드바 */}
-                <div className="order-2 lg:order-1 lg:col-span-1 space-y-4 sm:space-y-6">
+                <div className="order-2 xl:order-1 xl:col-span-1 space-y-4 sm:space-y-6">
                   {/* 실시간 통계 */}
                   <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center space-x-2">
-                        <BarChart3 className="h-5 w-5" />
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg sm:text-xl flex items-center space-x-2">
+                        <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6" />
                         <span>실시간 통계</span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-green-600">{stats.total}</div>
-                          <div className="text-sm text-gray-600">총 제보건수</div>
+                      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                        <div className="text-center p-4 bg-green-50 rounded-lg">
+                          <div className="text-2xl sm:text-3xl font-bold text-green-600">{stats.total}</div>
+                          <div className="text-sm sm:text-base text-gray-600">총 제보건수</div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-xl sm:text-2xl font-bold text-blue-600">{stats.thisWeek}</div>
-                          <div className="text-xs sm:text-sm text-gray-600">이번 주</div>
+                        <div className="text-center p-4 bg-blue-50 rounded-lg">
+                          <div className="text-2xl sm:text-3xl font-bold text-blue-600">{stats.thisWeek}</div>
+                          <div className="text-sm sm:text-base text-gray-600">이번 주</div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-xl sm:text-2xl font-bold text-yellow-600">{stats.pending}</div>
-                          <div className="text-xs sm:text-sm text-gray-600">제보접수</div>
+                        <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                          <div className="text-2xl sm:text-3xl font-bold text-yellow-600">{stats.pending}</div>
+                          <div className="text-sm sm:text-base text-gray-600">제보접수</div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-xl sm:text-2xl font-bold text-red-600">{stats.processing}</div>
-                          <div className="text-xs sm:text-sm text-gray-600">처리중</div>
+                        <div className="text-center p-4 bg-red-50 rounded-lg">
+                          <div className="text-2xl sm:text-3xl font-bold text-red-600">{stats.processing}</div>
+                          <div className="text-sm sm:text-base text-gray-600">처리중</div>
                         </div>
                       </div>
                       <Separator className="my-4" />
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-xs sm:text-sm">
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm sm:text-base">
                           <span>처리 완료율</span>
                           <span>{Math.round((stats.resolved / stats.total) * 100)}%</span>
                         </div>
