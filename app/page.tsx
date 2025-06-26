@@ -579,8 +579,8 @@ export default function EnvironmentalMapPlatform() {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-24 md:h-28">
-            {/* 로고 (왼쪽) */}
-            <a href="/" className="flex flex-row items-center gap-5 group select-none focus:outline-none">
+            {/* 로고/타이틀 */}
+            <a href="/" className="flex items-center gap-4 group select-none focus:outline-none">
               <span className="flex items-center justify-center bg-gradient-to-br from-green-300 via-emerald-400 to-green-600 rounded-full p-2 shadow-lg">
                 <Leaf className="h-8 w-8 text-emerald-700 group-hover:text-emerald-900 transition-all duration-300" />
               </span>
@@ -589,21 +589,23 @@ export default function EnvironmentalMapPlatform() {
                 <span className="text-xs md:text-sm text-gray-500 font-medium mt-1 group-hover:text-emerald-600 transition-colors">인공지능 환경 제보 플랫폼</span>
               </span>
             </a>
-            {/* 네비게이션 (중앙) */}
+            {/* 네비게이션 */}
             <nav className="flex-1 flex justify-center items-center space-x-10">
               <button onClick={() => setCurrentView("map")} className={`px-5 py-2 rounded-xl text-lg font-bold transition-colors ${currentView === "map" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>지도</button>
               <button onClick={() => setCurrentView("stats")} className={`px-5 py-2 rounded-xl text-lg font-bold transition-colors ${currentView === "stats" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>통계</button>
               <button onClick={() => setCurrentView("analysis")} className={`px-5 py-2 rounded-xl text-lg font-bold transition-colors ${currentView === "analysis" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>분석</button>
               <button onClick={() => setCurrentView("community")} className={`px-5 py-2 rounded-xl text-lg font-bold transition-colors ${currentView === "community" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>커뮤니티</button>
             </nav>
-            {/* 로그인 버튼 (오른쪽) */}
-            <div className="flex items-center">
+            {/* 제보하기/프로필 */}
+            <div className="flex items-center gap-6">
               {isLoggedIn ? (
                 <>
                   <Button onClick={() => setShowReportDialog(true)} className="bg-green-600 hover:bg-green-700 text-base px-6 py-3">제보하기</Button>
                   <Menu as="div" className="relative">
-                    <Menu.Button className="flex items-center space-x-2">
-                      <Avatar className="h-8 w-8"><AvatarFallback>{currentUser?.name?.charAt(0) || "U"}</AvatarFallback></Avatar>
+                    <Menu.Button className="flex items-center">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback>{currentUser?.name?.charAt(0) || "U"}</AvatarFallback>
+                      </Avatar>
                     </Menu.Button>
                     <Menu.Items className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                       <Menu.Item>{({ active }) => (<button className={`${active ? 'bg-gray-100' : ''} block px-4 py-2 text-base text-gray-700 w-full text-left`}>프로필</button>)}</Menu.Item>
