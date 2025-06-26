@@ -293,6 +293,7 @@ export default function EnvironmentalMapPlatform() {
     const { toast } = useToast()
 
     const handleLogin = async () => {
+      console.log('로그인 버튼 클릭됨', email, password); // 디버깅용
       if (!email || !password) {
         toast({
           title: "입력 오류",
@@ -310,6 +311,7 @@ export default function EnvironmentalMapPlatform() {
     }
 
     const handleSignup = async () => {
+      console.log('회원가입 버튼 클릭됨', email, password, name); // 디버깅용
       if (!email || !password || !name) {
         toast({
           title: "입력 오류",
@@ -830,8 +832,17 @@ export default function EnvironmentalMapPlatform() {
 
       {/* 제보 상세 카드 */}
       {selectedReport && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-2">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden border border-gray-100 relative">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-2"
+          onClick={(e) => {
+            // 오버레이(배경) 클릭 시 닫기. 상세 카드 클릭 시에는 닫히지 않게(e.stopPropagation)
+            if (e.target === e.currentTarget) setSelectedReport(null);
+          }}
+        >
+          <div
+            className="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden border border-gray-100 relative"
+            onClick={e => e.stopPropagation()}
+          >
             {/* 상단 심각도 컬러 바 */}
             <div className={`h-2 w-full ${severityColor(selectedReport.severity)} transition-all`} />
             {/* 닫기 버튼 */}
@@ -861,12 +872,34 @@ export default function EnvironmentalMapPlatform() {
               <InfoRow icon={<Calendar className="w-4 h-4" />} label="제보일" value={selectedReport.date} />
             </div>
             {/* 상세 설명 */}
-            <div className="px-8 pb-8">
+            <div className="px-8 pb-4">
               <div className="font-semibold text-gray-800 mb-1">상세 설명</div>
               <blockquote className="bg-gray-50 border-l-4 border-blue-200 text-gray-700 p-4 rounded-lg italic">
                 {selectedReport.description}
               </blockquote>
             </div>
+            {/* AI 분석 결과 */}
+            {selectedReport.aiAnalysis && (
+              <div className="px-8 pb-8">
+                <div className="font-semibold text-blue-900 mb-1">AI 분석 결과</div>
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <p className="text-sm text-blue-800 mb-2">{selectedReport.aiAnalysis.summary}</p>
+                  <div className="flex flex-wrap gap-1 mb-1">
+                    {selectedReport.aiAnalysis.keywords?.map((keyword, idx) => (
+                      <Badge key={idx} variant="outline" className="text-xs">
+                        {keyword}
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="text-xs text-gray-600 space-y-1">
+                    {selectedReport.aiAnalysis.category && <div>카테고리: {selectedReport.aiAnalysis.category}</div>}
+                    {selectedReport.aiAnalysis.urgency && <div>긴급도: {selectedReport.aiAnalysis.urgency}</div>}
+                    {selectedReport.aiAnalysis.estimatedCost && <div>예상비용: {selectedReport.aiAnalysis.estimatedCost}</div>}
+                    {selectedReport.aiAnalysis.expectedDuration && <div>예상소요: {selectedReport.aiAnalysis.expectedDuration}</div>}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
