@@ -50,7 +50,7 @@ import { Menu } from "@headlessui/react"
 import { collection, addDoc, getDocs, query, where, updateDoc, deleteDoc, doc, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { auth } from "@/lib/firebase";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile, updateEmail } from "firebase/auth";
 import { AnalysisView } from "@/components/analysis-view"
 import { CommunityView } from "@/components/community-view"
 import { StatsView } from "@/components/stats-view"
@@ -100,6 +100,10 @@ export default function EnvironmentalMapPlatform() {
   const [showLoginRequired, setShowLoginRequired] = useState(false)
   const [showProfileDialog, setShowProfileDialog] = useState(false)
   const [showMyReports, setShowMyReports] = useState(false)
+  const [editProfile, setEditProfile] = useState(false)
+  const [profileName, setProfileName] = useState(currentUser?.name || "")
+  const [profileEmail, setProfileEmail] = useState(currentUser?.email || "")
+  const [profileLoading, setProfileLoading] = useState(false)
 
   // 제보 데이터
   const [reports, setReports] = useState<Report[]>([
@@ -936,7 +940,14 @@ export default function EnvironmentalMapPlatform() {
       )}
 
       {/* 내 정보 다이얼로그 */}
-      <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
+      <Dialog open={showProfileDialog} onOpenChange={(open) => {
+        setShowProfileDialog(open)
+        if (open) {
+          setEditProfile(false)
+          setProfileName(currentUser?.name || "")
+          setProfileEmail(currentUser?.email || "")
+        }
+      }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>내 정보</DialogTitle>
@@ -945,10 +956,66 @@ export default function EnvironmentalMapPlatform() {
             <Avatar className="h-20 w-20 border-2 border-emerald-300">
               <AvatarFallback>{currentUser?.name?.charAt(0) || "U"}</AvatarFallback>
             </Avatar>
-            <div className="text-lg font-bold">{currentUser?.name}</div>
-            <div className="text-gray-600">{currentUser?.email}</div>
+            {editProfile ? (
+              <>
+                <input
+                  className="border rounded px-3 py-2 w-full text-lg font-bold text-center mb-2"
+                  value={profileName}
+                  onChange={e => setProfileName(e.target.value)}
+                  placeholder="이름"
+                  disabled={profileLoading}
+                />
+                <input
+                  className="border rounded px-3 py-2 w-full text-center mb-2"
+                  value={profileEmail}
+                  onChange={e => setProfileEmail(e.target.value)}
+                  placeholder="이메일"
+                  disabled={profileLoading}
+                />
+              </>
+            ) : (
+              <>
+                <div className="text-lg font-bold">{currentUser?.name}</div>
+                <div className="text-gray-600">{currentUser?.email}</div>
+              </>
+            )}
           </div>
-          <Button onClick={() => setShowProfileDialog(false)} className="w-full mt-4">닫기</Button>
+          <div className="flex gap-2 mt-4">
+            {editProfile ? (
+              <>
+                <Button
+                  onClick={async () => {
+                    setProfileLoading(true)
+                    try {
+                      if (auth.currentUser) {
+                        if (profileName !== currentUser?.name) {
+                          await updateProfile(auth.currentUser, { displayName: profileName })
+                        }
+                        if (profileEmail !== currentUser?.email) {
+                          await updateEmail(auth.currentUser, profileEmail)
+                        }
+                        setCurrentUser({ ...currentUser, name: profileName, email: profileEmail })
+                        toast({ title: "정보 수정 완료", description: "내 정보가 성공적으로 변경되었습니다." })
+                        setEditProfile(false)
+                      }
+                    } catch (error: any) {
+                      toast({ title: "수정 실패", description: error.message || "정보 수정 중 오류가 발생했습니다.", variant: "destructive" })
+                    } finally {
+                      setProfileLoading(false)
+                    }
+                  }}
+                  disabled={profileLoading || (!profileName.trim() || !profileEmail.trim())}
+                  className="flex-1"
+                >
+                  저장
+                </Button>
+                <Button onClick={() => { setEditProfile(false); setProfileName(currentUser?.name || ""); setProfileEmail(currentUser?.email || "") }} disabled={profileLoading} variant="outline" className="flex-1">취소</Button>
+              </>
+            ) : (
+              <Button onClick={() => setEditProfile(true)} className="w-full">수정</Button>
+            )}
+            <Button onClick={() => setShowProfileDialog(false)} className="w-full">닫기</Button>
+          </div>
         </DialogContent>
       </Dialog>
 
