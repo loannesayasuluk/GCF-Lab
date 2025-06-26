@@ -198,8 +198,18 @@ export default function EnvironmentalMapPlatform() {
       likes: 15,
       comments: 8,
       category: "모임",
+      severity: "medium",
       isLiked: false,
-      commentsList: []
+      commentsList: [
+        { author: "유저1", content: "좋은 프로젝트네요!", date: "2024-01-20" },
+        { author: "유저2", content: "저도 참여하고 싶어요!", date: "2024-01-20" },
+        { author: "유저3", content: "매주 토요일 기대됩니다.", date: "2024-01-21" },
+        { author: "유저4", content: "친구랑 같이 가도 되나요?", date: "2024-01-21" },
+        { author: "유저5", content: "장소가 어디인가요?", date: "2024-01-21" },
+        { author: "유저6", content: "준비물이 있나요?", date: "2024-01-22" },
+        { author: "유저7", content: "아이도 참여 가능한가요?", date: "2024-01-22" },
+        { author: "유저8", content: "좋은 취지네요!", date: "2024-01-22" }
+      ]
     },
     {
       id: 2,
@@ -210,8 +220,15 @@ export default function EnvironmentalMapPlatform() {
       likes: 12,
       comments: 5,
       category: "정보",
+      severity: "low",
       isLiked: false,
-      commentsList: []
+      commentsList: [
+        { author: "유저A", content: "정보 감사합니다!", date: "2024-01-19" },
+        { author: "유저B", content: "측정 위치가 어디인가요?", date: "2024-01-19" },
+        { author: "유저C", content: "다음 주도 기대할게요.", date: "2024-01-20" },
+        { author: "유저D", content: "수고 많으십니다.", date: "2024-01-20" },
+        { author: "유저E", content: "데이터 공유 고맙습니다.", date: "2024-01-20" }
+      ]
     },
     {
       id: 3,
@@ -222,8 +239,22 @@ export default function EnvironmentalMapPlatform() {
       likes: 8,
       comments: 12,
       category: "질문",
+      severity: "medium",
       isLiked: false,
-      commentsList: []
+      commentsList: [
+        { author: "답변1", content: "환경부 공식 사이트 참고해보세요!", date: "2024-01-18" },
+        { author: "답변2", content: "지역 도서관에서 강의가 있어요.", date: "2024-01-18" },
+        { author: "답변3", content: "온라인 강의도 많아요!", date: "2024-01-19" },
+        { author: "답변4", content: "유튜브에 좋은 채널 많아요.", date: "2024-01-19" },
+        { author: "답변5", content: "저도 추천 부탁드려요!", date: "2024-01-19" },
+        { author: "답변6", content: "환경교육센터 추천합니다.", date: "2024-01-19" },
+        { author: "답변7", content: "아이들과 함께 듣기 좋아요.", date: "2024-01-20" },
+        { author: "답변8", content: "무료 강의도 있나요?", date: "2024-01-20" },
+        { author: "답변9", content: "링크 공유 부탁드려요.", date: "2024-01-20" },
+        { author: "답변10", content: "오프라인 강의도 있나요?", date: "2024-01-20" },
+        { author: "답변11", content: "관심있는 분들 모여요!", date: "2024-01-21" },
+        { author: "답변12", content: "좋은 정보 감사합니다.", date: "2024-01-21" }
+      ]
     },
     {
       id: 4,
@@ -234,8 +265,25 @@ export default function EnvironmentalMapPlatform() {
       likes: 25,
       comments: 15,
       category: "제안",
+      severity: "high",
       isLiked: false,
-      commentsList: []
+      commentsList: [
+        { author: "참여1", content: "좋은 제안입니다!", date: "2024-01-17" },
+        { author: "참여2", content: "저도 동참할게요.", date: "2024-01-17" },
+        { author: "참여3", content: "구체적인 계획이 있나요?", date: "2024-01-17" },
+        { author: "참여4", content: "포스터 만들어볼까요?", date: "2024-01-18" },
+        { author: "참여5", content: "SNS 홍보도 필요해요.", date: "2024-01-18" },
+        { author: "참여6", content: "학교에도 알릴게요.", date: "2024-01-18" },
+        { author: "참여7", content: "플라스틱 줄이기 실천 중입니다.", date: "2024-01-18" },
+        { author: "참여8", content: "동네 카페와 협업하면 좋겠어요.", date: "2024-01-19" },
+        { author: "참여9", content: "참여 방법이 궁금해요.", date: "2024-01-19" },
+        { author: "참여10", content: "캠페인 일정이 있나요?", date: "2024-01-19" },
+        { author: "참여11", content: "아이디어 모임 열어요!", date: "2024-01-19" },
+        { author: "참여12", content: "포인트 제도 도입 어떨까요?", date: "2024-01-20" },
+        { author: "참여13", content: "분리수거 교육도 함께!", date: "2024-01-20" },
+        { author: "참여14", content: "동참할게요!", date: "2024-01-20" },
+        { author: "참여15", content: "좋은 캠페인 기대합니다.", date: "2024-01-20" }
+      ]
     }
   ])
 
