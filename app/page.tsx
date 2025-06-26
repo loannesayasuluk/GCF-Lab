@@ -830,75 +830,62 @@ export default function EnvironmentalMapPlatform() {
 
       {/* 제보 상세 카드 */}
       {selectedReport && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl bg-white relative">
-            {/* 상단 심각도 배지와 닫기 버튼 */}
-            <div className="flex items-center justify-between px-6 pt-6 pb-2 border-b">
-              <div className="flex items-center gap-3">
-                {/* 심각도 컬러 배지 */}
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold
-                  ${selectedReport.severity === '심각' ? 'bg-red-100 text-red-700' :
-                    selectedReport.severity === '보통' ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-green-100 text-green-700'}`}
-                >
-                  {selectedReport.severity === '심각' && <span className="mr-1">❗</span>}
-                  {selectedReport.severity === '보통' && <span className="mr-1">⚠️</span>}
-                  {selectedReport.severity === '경미' && <span className="mr-1">✅</span>}
-                  {selectedReport.severity}
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-2">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden border border-gray-100 relative">
+            {/* 상단 심각도 컬러 바 */}
+            <div className={`h-2 w-full ${severityColor(selectedReport.severity)} transition-all`} />
+            {/* 닫기 버튼 */}
+            <button
+              className="absolute top-4 right-4 bg-gray-100 hover:bg-gray-200 rounded-full p-1"
+              onClick={() => setSelectedReport(null)}
+              aria-label="닫기"
+            >
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
+            {/* 제목/위치 */}
+            <div className="px-8 pt-8 pb-2">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-2xl">
+                  {selectedReport.severity === '심각' ? '❗' : selectedReport.severity === '보통' ? '⚠️' : '✅'}
                 </span>
-                <span className="text-xl sm:text-2xl font-extrabold text-gray-900">{selectedReport.title}</span>
+                <h2 className="text-2xl font-extrabold text-gray-900">{selectedReport.title}</h2>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setSelectedReport(null)}>
-                <X className="h-5 w-5" />
-              </Button>
+              <div className="text-sm text-gray-500">{selectedReport.location}</div>
             </div>
             {/* 주요 정보 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-6 py-4 text-sm">
-              <div className="flex items-center gap-2 text-gray-700"><MapPin className="h-4 w-4 text-emerald-500" /> <span>위치:</span> <span className="font-medium">{selectedReport.location}</span></div>
-              <div className="flex items-center gap-2 text-gray-700"><UserIcon className="h-4 w-4 text-blue-500" /> <span>제보자:</span> <span className="font-medium">{selectedReport.reporter}</span></div>
-              <div className="flex items-center gap-2 text-gray-700"><BarChart3 className="h-4 w-4 text-indigo-500" /> <span>유형:</span> <span className="font-medium">{selectedReport.type}</span></div>
-              <div className="flex items-center gap-2 text-gray-700"><AlertCircle className="h-4 w-4 text-pink-500" /> <span>심각도:</span> <span className="font-medium">{selectedReport.severity}</span></div>
-              <div className="flex items-center gap-2 text-gray-700"><CheckCircle className="h-4 w-4 text-green-500" /> <span>상태:</span> <span className="font-medium">{selectedReport.status}</span></div>
-              <div className="flex items-center gap-2 text-gray-700"><Calendar className="h-4 w-4 text-gray-500" /> <span>제보일:</span> <span className="font-medium">{selectedReport.date}</span></div>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-8 py-4 text-sm">
+              <InfoRow icon={<UserIcon className="w-4 h-4" />} label="제보자" value={selectedReport.reporter} />
+              <InfoRow icon={<BarChart3 className="w-4 h-4" />} label="유형" value={selectedReport.type} />
+              <InfoRow icon={<AlertCircle className="w-4 h-4" />} label="심각도" value={selectedReport.severity} />
+              <InfoRow icon={<CheckCircle className="w-4 h-4" />} label="상태" value={selectedReport.status} />
+              <InfoRow icon={<Calendar className="w-4 h-4" />} label="제보일" value={selectedReport.date} />
             </div>
-            <Separator />
             {/* 상세 설명 */}
-            <div className="px-6 py-4">
-              <h4 className="font-semibold text-base mb-2 text-gray-900">상세 설명</h4>
-              <p className="text-gray-700 leading-relaxed whitespace-pre-line">{selectedReport.description}</p>
+            <div className="px-8 pb-8">
+              <div className="font-semibold text-gray-800 mb-1">상세 설명</div>
+              <blockquote className="bg-gray-50 border-l-4 border-blue-200 text-gray-700 p-4 rounded-lg italic">
+                {selectedReport.description}
+              </blockquote>
             </div>
-            {/* 담당자/처리 노트 */}
-            {selectedReport.assignedTo && (
-              <div className="px-6 py-2">
-                <h4 className="font-semibold text-base mb-1 text-gray-900">담당자</h4>
-                <p className="text-gray-700">{selectedReport.assignedTo}</p>
-              </div>
-            )}
-            {selectedReport.processingNotes && (
-              <div className="px-6 py-2">
-                <h4 className="font-semibold text-base mb-1 text-gray-900">처리 노트</h4>
-                <p className="text-gray-700">{selectedReport.processingNotes}</p>
-              </div>
-            )}
-            {/* AI 분석 결과 */}
-            {selectedReport.aiAnalysis && (
-              <div className="px-6 py-4">
-                <h4 className="font-semibold text-base mb-2 text-blue-900">AI 분석 결과</h4>
-                <div className="bg-blue-50 p-3 rounded-lg">
-                  <p className="text-sm text-blue-800 mb-2">{selectedReport.aiAnalysis.summary}</p>
-                  <div className="flex flex-wrap gap-1">
-                    {selectedReport.aiAnalysis.keywords.map((keyword, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {keyword}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}
     </div>
   )
+}
+
+// InfoRow 컴포넌트와 severityColor 함수 추가 (컴포넌트 하단에 위치)
+function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2">
+      {icon}
+      <span className="text-gray-500">{label}:</span>
+      <span className="font-medium text-gray-800">{value}</span>
+    </div>
+  );
+}
+function severityColor(severity: string) {
+  if (severity === '심각') return 'bg-red-400';
+  if (severity === '보통') return 'bg-yellow-300';
+  return 'bg-green-400';
 } 
