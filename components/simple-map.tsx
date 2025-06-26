@@ -25,11 +25,11 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case "high":
+      case "심각":
         return "#ef4444"
-      case "medium":
+      case "보통":
         return "#eab308"
-      case "low":
+      case "경미":
         return "#22c55e"
       default:
         return "#6b7280"

@@ -36,13 +36,14 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
   const [newPostTitle, setNewPostTitle] = useState("")
   const [newPostContent, setNewPostContent] = useState("")
   const [newPostCategory, setNewPostCategory] = useState<CommunityPost['category'] | "">("")
+  const [newPostSeverity, setNewPostSeverity] = useState<string>("")
   const [showGuide, setShowGuide] = useState(false)
   const [expandedPosts, setExpandedPosts] = useState<ExpandedPosts>({})
   const [newComments, setNewComments] = useState<NewComments>({})
   const { toast } = useToast()
 
   const handleSubmitPost = () => {
-    if (!newPostTitle.trim() || !newPostContent.trim() || !newPostCategory) {
+    if (!newPostTitle.trim() || !newPostContent.trim() || !newPostCategory || !newPostSeverity) {
       toast({
         title: "입력 오류",
         description: "모든 필드를 입력해주세요.",
@@ -56,6 +57,7 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
         title: newPostTitle.trim(),
         content: newPostContent.trim(),
         category: newPostCategory,
+        severity: newPostSeverity,
         author: currentUser?.name || "익명",
         date: new Date().toLocaleDateString(),
       })
@@ -63,6 +65,7 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
       setNewPostTitle("")
       setNewPostContent("")
       setNewPostCategory("")
+      setNewPostSeverity("")
       setShowNewPostDialog(false)
       
       toast({
@@ -364,6 +367,19 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
                   <SelectItem value="정보">정보</SelectItem>
                   <SelectItem value="질문">질문</SelectItem>
                   <SelectItem value="제안">제안</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="severity">심각도</Label>
+              <Select value={newPostSeverity} onValueChange={(value: string) => setNewPostSeverity(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="심각도를 선택하세요" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="high">심각</SelectItem>
+                  <SelectItem value="medium">보통</SelectItem>
+                  <SelectItem value="low">경미</SelectItem>
                 </SelectContent>
               </Select>
             </div>

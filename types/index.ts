@@ -38,6 +38,7 @@ export interface CommunityPost {
   likes: number
   comments: number
   category: '모임' | '정보' | '팁' | '질문' | '제안'
+  severity: 'high' | 'medium' | 'low'
   isLiked?: boolean
   commentsList?: Array<{
     author: string

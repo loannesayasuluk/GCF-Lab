@@ -127,7 +127,7 @@ export default function EnvironmentalMapPlatform() {
       title: "성북구 대기오염 심각",
       location: "성북구 동소문로",
       type: "air",
-      severity: "높음",
+      severity: "심각",
       reporter: "이영희",
       date: "2024-01-19",
       status: "처리중",
@@ -142,7 +142,7 @@ export default function EnvironmentalMapPlatform() {
       title: "종로구 하천 오염",
       location: "종로구 청운동 하천",
       type: "water",
-      severity: "높음",
+      severity: "심각",
       reporter: "박민수",
       date: "2024-01-18",
       status: "처리완료",
@@ -170,7 +170,7 @@ export default function EnvironmentalMapPlatform() {
       title: "용산구 폐건축자재 불법투기",
       location: "용산구 한강대로",
       type: "waste",
-      severity: "낮음",
+      severity: "경미",
       reporter: "정수민",
       date: "2024-01-16",
       status: "처리중",
@@ -688,9 +688,9 @@ export default function EnvironmentalMapPlatform() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">전체 심각도</SelectItem>
-                  <SelectItem value="낮음">낮음</SelectItem>
-                  <SelectItem value="보통">보통</SelectItem>
-                  <SelectItem value="높음">높음</SelectItem>
+                  <SelectItem value="low">낮음</SelectItem>
+                  <SelectItem value="medium">보통</SelectItem>
+                  <SelectItem value="high">높음</SelectItem>
                 </SelectContent>
               </Select>
             </div>

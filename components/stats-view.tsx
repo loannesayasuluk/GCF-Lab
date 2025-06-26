@@ -252,8 +252,8 @@ export function StatsView({ reports, stats }: StatsViewProps) {
                     <Badge 
                       variant="outline"
                       className={
-                        severity === "high" ? "border-red-200 text-red-700" :
-                        severity === "medium" ? "border-yellow-200 text-yellow-700" :
+                        severity === "심각" ? "border-red-200 text-red-700" :
+                        severity === "보통" ? "border-yellow-200 text-yellow-700" :
                         "border-green-200 text-green-700"
                       }
                     >
