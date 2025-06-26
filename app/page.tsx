@@ -831,79 +831,72 @@ export default function EnvironmentalMapPlatform() {
       {/* 제보 상세 카드 */}
       {selectedReport && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg sm:text-xl">{selectedReport.title}</CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedReport(null)}
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl bg-white relative">
+            {/* 상단 심각도 배지와 닫기 버튼 */}
+            <div className="flex items-center justify-between px-6 pt-6 pb-2 border-b">
+              <div className="flex items-center gap-3">
+                {/* 심각도 컬러 배지 */}
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold
+                  ${selectedReport.severity === '심각' ? 'bg-red-100 text-red-700' :
+                    selectedReport.severity === '보통' ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-green-100 text-green-700'}`}
                 >
-                  <X className="h-4 w-4" />
-                </Button>
+                  {selectedReport.severity === '심각' && <span className="mr-1">❗</span>}
+                  {selectedReport.severity === '보통' && <span className="mr-1">⚠️</span>}
+                  {selectedReport.severity === '경미' && <span className="mr-1">✅</span>}
+                  {selectedReport.severity}
+                </span>
+                <span className="text-xl sm:text-2xl font-extrabold text-gray-900">{selectedReport.title}</span>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium">위치:</span> {selectedReport.location}
-                </div>
-                <div>
-                  <span className="font-medium">제보자:</span> {selectedReport.reporter}
-                </div>
-                <div>
-                  <span className="font-medium">유형:</span> {selectedReport.type}
-                </div>
-                <div>
-                  <span className="font-medium">심각도:</span> {selectedReport.severity}
-                </div>
-                <div>
-                  <span className="font-medium">상태:</span> {selectedReport.status}
-                </div>
-                <div>
-                  <span className="font-medium">제보일:</span> {selectedReport.date}
-                </div>
+              <Button variant="ghost" size="icon" onClick={() => setSelectedReport(null)}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            {/* 주요 정보 */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-6 py-4 text-sm">
+              <div className="flex items-center gap-2 text-gray-700"><MapPin className="h-4 w-4 text-emerald-500" /> <span>위치:</span> <span className="font-medium">{selectedReport.location}</span></div>
+              <div className="flex items-center gap-2 text-gray-700"><UserIcon className="h-4 w-4 text-blue-500" /> <span>제보자:</span> <span className="font-medium">{selectedReport.reporter}</span></div>
+              <div className="flex items-center gap-2 text-gray-700"><BarChart3 className="h-4 w-4 text-indigo-500" /> <span>유형:</span> <span className="font-medium">{selectedReport.type}</span></div>
+              <div className="flex items-center gap-2 text-gray-700"><AlertCircle className="h-4 w-4 text-pink-500" /> <span>심각도:</span> <span className="font-medium">{selectedReport.severity}</span></div>
+              <div className="flex items-center gap-2 text-gray-700"><CheckCircle className="h-4 w-4 text-green-500" /> <span>상태:</span> <span className="font-medium">{selectedReport.status}</span></div>
+              <div className="flex items-center gap-2 text-gray-700"><Calendar className="h-4 w-4 text-gray-500" /> <span>제보일:</span> <span className="font-medium">{selectedReport.date}</span></div>
+            </div>
+            <Separator />
+            {/* 상세 설명 */}
+            <div className="px-6 py-4">
+              <h4 className="font-semibold text-base mb-2 text-gray-900">상세 설명</h4>
+              <p className="text-gray-700 leading-relaxed whitespace-pre-line">{selectedReport.description}</p>
+            </div>
+            {/* 담당자/처리 노트 */}
+            {selectedReport.assignedTo && (
+              <div className="px-6 py-2">
+                <h4 className="font-semibold text-base mb-1 text-gray-900">담당자</h4>
+                <p className="text-gray-700">{selectedReport.assignedTo}</p>
               </div>
-              
-              <Separator />
-              
-              <div>
-                <h4 className="font-medium mb-2">상세 설명</h4>
-                <p className="text-sm text-gray-600">{selectedReport.description}</p>
+            )}
+            {selectedReport.processingNotes && (
+              <div className="px-6 py-2">
+                <h4 className="font-semibold text-base mb-1 text-gray-900">처리 노트</h4>
+                <p className="text-gray-700">{selectedReport.processingNotes}</p>
               </div>
-
-              {selectedReport.assignedTo && (
-                <div>
-                  <h4 className="font-medium mb-2">담당자</h4>
-                  <p className="text-sm text-gray-600">{selectedReport.assignedTo}</p>
-                </div>
-              )}
-
-              {selectedReport.processingNotes && (
-                <div>
-                  <h4 className="font-medium mb-2">처리 노트</h4>
-                  <p className="text-sm text-gray-600">{selectedReport.processingNotes}</p>
-                </div>
-              )}
-
-              {selectedReport.aiAnalysis && (
-                <div>
-                  <h4 className="font-medium mb-2">AI 분석 결과</h4>
-                  <div className="bg-blue-50 p-3 rounded-lg">
-                    <p className="text-sm text-blue-800 mb-2">{selectedReport.aiAnalysis.summary}</p>
-                    <div className="flex flex-wrap gap-1">
-                      {selectedReport.aiAnalysis.keywords.map((keyword, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {keyword}
-                        </Badge>
-                      ))}
-                    </div>
+            )}
+            {/* AI 분석 결과 */}
+            {selectedReport.aiAnalysis && (
+              <div className="px-6 py-4">
+                <h4 className="font-semibold text-base mb-2 text-blue-900">AI 분석 결과</h4>
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <p className="text-sm text-blue-800 mb-2">{selectedReport.aiAnalysis.summary}</p>
+                  <div className="flex flex-wrap gap-1">
+                    {selectedReport.aiAnalysis.keywords.map((keyword, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {keyword}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
