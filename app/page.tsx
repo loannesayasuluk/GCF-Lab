@@ -520,7 +520,7 @@ export default function EnvironmentalMapPlatform() {
     })
   }
 
-  const handleCommunityPost = (postData: Omit<CommunityPost, 'id' | 'likes' | 'comments'>) => {
+  const handleCommunityPost = (postData: Omit<CommunityPost, 'id' | 'likes' | 'comments' | 'isLiked' | 'commentsList'>) => {
     const newPost: CommunityPost = {
       ...postData,
       id: Date.now(),
@@ -549,10 +549,10 @@ export default function EnvironmentalMapPlatform() {
   const handleAddComment = (postId: number, comment: { author: string; content: string; date: string }) => {
     setCommunityPosts(prevPosts => prevPosts.map(post =>
       post.id === postId
-        ? { 
-            ...post, 
-            comments: post.comments + 1, 
-            commentsList: [...(post.commentsList || []), comment] 
+        ? {
+            ...post,
+            comments: (post.comments || 0) + 1,
+            commentsList: [...(post.commentsList || []), comment]
           }
         : post
     ))
@@ -562,9 +562,9 @@ export default function EnvironmentalMapPlatform() {
   const handleToggleLike = (postId: number, isLike: boolean) => {
     setCommunityPosts(prevPosts => prevPosts.map(post =>
       post.id === postId
-        ? { 
-            ...post, 
-            likes: Math.max(0, post.likes + (isLike ? 1 : -1)),
+        ? {
+            ...post,
+            likes: Math.max(0, (post.likes || 0) + (isLike ? 1 : -1)),
             isLiked: isLike
           }
         : post
@@ -579,12 +579,12 @@ export default function EnvironmentalMapPlatform() {
           <div className="flex justify-between items-center h-24 md:h-28">
             {/* 로고 (왼쪽) */}
             <a href="/" className="flex flex-row items-center gap-5 group select-none focus:outline-none">
-              <span className="flex items-center justify-center bg-gradient-to-br from-green-300 via-emerald-400 to-green-600 rounded-full p-3 shadow-lg">
-                <Leaf className="h-14 w-14 text-emerald-700 group-hover:text-emerald-900 transition-all duration-300" />
+              <span className="flex items-center justify-center bg-gradient-to-br from-green-300 via-emerald-400 to-green-600 rounded-full p-2 shadow-lg">
+                <Leaf className="h-8 w-8 text-emerald-700 group-hover:text-emerald-900 transition-all duration-300" />
               </span>
               <span className="flex flex-col justify-center">
-                <span className="text-5xl font-extrabold tracking-tight text-gray-900 group-hover:text-emerald-700 transition-colors" style={{ fontFamily: 'Pretendard, Noto Sans KR, sans-serif' }}>GCF LAB</span>
-                <span className="text-base md:text-lg text-gray-500 font-medium mt-1 group-hover:text-emerald-600 transition-colors">인공지능 환경 제보 플랫폼</span>
+                <span className="text-2xl font-extrabold tracking-tight text-gray-900 group-hover:text-emerald-700 transition-colors" style={{ fontFamily: 'Pretendard, Noto Sans KR, sans-serif' }}>GCF LAB</span>
+                <span className="text-xs md:text-sm text-gray-500 font-medium mt-1 group-hover:text-emerald-600 transition-colors">인공지능 환경 제보 플랫폼</span>
               </span>
             </a>
             {/* 네비게이션 (중앙) */}
@@ -611,8 +611,8 @@ export default function EnvironmentalMapPlatform() {
                   </Menu>
                 </>
               ) : (
-                <Button onClick={() => setShowAuthDialog(true)} className="relative overflow-hidden bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white font-extrabold text-xl px-12 py-5 rounded-2xl shadow-2xl hover:shadow-emerald-500/25 transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 flex items-center gap-3">
-                  <LogIn className="h-7 w-7 mr-2 relative z-10" />
+                <Button onClick={() => setShowAuthDialog(true)} className="relative overflow-hidden bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white font-extrabold text-sm px-4 py-2 rounded-lg shadow-2xl hover:shadow-emerald-500/25 transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 flex items-center gap-2">
+                  <LogIn className="h-4 w-4 mr-2 relative z-10" />
                   <span className="relative z-10">로그인</span>
                   <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
                 </Button>

@@ -1,5 +1,6 @@
 "use client"
 
+import React from 'react'
 import { useState } from "react"
 import { Plus, Users, MessageSquare, Calendar, Heart, ChevronDown, ChevronUp, ThumbsUp, Reply } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -184,6 +185,7 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
                 setShowNewPostDialog(true)
               }
             }}
+            data-testid="write-post-btn"
           >
             <Plus className="h-4 w-4 mr-2" />글쓰기
           </Button>
@@ -269,6 +271,7 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
                     size="sm"
                     onClick={() => handleComment(post.id)}
                     className="flex items-center space-x-1 text-gray-600"
+                    data-testid={`comment-btn-${post.id}`}
                   >
                     <MessageSquare className="h-4 w-4" />
                     <span>{post.comments}</span>
@@ -299,17 +302,19 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
                     <Textarea
                       placeholder="댓글을 입력하세요..."
                       value={newComments[post.id] || ""}
-                      onChange={(e) => setNewComments(prev => ({
+                      onChange={(e) => setNewComments((prev: NewComments) => ({
                         ...prev,
                         [post.id]: e.target.value
                       }))}
                       rows={2}
+                      data-testid={`comment-input-${post.id}`}
                     />
                     <div className="flex justify-end">
                       <Button 
                         size="sm" 
                         onClick={() => handleSubmitComment(post.id)}
                         disabled={!newComments[post.id]?.trim()}
+                        data-testid={`submit-comment-btn-${post.id}`}
                       >
                         댓글 작성
                       </Button>
@@ -376,7 +381,7 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
               <Button variant="outline" onClick={() => setShowNewPostDialog(false)}>
                 취소
               </Button>
-              <Button onClick={handleSubmitPost}>
+              <Button onClick={handleSubmitPost} data-testid="submit-post-btn">
                 작성 완료
               </Button>
             </div>
