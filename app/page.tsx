@@ -664,7 +664,8 @@ export default function EnvironmentalMapPlatform() {
       {/* 헤더 */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-24 md:h-28">
+          {/* PC 네비게이션: sm 이상에서만 보임 */}
+          <div className="hidden sm:flex items-center h-24 md:h-28">
             {/* 로고/타이틀 */}
             <a href="/" className="flex items-center gap-4 group select-none focus:outline-none">
               <span className="flex items-center justify-center bg-gradient-to-br from-green-300 via-emerald-400 to-green-600 rounded-full p-2 shadow-lg">
@@ -735,6 +736,18 @@ export default function EnvironmentalMapPlatform() {
                 </Button>
               )}
             </div>
+          </div>
+          {/* 모바일 네비게이션: sm 미만에서만 보임 */}
+          <div className="flex sm:hidden items-center h-20">
+            <a href="/" className="flex items-center gap-3 group select-none focus:outline-none">
+              <span className="flex items-center justify-center bg-gradient-to-br from-green-300 via-emerald-400 to-green-600 rounded-full p-2 shadow-lg">
+                <Leaf className="h-8 w-8 text-emerald-700 group-hover:text-emerald-900 transition-all duration-300" />
+              </span>
+              <span className="flex flex-col justify-center">
+                <span className="text-xl font-extrabold tracking-tight text-gray-900 group-hover:text-emerald-700 transition-colors" style={{ fontFamily: 'Pretendard, Noto Sans KR, sans-serif' }}>GCF LAB</span>
+                <span className="text-xs text-gray-500 font-medium mt-1 group-hover:text-emerald-600 transition-colors">환경 제보 플랫폼</span>
+              </span>
+            </a>
           </div>
         </div>
       </header>
