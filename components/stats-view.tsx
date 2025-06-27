@@ -136,7 +136,7 @@ export function StatsView({ reports, stats }: StatsViewProps) {
   }
 
   return (
-    <div className="max-w-md mx-auto px-2 sm:px-0 py-4 space-y-4">
+    <div className="max-w-3xl mx-auto px-2 sm:px-6 lg:px-8 py-4 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">통계 및 데이터</h2>
         <Button 
