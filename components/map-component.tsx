@@ -695,21 +695,21 @@ export default function MapComponent({ reports, selectedReport, onReportSelect, 
         {/* 내 위치 버튼 */}
         {mapLoaded && (
           <>
-            {/* PC: 기존 위치 */}
+            {/* PC: 지도 상단 오른쪽 */}
             <div className="absolute top-4 right-4 z-[1000] hidden sm:block">
               <Button variant="outline" size="sm" className="bg-white shadow-md" onClick={moveToCurrentLocation}>
                 <MapPin className="h-4 w-4 mr-1" />내 위치
               </Button>
             </div>
-            {/* 모바일: 지도 오른쪽 하단, 더 크고 둥글게 */}
+            {/* 모바일: 지도 오른쪽 하단, 범례 위에만 고정 */}
             <button
               onClick={moveToCurrentLocation}
-              className="fixed sm:hidden bottom-20 right-4 w-14 h-14 rounded-full bg-white shadow-lg border flex flex-col items-center justify-center z-[1100] active:scale-95 transition-transform"
-              style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.10)' }}
+              className="fixed sm:hidden bottom-24 right-4 w-16 h-16 rounded-full bg-white shadow-xl border flex flex-col items-center justify-center z-[1100] active:scale-95 transition-transform"
+              style={{ boxShadow: '0 6px 24px rgba(0,0,0,0.13)' }}
               aria-label="내 위치로 이동"
             >
-              <MapPin className="h-7 w-7 text-blue-600 mb-1" />
-              <span className="text-[11px] text-gray-700">내 위치</span>
+              <MapPin className="h-8 w-8 text-blue-600 mb-1" />
+              <span className="text-[12px] text-gray-700">내 위치</span>
             </button>
           </>
         )}
