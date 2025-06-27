@@ -854,6 +854,8 @@ export default function EnvironmentalMapPlatform() {
               </Card>
             </div>
             
+            {/* 지도 하단 spacer: 모바일에서만 보임, 겹침 완전 방지 */}
+            <div className="block sm:hidden" style={{height: '96px'}} />
             {/* 사이드바 */}
             <div className="order-2 xl:order-1 xl:col-span-1 space-y-4 sm:space-y-6 mt-4 sm:mt-0">
               {/* 실시간 통계 */}
