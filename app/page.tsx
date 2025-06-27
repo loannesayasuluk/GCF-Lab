@@ -664,7 +664,7 @@ export default function EnvironmentalMapPlatform() {
       {/* 헤더 */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-24 md:h-28">
+          <div className="flex items-center h-24 md:h-28">
             {/* 로고/타이틀 */}
             <a href="/" className="flex items-center gap-4 group select-none focus:outline-none">
               <span className="flex items-center justify-center bg-gradient-to-br from-green-300 via-emerald-400 to-green-600 rounded-full p-2 shadow-lg">
@@ -675,15 +675,15 @@ export default function EnvironmentalMapPlatform() {
                 <span className="text-xs md:text-sm text-gray-500 font-medium mt-1 group-hover:text-emerald-600 transition-colors">인공지능 환경 제보 플랫폼</span>
               </span>
             </a>
-            {/* 네비게이션 */}
-            <nav className="flex-1 flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-10 w-full sm:w-auto sm:block hidden">
-              <button onClick={() => setCurrentView("map")} className={`w-full sm:w-auto px-5 py-3 rounded-xl text-lg font-bold transition-colors ${currentView === "map" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>지도</button>
-              <button onClick={() => setCurrentView("stats")} className={`w-full sm:w-auto px-5 py-3 rounded-xl text-lg font-bold transition-colors ${currentView === "stats" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>통계</button>
-              <button onClick={() => setCurrentView("analysis")} className={`w-full sm:w-auto px-5 py-3 rounded-xl text-lg font-bold transition-colors ${currentView === "analysis" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>분석</button>
-              <button onClick={() => setCurrentView("community")} className={`w-full sm:w-auto px-5 py-3 rounded-xl text-lg font-bold transition-colors ${currentView === "community" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>커뮤니티</button>
+            {/* PC 네비게이션 - flex-grow로 가운데 정렬 */}
+            <nav className="flex-1 flex justify-center items-center gap-8 sm:gap-10 md:gap-12 lg:gap-16">
+              <button onClick={() => setCurrentView("map")} className={`px-2 py-1 text-base font-semibold transition-colors ${currentView === "map" ? "text-emerald-700 border-b-2 border-emerald-500" : "text-gray-600 hover:text-emerald-700"}`}>지도</button>
+              <button onClick={() => setCurrentView("stats")} className={`px-2 py-1 text-base font-semibold transition-colors ${currentView === "stats" ? "text-emerald-700 border-b-2 border-emerald-500" : "text-gray-600 hover:text-emerald-700"}`}>통계</button>
+              <button onClick={() => setCurrentView("analysis")} className={`px-2 py-1 text-base font-semibold transition-colors ${currentView === "analysis" ? "text-emerald-700 border-b-2 border-emerald-500" : "text-gray-600 hover:text-emerald-700"}`}>분석</button>
+              <button onClick={() => setCurrentView("community")} className={`px-2 py-1 text-base font-semibold transition-colors ${currentView === "community" ? "text-emerald-700 border-b-2 border-emerald-500" : "text-gray-600 hover:text-emerald-700"}`}>커뮤니티</button>
             </nav>
-            {/* 제보하기/프로필 */}
-            <div className="flex items-center gap-6">
+            {/* 제보하기/프로필 - 오른쪽 끝 */}
+            <div className="flex items-center gap-6 ml-auto">
               {isLoggedIn ? (
                 <>
                   <Button onClick={() => setShowReportDialog(true)} className="bg-green-600 hover:bg-green-700 text-base px-6 py-3">제보하기</Button>

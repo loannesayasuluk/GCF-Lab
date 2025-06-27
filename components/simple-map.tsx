@@ -677,7 +677,7 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
 
       {/* 범례 - 오른쪽 하단 (z-index 조정) */}
       {mapReady && (
-        <div className="fixed bottom-4 right-4 bg-white p-3 rounded-lg shadow-lg z-[1050] border max-w-xs">
+        <div className="hidden md:fixed md:bottom-4 md:right-4 md:bg-white md:p-3 md:rounded-lg md:shadow-lg md:z-[1050] md:border md:max-w-xs md:block absolute bottom-4 right-4 bg-white p-3 rounded-lg shadow-lg z-[1050] border max-w-xs sm:absolute sm:bottom-4 sm:right-4 sm:bg-white sm:p-3 sm:rounded-lg sm:shadow-lg sm:z-[1050] sm:border sm:max-w-xs">
           <h4 className="text-sm font-medium mb-2">범례</h4>
           <div className="space-y-1">
             <div className="flex items-center space-x-2">
@@ -722,10 +722,10 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
         </div>
       )}
 
-      {/* 내 위치 버튼만 남기고, 새로고침 버튼은 완전히 제거 */}
+      {/* 내 위치 버튼 - 모바일: 지도 하단, PC: 기존 위치 */}
       {mapReady && (
         <button
-          className="fixed md:absolute top-4 right-4 z-[1100] w-12 h-12 flex items-center justify-center rounded-full bg-white border shadow-lg hover:bg-blue-50 transition-colors"
+          className="md:fixed md:top-4 md:right-4 md:w-12 md:h-12 md:flex md:items-center md:justify-center md:rounded-full md:bg-white md:border md:shadow-lg md:hover:bg-blue-50 md:transition-colors fixed bottom-24 right-4 w-16 h-16 rounded-full bg-white shadow-xl border flex flex-col items-center justify-center z-[1100] active:scale-95 transition-transform sm:fixed sm:bottom-24 sm:right-4 sm:w-16 sm:h-16 sm:rounded-full sm:bg-white sm:shadow-xl sm:border sm:flex sm:flex-col sm:items-center sm:justify-center sm:z-[1100] sm:active:scale-95 sm:transition-transform"
           style={{ boxShadow: '0 2px 8px rgba(59,130,246,0.10)' }}
           onClick={handleMoveToCurrentLocation}
           aria-label="내 위치로 이동"
