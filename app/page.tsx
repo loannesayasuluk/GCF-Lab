@@ -708,7 +708,7 @@ export default function EnvironmentalMapPlatform() {
       </header>
 
       {/* 메인 콘텐츠 */}
-      <main className="w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
+      <main className="w-full max-w-none lg:max-w-screen-2xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
         {/* 검색 및 필터 */}
         {(currentView === "map" || !currentView) && (
           <div className="mb-6 space-y-4">

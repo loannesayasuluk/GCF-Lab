@@ -143,7 +143,7 @@ export function AnalysisView({ reports }: AnalysisViewProps) {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-2 sm:px-6 lg:px-8 py-4 space-y-4">
+    <div className="w-full max-w-none lg:max-w-screen-2xl mx-auto px-2 sm:px-6 lg:px-8 py-4 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">환경 데이터 분석</h2>
         <Button 

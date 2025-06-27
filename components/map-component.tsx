@@ -567,7 +567,7 @@ export default function MapComponent({ reports, selectedReport, onReportSelect, 
   }, [currentLocation, mapLoaded])
 
   return (
-    <div className="max-w-3xl mx-auto px-2 sm:px-6 lg:px-8 py-4 space-y-4">
+    <div className="w-full max-w-none lg:max-w-screen-2xl mx-auto px-2 sm:px-6 lg:px-8 py-4 space-y-4">
       <div ref={mapRef} className="relative h-full">
         <div className="h-full w-full rounded-b-lg bg-gray-100" />
 
