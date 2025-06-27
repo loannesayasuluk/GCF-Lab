@@ -753,19 +753,19 @@ export default function EnvironmentalMapPlatform() {
       </header>
 
       {/* 메인 콘텐츠 */}
-      <main className="w-full max-w-none lg:max-w-screen-2xl mx-auto px-2 sm:px-4 md:px-10 lg:px-16 py-4 sm:py-8 overflow-x-hidden pb-28 mobile-optimized">
+      <main className="w-full max-w-none lg:max-w-screen-2xl mx-auto px-2 sm:px-4 md:px-10 lg:px-16 py-2 sm:py-8 overflow-x-hidden pb-20 mobile-optimized">
         {/* 검색 및 필터 */}
         {(currentView === "map" || !currentView) && (
-          <div className="mb-6 space-y-4 mobile-padding">
-            <div className="flex flex-col sm:flex-row gap-4">
+          <div className="mb-2 space-y-2 mobile-padding">
+            <div className="flex flex-col sm:flex-row gap-2">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
                     placeholder="제보 검색..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 responsive-input mobile-optimized"
+                    className="pl-8 h-9 text-sm mobile-optimized"
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   />
                   {searchApplied && (
@@ -773,21 +773,21 @@ export default function EnvironmentalMapPlatform() {
                       variant="ghost"
                       size="sm"
                       onClick={clearSearch}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 responsive-button mobile-optimized"
+                      className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0 flex items-center justify-center"
                     >
                       <X className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
               </div>
-              <Button onClick={handleSearch} className="bg-blue-600 hover:bg-blue-700 responsive-button mobile-optimized">
+              <Button onClick={handleSearch} className="bg-blue-600 hover:bg-blue-700 h-9 px-3 text-sm mobile-optimized">
                 검색
               </Button>
             </div>
             {/* 필터 */}
-            <div className="flex flex-wrap gap-2 mobile-margin">
+            <div className="flex flex-wrap gap-1 mobile-margin">
               <Select value={filters.type} onValueChange={(value: Filters['type']) => setFilters(prev => ({ ...prev, type: value }))}>
-                <SelectTrigger className="w-32 responsive-input mobile-optimized">
+                <SelectTrigger className="w-24 h-8 text-xs mobile-optimized">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -799,7 +799,7 @@ export default function EnvironmentalMapPlatform() {
                 </SelectContent>
               </Select>
               <Select value={filters.status} onValueChange={(value: Filters['status']) => setFilters(prev => ({ ...prev, status: value }))}>
-                <SelectTrigger className="w-32 responsive-input mobile-optimized">
+                <SelectTrigger className="w-24 h-8 text-xs mobile-optimized">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -810,7 +810,7 @@ export default function EnvironmentalMapPlatform() {
                 </SelectContent>
               </Select>
               <Select value={filters.severity} onValueChange={(value: Filters['severity']) => setFilters(prev => ({ ...prev, severity: value }))}>
-                <SelectTrigger className="w-32 responsive-input mobile-optimized">
+                <SelectTrigger className="w-24 h-8 text-xs mobile-optimized">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -823,123 +823,110 @@ export default function EnvironmentalMapPlatform() {
             </div>
           </div>
         )}
-
         {/* 뷰별 콘텐츠 */}
         {currentView === "map" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 pb-32 sm:pb-0">
+          <div className="flex flex-col gap-2 pb-20 sm:pb-0">
             {/* 지도 영역 */}
-            <div className="order-1 xl:order-2 xl:col-span-2">
-              <Card className="h-[350px] sm:h-[600px] lg:h-[700px] relative z-0 mobile-optimized">
-                <CardHeader className="pb-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <CardTitle className="text-lg sm:text-xl">환경 제보 지도</CardTitle>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="outline" className="text-sm px-3 py-1">
-                        {displayReports.length}건 표시
-                      </Badge>
-                    </div>
+            <Card className="h-[260px] sm:h-[600px] lg:h-[700px] relative z-0 mobile-optimized mb-2">
+              <CardHeader className="pb-2">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                  <CardTitle className="text-base sm:text-xl">환경 제보 지도</CardTitle>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="outline" className="text-xs px-2 py-0.5">
+                      {displayReports.length}건 표시
+                    </Badge>
                   </div>
-                </CardHeader>
-                <CardContent className="p-0 relative z-0" style={{ minHeight: '250px' }}>
-                  <SimpleMap
-                    reports={displayReports}
-                    selectedReport={selectedReport}
-                    onReportSelect={setSelectedReport}
-                    currentLocation={currentLocation}
-                  />
-                </CardContent>
-              </Card>
-            </div>
-            
-            {/* 지도 하단 spacer: 모바일에서만 보임, 겹침 완전 방지 */}
-            <div className="block sm:hidden" style={{height: '96px'}} />
-            {/* 사이드바 */}
-            <div className="order-2 xl:order-1 xl:col-span-1 space-y-4 sm:space-y-6 mt-4 sm:mt-0 mobile-margin">
-              {/* 실시간 통계 */}
-              <Card className="mobile-optimized">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg sm:text-xl flex items-center space-x-2">
-                    <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6" />
-                    <span>실시간 통계</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                    <div className="text-center p-2 sm:p-4 bg-green-50 rounded-lg">
-                      <div className="text-xl sm:text-3xl font-bold text-green-600">{stats.total}</div>
-                      <div className="text-xs sm:text-base text-gray-600">총 제보건수</div>
-                    </div>
-                    <div className="text-center p-2 sm:p-4 bg-blue-50 rounded-lg">
-                      <div className="text-xl sm:text-3xl font-bold text-blue-600">{stats.thisWeek}</div>
-                      <div className="text-xs sm:text-base text-gray-600">이번 주</div>
-                    </div>
-                    <div className="text-center p-2 sm:p-4 bg-yellow-50 rounded-lg">
-                      <div className="text-xl sm:text-3xl font-bold text-yellow-600">{stats.pending}</div>
-                      <div className="text-xs sm:text-base text-gray-600">제보접수</div>
-                    </div>
-                    <div className="text-center p-2 sm:p-4 bg-red-50 rounded-lg">
-                      <div className="text-xl sm:text-3xl font-bold text-red-600">{stats.processing}</div>
-                      <div className="text-xs sm:text-base text-gray-600">처리중</div>
-                    </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 relative z-0" style={{ minHeight: '160px' }}>
+                <SimpleMap
+                  reports={displayReports}
+                  selectedReport={selectedReport}
+                  onReportSelect={setSelectedReport}
+                  currentLocation={currentLocation}
+                />
+              </CardContent>
+            </Card>
+            {/* 통계 카드: 지도 바로 아래, 모바일에서도 항상 보임 */}
+            <Card className="mobile-optimized mb-2">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base sm:text-xl flex items-center space-x-2">
+                  <BarChart3 className="h-4 w-4 sm:h-6 sm:w-6" />
+                  <span>실시간 통계</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                  <div className="text-center p-1 sm:p-4 bg-green-50 rounded-lg">
+                    <div className="text-base sm:text-3xl font-bold text-green-600">{stats.total}</div>
+                    <div className="text-xs sm:text-base text-gray-600">총 제보건수</div>
                   </div>
-                  <Separator className="my-2 sm:my-4" />
-                  <div className="space-y-2 sm:space-y-3">
-                    <div className="flex justify-between text-xs sm:text-base">
-                      <span>처리 완료율</span>
-                      <span>{Math.round((stats.resolved / stats.total) * 100)}%</span>
-                    </div>
-                    <Progress value={(stats.resolved / stats.total) * 100} className="h-2" />
+                  <div className="text-center p-1 sm:p-4 bg-blue-50 rounded-lg">
+                    <div className="text-base sm:text-3xl font-bold text-blue-600">{stats.thisWeek}</div>
+                    <div className="text-xs sm:text-base text-gray-600">이번 주</div>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* 최근 제보 */}
-              <Card className="mobile-optimized">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg sm:text-xl">최근 제보</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 sm:space-y-3">
-                    {displayReports.slice(0, 5).map((report) => (
-                      <div
-                        key={report.id}
-                        className="p-2 sm:p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                        onClick={() => setSelectedReport(report)}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="font-medium text-xs sm:text-sm line-clamp-1">{report.title}</h4>
-                          <Badge
-                            variant="outline"
-                            className={`text-xs ${
-                              report.severity === "high"
-                                ? "border-red-200 text-red-700"
-                                : report.severity === "medium"
-                                  ? "border-yellow-200 text-yellow-700"
-                                  : "border-green-200 text-green-700"
-                            }`}
-                          >
-                            {report.severity}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-gray-500 line-clamp-2">{report.location}</p>
-                        <p className="text-xs text-gray-400 mt-1">{report.date}</p>
+                  <div className="text-center p-1 sm:p-4 bg-yellow-50 rounded-lg">
+                    <div className="text-base sm:text-3xl font-bold text-yellow-600">{stats.pending}</div>
+                    <div className="text-xs sm:text-base text-gray-600">제보접수</div>
+                  </div>
+                  <div className="text-center p-1 sm:p-4 bg-red-50 rounded-lg">
+                    <div className="text-base sm:text-3xl font-bold text-red-600">{stats.processing}</div>
+                    <div className="text-xs sm:text-base text-gray-600">처리중</div>
+                  </div>
+                </div>
+                <Separator className="my-1 sm:my-4" />
+                <div className="space-y-1 sm:space-y-3">
+                  <div className="flex justify-between text-xs sm:text-base">
+                    <span>처리 완료율</span>
+                    <span>{Math.round((stats.resolved / stats.total) * 100)}%</span>
+                  </div>
+                  <Progress value={(stats.resolved / stats.total) * 100} className="h-2" />
+                </div>
+              </CardContent>
+            </Card>
+            {/* 최근 제보 */}
+            <Card className="mobile-optimized mb-0">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base sm:text-xl">최근 제보</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-1 sm:space-y-3">
+                  {displayReports.slice(0, 5).map((report) => (
+                    <div
+                      key={report.id}
+                      className="p-2 sm:p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => setSelectedReport(report)}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="font-medium text-xs sm:text-sm line-clamp-1">{report.title}</h4>
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${
+                            report.severity === "high"
+                              ? "border-red-200 text-red-700"
+                              : report.severity === "medium"
+                                ? "border-yellow-200 text-yellow-700"
+                                : "border-green-200 text-green-700"
+                          }`}
+                        >
+                          {report.severity}
+                        </Badge>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                      <p className="text-xs text-gray-500 line-clamp-2">{report.location}</p>
+                      <p className="text-xs text-gray-400 mt-1">{report.date}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
-
         {currentView === "stats" && (
           <StatsView reports={reports} stats={stats} />
         )}
-
         {currentView === "analysis" && (
           <AnalysisView reports={reports} />
         )}
-
         {currentView === "community" && (
           <div className="pb-24">
             <CommunityView
