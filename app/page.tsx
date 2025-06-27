@@ -30,6 +30,7 @@ import {
   ChevronDown,
   ChevronUp,
   Heart,
+  Home,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -69,6 +70,37 @@ async function fetchAISummary(content: string) {
     console.error('AI 분석 API 호출 오류:', error);
     throw error;
   }
+}
+
+function MobileTabBar({ currentView, setCurrentView }: { currentView: string, setCurrentView: (v: any) => void }) {
+  return (
+    <nav className="fixed bottom-0 left-0 w-full h-16 bg-white border-t flex justify-around items-center z-50 sm:hidden shadow-lg">
+      <button onClick={() => setCurrentView("map")}
+        className={`flex flex-col items-center flex-1 py-2 ${currentView === "map" ? "text-emerald-600" : "text-gray-400"}`}
+      >
+        <Home className="w-6 h-6 mb-1" />
+        <span className="text-xs">지도</span>
+      </button>
+      <button onClick={() => setCurrentView("stats")}
+        className={`flex flex-col items-center flex-1 py-2 ${currentView === "stats" ? "text-blue-600" : "text-gray-400"}`}
+      >
+        <BarChart3 className="w-6 h-6 mb-1" />
+        <span className="text-xs">통계</span>
+      </button>
+      <button onClick={() => setCurrentView("analysis")}
+        className={`flex flex-col items-center flex-1 py-2 ${currentView === "analysis" ? "text-purple-600" : "text-gray-400"}`}
+      >
+        <PieChart className="w-6 h-6 mb-1" />
+        <span className="text-xs">분석</span>
+      </button>
+      <button onClick={() => setCurrentView("community")}
+        className={`flex flex-col items-center flex-1 py-2 ${currentView === "community" ? "text-green-600" : "text-gray-400"}`}
+      >
+        <MessageSquare className="w-6 h-6 mb-1" />
+        <span className="text-xs">커뮤니티</span>
+      </button>
+    </nav>
+  );
 }
 
 export default function EnvironmentalMapPlatform() {
@@ -644,7 +676,7 @@ export default function EnvironmentalMapPlatform() {
               </span>
             </a>
             {/* 네비게이션 */}
-            <nav className="flex-1 flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-10 w-full sm:w-auto">
+            <nav className="flex-1 flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-10 w-full sm:w-auto sm:block hidden">
               <button onClick={() => setCurrentView("map")} className={`w-full sm:w-auto px-5 py-3 rounded-xl text-lg font-bold transition-colors ${currentView === "map" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>지도</button>
               <button onClick={() => setCurrentView("stats")} className={`w-full sm:w-auto px-5 py-3 rounded-xl text-lg font-bold transition-colors ${currentView === "stats" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>통계</button>
               <button onClick={() => setCurrentView("analysis")} className={`w-full sm:w-auto px-5 py-3 rounded-xl text-lg font-bold transition-colors ${currentView === "analysis" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>분석</button>
@@ -1097,6 +1129,8 @@ export default function EnvironmentalMapPlatform() {
           <Button onClick={() => setShowMyReports(false)} className="w-full mt-4">닫기</Button>
         </DialogContent>
       </Dialog>
+
+      <MobileTabBar currentView={currentView} setCurrentView={setCurrentView} />
     </div>
   )
 }
