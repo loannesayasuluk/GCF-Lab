@@ -383,7 +383,7 @@ export default function EnvironmentalMapPlatform() {
     }
 
     return (
-      <DialogContent className="sm:max-w-md w-[95vw] max-w-[450px] max-h-[90vh] overflow-y-auto p-6 sm:p-8">
+      <DialogContent className="w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-8">
         <DialogHeader>
           <DialogTitle className="text-xl sm:text-2xl font-bold text-center">로그인 / 회원가입</DialogTitle>
         </DialogHeader>
@@ -644,11 +644,11 @@ export default function EnvironmentalMapPlatform() {
               </span>
             </a>
             {/* 네비게이션 */}
-            <nav className="flex-1 flex justify-center items-center space-x-10">
-              <button onClick={() => setCurrentView("map")} className={`px-5 py-2 rounded-xl text-lg font-bold transition-colors ${currentView === "map" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>지도</button>
-              <button onClick={() => setCurrentView("stats")} className={`px-5 py-2 rounded-xl text-lg font-bold transition-colors ${currentView === "stats" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>통계</button>
-              <button onClick={() => setCurrentView("analysis")} className={`px-5 py-2 rounded-xl text-lg font-bold transition-colors ${currentView === "analysis" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>분석</button>
-              <button onClick={() => setCurrentView("community")} className={`px-5 py-2 rounded-xl text-lg font-bold transition-colors ${currentView === "community" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>커뮤니티</button>
+            <nav className="flex-1 flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-10 w-full sm:w-auto">
+              <button onClick={() => setCurrentView("map")} className={`w-full sm:w-auto px-5 py-3 rounded-xl text-lg font-bold transition-colors ${currentView === "map" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>지도</button>
+              <button onClick={() => setCurrentView("stats")} className={`w-full sm:w-auto px-5 py-3 rounded-xl text-lg font-bold transition-colors ${currentView === "stats" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>통계</button>
+              <button onClick={() => setCurrentView("analysis")} className={`w-full sm:w-auto px-5 py-3 rounded-xl text-lg font-bold transition-colors ${currentView === "analysis" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>분석</button>
+              <button onClick={() => setCurrentView("community")} className={`w-full sm:w-auto px-5 py-3 rounded-xl text-lg font-bold transition-colors ${currentView === "community" ? "bg-emerald-50 text-emerald-700" : "text-gray-500 hover:text-emerald-700"}`}>커뮤니티</button>
             </nav>
             {/* 제보하기/프로필 */}
             <div className="flex items-center gap-6">
@@ -708,7 +708,7 @@ export default function EnvironmentalMapPlatform() {
       </header>
 
       {/* 메인 콘텐츠 */}
-      <main className="w-full max-w-none lg:max-w-screen-2xl mx-auto px-4 sm:px-10 lg:px-16 py-8 overflow-x-hidden">
+      <main className="w-full max-w-none lg:max-w-screen-2xl mx-auto px-2 sm:px-4 md:px-10 lg:px-16 py-4 sm:py-8 overflow-x-hidden">
         {/* 검색 및 필터 */}
         {(currentView === "map" || !currentView) && (
           <div className="mb-6 space-y-4">
@@ -784,7 +784,7 @@ export default function EnvironmentalMapPlatform() {
 
         {/* 뷰별 콘텐츠 */}
         {currentView === "map" && (
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {/* 지도 영역 */}
             <div className="order-1 xl:order-2 xl:col-span-2">
               <Card className="h-[500px] sm:h-[600px] lg:h-[700px] relative z-0">
@@ -996,7 +996,7 @@ export default function EnvironmentalMapPlatform() {
           setProfileEmail(currentUser?.email || "")
         }
       }}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-8">
           <DialogHeader>
             <DialogTitle>내 정보</DialogTitle>
           </DialogHeader>
@@ -1069,7 +1069,7 @@ export default function EnvironmentalMapPlatform() {
 
       {/* 내 제보 현황 다이얼로그 */}
       <Dialog open={showMyReports} onOpenChange={setShowMyReports}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="w-full max-w-2xl">
           <DialogHeader>
             <DialogTitle>내 제보 현황</DialogTitle>
           </DialogHeader>
