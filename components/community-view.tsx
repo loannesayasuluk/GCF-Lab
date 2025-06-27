@@ -170,7 +170,7 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
   }
 
   return (
-    <div className="space-y-6 w-full max-w-none lg:max-w-screen-2xl mx-auto px-2 sm:px-6 lg:px-8">
+    <div className="space-y-6 w-full max-w-none lg:max-w-screen-2xl mx-auto px-4 sm:px-10 lg:px-16">
       <div className="flex items-center justify-between pt-4 pb-2">
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900">커뮤니티</h2>
         <div className="flex items-center space-x-2">
