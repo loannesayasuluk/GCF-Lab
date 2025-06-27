@@ -598,24 +598,55 @@ export default function MapComponent({ reports, selectedReport, onReportSelect, 
 
         {/* 범례 - 오른쪽 하단으로 이동 */}
         {mapLoaded && (
-          <div className="absolute bottom-4 right-4 bg-white p-3 rounded-lg shadow-lg z-[1000] border">
-            <h4 className="text-sm font-medium mb-2">범례</h4>
-            <div className="space-y-1">
+          <div
+            className="absolute bottom-4 right-4 sm:bottom-4 sm:right-4"
+          >
+            {/* 모바일: 내 위치 버튼과 겹치지 않게 right-24, bottom-6 등으로 위치 조정, 크기/여백 확대 */}
+            <div className="sm:hidden fixed bottom-6 right-24 bg-white p-4 rounded-xl shadow-xl z-[1000] border flex flex-col gap-2 min-w-[120px]">
+              <h4 className="text-sm font-bold mb-2">범례</h4>
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <span className="text-xs">심각</span>
+                <div className="w-4 h-4 rounded-full bg-red-500"></div>
+                <span className="text-sm">심각</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <span className="text-xs">보통</span>
+                <div className="w-4 h-4 rounded-full bg-yellow-500"></div>
+                <span className="text-sm">보통</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <span className="text-xs">경미</span>
+                <div className="w-4 h-4 rounded-full bg-green-500"></div>
+                <span className="text-sm">경미</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded-full bg-blue-600"></div>
-                <span className="text-xs">내 위치</span>
+                <div className="w-4 h-4 rounded-full bg-blue-600"></div>
+                <span className="text-sm">내 위치</span>
+              </div>
+              <div className="flex flex-col gap-1 mt-2">
+                <div className="flex items-center gap-2 text-xs"><span className="">🗑️</span>폐기물</div>
+                <div className="flex items-center gap-2 text-xs"><span className="">💨</span>대기오염</div>
+                <div className="flex items-center gap-2 text-xs"><span className="">💧</span>수질오염</div>
+                <div className="flex items-center gap-2 text-xs"><span className="">🔊</span>소음</div>
+              </div>
+            </div>
+            {/* PC: 기존 범례 스타일 유지 */}
+            <div className="hidden sm:block bg-white p-3 rounded-lg shadow-lg z-[1000] border">
+              <h4 className="text-sm font-medium mb-2">범례</h4>
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  <span className="text-xs">심각</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                  <span className="text-xs">보통</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  <span className="text-xs">경미</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-blue-600"></div>
+                  <span className="text-xs">내 위치</span>
+                </div>
               </div>
             </div>
           </div>
