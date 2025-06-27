@@ -727,7 +727,7 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
         <>
           {/* PC: 오른쪽 상단 */}
           <button
-            className="hidden md:block fixed top-4 right-4 w-12 h-12 rounded-full bg-white border shadow-lg hover:bg-blue-50 flex items-center justify-center z-[1100] transition-colors"
+            className="hidden md:block fixed top-4 right-4 w-12 h-12 rounded-full bg-white border shadow-lg hover:bg-blue-50 flex items-center justify-center z-[2000] transition-colors"
             style={{ boxShadow: '0 2px 8px rgba(59,130,246,0.10)' }}
             onClick={handleMoveToCurrentLocation}
             aria-label="내 위치로 이동"
