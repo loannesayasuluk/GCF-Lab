@@ -568,7 +568,7 @@ export default function MapComponent({ reports, selectedReport, onReportSelect, 
 
   return (
     <div className="w-full max-w-none lg:max-w-screen-2xl mx-auto px-4 sm:px-10 lg:px-16 py-4 space-y-4 overflow-x-hidden">
-      <div ref={mapRef} className="relative h-full">
+      <div ref={mapRef} className="relative h-full min-h-[400px] overflow-hidden">
         <div className="h-full w-full rounded-b-lg bg-gray-100" />
 
         {/* 로딩 상태 */}
@@ -592,62 +592,6 @@ export default function MapComponent({ reports, selectedReport, onReportSelect, 
                 <RotateCcw className="h-4 w-4 mr-1" />
                 다시 시도
               </Button>
-            </div>
-          </div>
-        )}
-
-        {/* 범례 - 오른쪽 하단으로 이동 */}
-        {mapLoaded && (
-          <div
-            className="absolute bottom-4 right-4 sm:bottom-4 sm:right-4"
-          >
-            {/* 모바일: 내 위치 버튼과 겹치지 않게 right-24, bottom-6 등으로 위치 조정, 크기/여백 확대 */}
-            <div className="sm:hidden fixed bottom-6 right-24 bg-white p-4 rounded-xl shadow-xl z-[1000] border flex flex-col gap-2 min-w-[120px]">
-              <h4 className="text-sm font-bold mb-2">범례</h4>
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 rounded-full bg-red-500"></div>
-                <span className="text-sm">심각</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 rounded-full bg-yellow-500"></div>
-                <span className="text-sm">보통</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 rounded-full bg-green-500"></div>
-                <span className="text-sm">경미</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 rounded-full bg-blue-600"></div>
-                <span className="text-sm">내 위치</span>
-              </div>
-              <div className="flex flex-col gap-1 mt-2">
-                <div className="flex items-center gap-2 text-xs"><span className="">🗑️</span>폐기물</div>
-                <div className="flex items-center gap-2 text-xs"><span className="">💨</span>대기오염</div>
-                <div className="flex items-center gap-2 text-xs"><span className="">💧</span>수질오염</div>
-                <div className="flex items-center gap-2 text-xs"><span className="">🔊</span>소음</div>
-              </div>
-            </div>
-            {/* PC: 기존 범례 스타일 유지 */}
-            <div className="hidden sm:block bg-white p-3 rounded-lg shadow-lg z-[1000] border">
-              <h4 className="text-sm font-medium mb-2">범례</h4>
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                  <span className="text-xs">심각</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                  <span className="text-xs">보통</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  <span className="text-xs">경미</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-blue-600"></div>
-                  <span className="text-xs">내 위치</span>
-                </div>
-              </div>
             </div>
           </div>
         )}
@@ -732,16 +676,64 @@ export default function MapComponent({ reports, selectedReport, onReportSelect, 
                 <MapPin className="h-4 w-4 mr-1" />내 위치
               </Button>
             </div>
-            {/* 모바일: 지도 오른쪽 하단, 범례 위에만 고정 */}
+            {/* 모바일: 지도 오른쪽 하단, 범례와 간격 확보, absolute로 변경 */}
             <button
               onClick={moveToCurrentLocation}
-              className="fixed sm:hidden bottom-24 right-4 w-16 h-16 rounded-full bg-white shadow-xl border flex flex-col items-center justify-center z-[1100] active:scale-95 transition-transform"
+              className="absolute bottom-24 right-4 w-16 h-16 rounded-full bg-white shadow-xl border flex flex-col items-center justify-center z-[1100] active:scale-95 transition-transform sm:hidden"
               style={{ boxShadow: '0 6px 24px rgba(0,0,0,0.13)' }}
               aria-label="내 위치로 이동"
             >
               <MapPin className="h-8 w-8 text-blue-600 mb-1" />
               <span className="text-[12px] text-gray-700">내 위치</span>
             </button>
+            {/* 모바일 범례: 지도 영역 안에서만, absolute로 */}
+            <div className="absolute bottom-6 right-24 bg-white p-4 rounded-xl shadow-xl z-[1000] border flex flex-col gap-2 min-w-[120px] sm:hidden">
+              <h4 className="text-sm font-bold mb-2">범례</h4>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded-full bg-red-500"></div>
+                <span className="text-sm">심각</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded-full bg-yellow-500"></div>
+                <span className="text-sm">보통</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded-full bg-green-500"></div>
+                <span className="text-sm">경미</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded-full bg-blue-600"></div>
+                <span className="text-sm">내 위치</span>
+              </div>
+              <div className="flex flex-col gap-1 mt-2">
+                <div className="flex items-center gap-2 text-xs"><span className="">🗑️</span>폐기물</div>
+                <div className="flex items-center gap-2 text-xs"><span className="">💨</span>대기오염</div>
+                <div className="flex items-center gap-2 text-xs"><span className="">💧</span>수질오염</div>
+                <div className="flex items-center gap-2 text-xs"><span className="">🔊</span>소음</div>
+              </div>
+            </div>
+            {/* PC: 기존 범례 스타일 유지 */}
+            <div className="absolute bottom-4 right-4 bg-white p-3 rounded-lg shadow-lg z-[1000] border hidden sm:block">
+              <h4 className="text-sm font-medium mb-2">범례</h4>
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  <span className="text-xs">심각</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                  <span className="text-xs">보통</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  <span className="text-xs">경미</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-blue-600"></div>
+                  <span className="text-xs">내 위치</span>
+                </div>
+              </div>
+            </div>
           </>
         )}
       </div>

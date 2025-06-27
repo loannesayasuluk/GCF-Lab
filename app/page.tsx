@@ -740,7 +740,7 @@ export default function EnvironmentalMapPlatform() {
       </header>
 
       {/* 메인 콘텐츠 */}
-      <main className="w-full max-w-none lg:max-w-screen-2xl mx-auto px-2 sm:px-4 md:px-10 lg:px-16 py-4 sm:py-8 overflow-x-hidden">
+      <main className="w-full max-w-none lg:max-w-screen-2xl mx-auto px-2 sm:px-4 md:px-10 lg:px-16 py-4 sm:py-8 overflow-x-hidden pb-28">
         {/* 검색 및 필터 */}
         {(currentView === "map" || !currentView) && (
           <div className="mb-6 space-y-4">
@@ -929,14 +929,16 @@ export default function EnvironmentalMapPlatform() {
         )}
 
         {currentView === "community" && (
-          <CommunityView
-            posts={communityPosts}
-            onAddPost={handleCommunityPost}
-            onAddComment={handleAddComment}
-            onToggleLike={handleToggleLike}
-            currentUser={currentUser}
-            isLoggedIn={isLoggedIn}
-          />
+          <div className="pb-24">
+            <CommunityView
+              posts={communityPosts}
+              onAddPost={handleCommunityPost}
+              onAddComment={handleAddComment}
+              onToggleLike={handleToggleLike}
+              currentUser={currentUser}
+              isLoggedIn={isLoggedIn}
+            />
+          </div>
         )}
       </main>
 
