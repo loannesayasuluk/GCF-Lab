@@ -722,16 +722,28 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
         </div>
       )}
 
-      {/* 내 위치 버튼 - 모바일: 지도 하단, PC: 기존 위치 */}
+      {/* 내 위치 버튼 - PC/모바일 완전 분리 */}
       {mapReady && (
-        <button
-          className="md:fixed md:top-4 md:right-4 md:w-12 md:h-12 md:flex md:items-center md:justify-center md:rounded-full md:bg-white md:border md:shadow-lg md:hover:bg-blue-50 md:transition-colors fixed bottom-24 right-4 w-16 h-16 rounded-full bg-white shadow-xl border flex flex-col items-center justify-center z-[1100] active:scale-95 transition-transform sm:fixed sm:bottom-24 sm:right-4 sm:w-16 sm:h-16 sm:rounded-full sm:bg-white sm:shadow-xl sm:border sm:flex sm:flex-col sm:items-center sm:justify-center sm:z-[1100] sm:active:scale-95 sm:transition-transform"
-          style={{ boxShadow: '0 2px 8px rgba(59,130,246,0.10)' }}
-          onClick={handleMoveToCurrentLocation}
-          aria-label="내 위치로 이동"
-        >
-          <MapPin className="h-6 w-6 text-blue-600" />
-        </button>
+        <>
+          {/* PC: 오른쪽 상단 */}
+          <button
+            className="hidden md:block fixed top-4 right-4 w-12 h-12 rounded-full bg-white border shadow-lg hover:bg-blue-50 flex items-center justify-center z-[1100] transition-colors"
+            style={{ boxShadow: '0 2px 8px rgba(59,130,246,0.10)' }}
+            onClick={handleMoveToCurrentLocation}
+            aria-label="내 위치로 이동"
+          >
+            <MapPin className="h-6 w-6 text-blue-600" />
+          </button>
+          {/* 모바일: 오른쪽 하단 */}
+          <button
+            className="block md:hidden fixed bottom-24 right-4 w-16 h-16 rounded-full bg-white shadow-xl border flex flex-col items-center justify-center z-[1100] active:scale-95 transition-transform"
+            style={{ boxShadow: '0 2px 8px rgba(59,130,246,0.10)' }}
+            onClick={handleMoveToCurrentLocation}
+            aria-label="내 위치로 이동"
+          >
+            <MapPin className="h-6 w-6 text-blue-600" />
+          </button>
+        </>
       )}
     </div>
   )

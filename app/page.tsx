@@ -829,7 +829,7 @@ export default function EnvironmentalMapPlatform() {
 
         {/* 뷰별 콘텐츠 */}
         {currentView === "map" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 pb-32 sm:pb-0">
             {/* 지도 영역 */}
             <div className="order-1 xl:order-2 xl:col-span-2">
               <Card className="h-[500px] sm:h-[600px] lg:h-[700px] relative z-0">
@@ -855,7 +855,7 @@ export default function EnvironmentalMapPlatform() {
             </div>
             
             {/* 사이드바 */}
-            <div className="order-2 xl:order-1 xl:col-span-1 space-y-4 sm:space-y-6">
+            <div className="order-2 xl:order-1 xl:col-span-1 space-y-4 sm:space-y-6 mt-4 sm:mt-0">
               {/* 실시간 통계 */}
               <Card>
                 <CardHeader className="pb-3">
