@@ -567,138 +567,140 @@ export default function MapComponent({ reports, selectedReport, onReportSelect, 
   }, [currentLocation, mapLoaded])
 
   return (
-    <div className="relative h-full">
-      <div ref={mapRef} className="h-full w-full rounded-b-lg bg-gray-100" />
+    <div className="max-w-md mx-auto px-2 sm:px-0 py-4 space-y-4">
+      <div ref={mapRef} className="relative h-full">
+        <div className="h-full w-full rounded-b-lg bg-gray-100" />
 
-      {/* 로딩 상태 */}
-      {!mapLoaded && !mapError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 rounded-b-lg z-10">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-2"></div>
-            <p className="text-gray-600">지도를 불러오는 중...</p>
-            <p className="text-sm text-gray-500 mt-1">{loadingMethod} 방식 시도 중</p>
+        {/* 로딩 상태 */}
+        {!mapLoaded && !mapError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 rounded-b-lg z-10">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-2"></div>
+              <p className="text-gray-600">지도를 불러오는 중...</p>
+              <p className="text-sm text-gray-500 mt-1">{loadingMethod} 방식 시도 중</p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* 오류 상태 */}
-      {mapError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 rounded-b-lg z-10">
-          <div className="text-center">
-            <div className="text-red-500 mb-2">⚠️</div>
-            <p className="text-gray-600 mb-2">지도를 불러올 수 없습니다</p>
-            <Button onClick={retryMap} size="sm" className="bg-green-600 hover:bg-green-700">
-              <RotateCcw className="h-4 w-4 mr-1" />
-              다시 시도
+        {/* 오류 상태 */}
+        {mapError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 rounded-b-lg z-10">
+            <div className="text-center">
+              <div className="text-red-500 mb-2">⚠️</div>
+              <p className="text-gray-600 mb-2">지도를 불러올 수 없습니다</p>
+              <Button onClick={retryMap} size="sm" className="bg-green-600 hover:bg-green-700">
+                <RotateCcw className="h-4 w-4 mr-1" />
+                다시 시도
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* 범례 - 오른쪽 하단으로 이동 */}
+        {mapLoaded && (
+          <div className="absolute bottom-4 right-4 bg-white p-3 rounded-lg shadow-lg z-[1000] border">
+            <h4 className="text-sm font-medium mb-2">범례</h4>
+            <div className="space-y-1">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <span className="text-xs">심각</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <span className="text-xs">보통</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <span className="text-xs">경미</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 rounded-full bg-blue-600"></div>
+                <span className="text-xs">내 위치</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 선택된 제보 정보 */}
+        {selectedReport && (
+          <div className="absolute top-4 left-4 bg-white p-4 rounded-lg shadow-lg max-w-sm max-h-96 overflow-y-auto z-[1000] border">
+            <div className="flex items-start justify-between mb-2">
+              <h3 className="font-medium">{selectedReport.title}</h3>
+              <Button variant="ghost" size="sm" onClick={() => onReportSelect(null)} className="h-6 w-6 p-0">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm text-gray-600">{selectedReport.location}</p>
+              <p className="text-sm">{selectedReport.description}</p>
+
+              {selectedReport.images && selectedReport.images.length > 0 && (
+                <div className="mt-2">
+                  <img
+                    src={selectedReport.images[0] || "/placeholder.svg?height=200&width=300"}
+                    alt="제보 사진"
+                    className="w-full h-32 object-cover rounded"
+                  />
+                </div>
+              )}
+
+              {selectedReport.aiAnalysis && (
+                <div className="mt-3 p-2 bg-blue-50 rounded">
+                  <h4 className="text-sm font-medium text-blue-800 mb-1">AI 분석 결과</h4>
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {selectedReport.aiAnalysis.keywords.map((keyword, idx) => (
+                      <Badge key={idx} variant="outline" className="text-xs">
+                        {keyword}
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="text-xs text-blue-700 space-y-1">
+                    <p>카테고리: {selectedReport.aiAnalysis.category}</p>
+                    <p>긴급도: {selectedReport.aiAnalysis.urgency}</p>
+                    <p>예상 비용: {selectedReport.aiAnalysis.estimatedCost}</p>
+                    <p>예상 기간: {selectedReport.aiAnalysis.expectedDuration}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between mt-3">
+                <Badge className={getStatusColor(selectedReport.status)}>{selectedReport.status}</Badge>
+                <span className="text-xs text-gray-500">제보자: {selectedReport.reporter}</span>
+              </div>
+
+              <div className="text-xs text-gray-500 mt-2">
+                <p>제보일: {selectedReport.date}</p>
+                {selectedReport.assignedTo && <p>담당자: {selectedReport.assignedTo}</p>}
+                {selectedReport.resolvedDate && <p>해결일: {selectedReport.resolvedDate}</p>}
+              </div>
+
+              {selectedReport.processingNotes && (
+                <div className="mt-2 p-2 bg-gray-50 rounded">
+                  <h4 className="text-sm font-medium mb-1">처리 현황</h4>
+                  <p className="text-xs text-gray-700">{selectedReport.processingNotes}</p>
+                </div>
+              )}
+
+              {selectedReport.resolutionReport && (
+                <div className="mt-2 p-2 bg-green-50 rounded">
+                  <h4 className="text-sm font-medium text-green-800 mb-1">해결 보고서</h4>
+                  <p className="text-xs text-green-700">{selectedReport.resolutionReport}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 내 위치 버튼 */}
+        {mapLoaded && (
+          <div className="absolute top-4 right-4 z-[1000]">
+            <Button variant="outline" size="sm" className="bg-white shadow-md" onClick={moveToCurrentLocation}>
+              <MapPin className="h-4 w-4 mr-1" />내 위치
             </Button>
           </div>
-        </div>
-      )}
-
-      {/* 범례 - 오른쪽 하단으로 이동 */}
-      {mapLoaded && (
-        <div className="absolute bottom-4 right-4 bg-white p-3 rounded-lg shadow-lg z-[1000] border">
-          <h4 className="text-sm font-medium mb-2">범례</h4>
-          <div className="space-y-1">
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <span className="text-xs">심각</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-              <span className="text-xs">보통</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              <span className="text-xs">경미</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded-full bg-blue-600"></div>
-              <span className="text-xs">내 위치</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 선택된 제보 정보 */}
-      {selectedReport && (
-        <div className="absolute top-4 left-4 bg-white p-4 rounded-lg shadow-lg max-w-sm max-h-96 overflow-y-auto z-[1000] border">
-          <div className="flex items-start justify-between mb-2">
-            <h3 className="font-medium">{selectedReport.title}</h3>
-            <Button variant="ghost" size="sm" onClick={() => onReportSelect(null)} className="h-6 w-6 p-0">
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-sm text-gray-600">{selectedReport.location}</p>
-            <p className="text-sm">{selectedReport.description}</p>
-
-            {selectedReport.images && selectedReport.images.length > 0 && (
-              <div className="mt-2">
-                <img
-                  src={selectedReport.images[0] || "/placeholder.svg?height=200&width=300"}
-                  alt="제보 사진"
-                  className="w-full h-32 object-cover rounded"
-                />
-              </div>
-            )}
-
-            {selectedReport.aiAnalysis && (
-              <div className="mt-3 p-2 bg-blue-50 rounded">
-                <h4 className="text-sm font-medium text-blue-800 mb-1">AI 분석 결과</h4>
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {selectedReport.aiAnalysis.keywords.map((keyword, idx) => (
-                    <Badge key={idx} variant="outline" className="text-xs">
-                      {keyword}
-                    </Badge>
-                  ))}
-                </div>
-                <div className="text-xs text-blue-700 space-y-1">
-                  <p>카테고리: {selectedReport.aiAnalysis.category}</p>
-                  <p>긴급도: {selectedReport.aiAnalysis.urgency}</p>
-                  <p>예상 비용: {selectedReport.aiAnalysis.estimatedCost}</p>
-                  <p>예상 기간: {selectedReport.aiAnalysis.expectedDuration}</p>
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between mt-3">
-              <Badge className={getStatusColor(selectedReport.status)}>{selectedReport.status}</Badge>
-              <span className="text-xs text-gray-500">제보자: {selectedReport.reporter}</span>
-            </div>
-
-            <div className="text-xs text-gray-500 mt-2">
-              <p>제보일: {selectedReport.date}</p>
-              {selectedReport.assignedTo && <p>담당자: {selectedReport.assignedTo}</p>}
-              {selectedReport.resolvedDate && <p>해결일: {selectedReport.resolvedDate}</p>}
-            </div>
-
-            {selectedReport.processingNotes && (
-              <div className="mt-2 p-2 bg-gray-50 rounded">
-                <h4 className="text-sm font-medium mb-1">처리 현황</h4>
-                <p className="text-xs text-gray-700">{selectedReport.processingNotes}</p>
-              </div>
-            )}
-
-            {selectedReport.resolutionReport && (
-              <div className="mt-2 p-2 bg-green-50 rounded">
-                <h4 className="text-sm font-medium text-green-800 mb-1">해결 보고서</h4>
-                <p className="text-xs text-green-700">{selectedReport.resolutionReport}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 내 위치 버튼 */}
-      {mapLoaded && (
-        <div className="absolute top-4 right-4 z-[1000]">
-          <Button variant="outline" size="sm" className="bg-white shadow-md" onClick={moveToCurrentLocation}>
-            <MapPin className="h-4 w-4 mr-1" />내 위치
-          </Button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

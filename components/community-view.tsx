@@ -170,13 +170,13 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">커뮤니티</h2>
+    <div className="space-y-6 px-2 sm:px-0 max-w-md mx-auto">
+      <div className="flex items-center justify-between pt-4 pb-2">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">커뮤니티</h2>
         <div className="flex items-center space-x-2">
           {/* 글쓰기 버튼 */}
           <Button
-            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium px-5 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium px-4 py-2 sm:px-5 sm:py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-base sm:text-lg"
             onClick={() => {
               if (!isLoggedIn) {
                 toast({
@@ -190,12 +190,13 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
             }}
             data-testid="write-post-btn"
           >
-            <Plus className="h-4 w-4 mr-2" />글쓰기
+            <Plus className="h-5 w-5 mr-2" />글쓰기
           </Button>
           {/* 커뮤니티 가이드 버튼 */}
           <Button 
             variant="outline" 
             size="sm"
+            className="hidden sm:inline-flex"
             onClick={() => setShowGuide(!showGuide)}
           >
             {showGuide ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -204,9 +205,9 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
         </div>
       </div>
 
-      {/* 커뮤니티 가이드 */}
+      {/* 커뮤니티 가이드 (모바일에서는 숨김) */}
       {showGuide && (
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className="bg-blue-50 border-blue-200 hidden sm:block">
           <CardHeader>
             <CardTitle className="text-blue-900 flex items-center space-x-2">
               <Users className="h-5 w-5" />
@@ -237,26 +238,25 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
       )}
 
       {/* 게시글 목록 */}
-      <div className="space-y-4">
+      <div className="space-y-4 pb-24">
         {posts.map((post) => (
-          <Card key={post.id} className="hover:shadow-md transition-shadow">
-            <CardHeader>
+          <Card key={post.id} className="hover:shadow-md transition-shadow rounded-2xl p-2 sm:p-4">
+            <CardHeader className="pb-2">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
-                    <Badge className={getCategoryColor(post.category)}>
+                    <Badge className={getCategoryColor(post.category) + " text-xs px-2 py-1"}>
                       {post.category}
                     </Badge>
-                    <span className="text-sm text-gray-500">{post.date}</span>
+                    <span className="text-xs text-gray-500">{post.date}</span>
                   </div>
-                  <CardTitle className="text-lg">{post.title}</CardTitle>
-                  <p className="text-sm text-gray-600 mt-1">작성자: {post.author}</p>
+                  <CardTitle className="text-base sm:text-lg line-clamp-2">{post.title}</CardTitle>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-1">작성자: {post.author}</p>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700 mb-4">{post.content}</p>
-              
+              <p className="text-sm sm:text-base text-gray-700 mb-4 line-clamp-3">{post.content}</p>
               {/* 액션 버튼 */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
@@ -264,19 +264,19 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
                     variant="ghost"
                     size="sm"
                     onClick={() => handleLike(post.id)}
-                    className={`flex items-center space-x-1 ${post.isLiked ? 'text-red-600' : 'text-gray-600'}`}
+                    className={`flex items-center space-x-1 ${post.isLiked ? 'text-red-600' : 'text-gray-600'} text-base`}
                   >
-                    <Heart className={`h-4 w-4 ${post.isLiked ? 'fill-current' : ''}`} />
+                    <Heart className={`h-5 w-5 ${post.isLiked ? 'fill-current' : ''}`} />
                     <span>{post.likes}</span>
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => handleComment(post.id)}
-                    className="flex items-center space-x-1 text-gray-600"
+                    className="flex items-center space-x-1 text-gray-600 text-base"
                     data-testid={`comment-btn-${post.id}`}
                   >
-                    <MessageSquare className="h-4 w-4" />
+                    <MessageSquare className="h-5 w-5" />
                     <span>{post.comments}</span>
                   </Button>
                 </div>
@@ -285,8 +285,7 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
               {/* 댓글 섹션 */}
               {expandedPosts[post.id] && (
                 <div className="mt-4 pt-4 border-t">
-                  <h4 className="font-medium mb-3">댓글</h4>
-                  
+                  <h4 className="font-medium mb-3 text-base">댓글</h4>
                   {/* 기존 댓글들 */}
                   <div className="space-y-3 mb-4">
                     {(post.commentsList || []).map((comment, index) => (
@@ -299,7 +298,6 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
                       </div>
                     ))}
                   </div>
-
                   {/* 새 댓글 작성 */}
                   <div className="space-y-2">
                     <Textarea
@@ -310,6 +308,7 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
                         [post.id]: e.target.value
                       }))}
                       rows={2}
+                      className="text-base"
                       data-testid={`comment-input-${post.id}`}
                     />
                     <div className="flex justify-end">
@@ -317,6 +316,7 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
                         size="sm" 
                         onClick={() => handleSubmitComment(post.id)}
                         disabled={!newComments[post.id]?.trim()}
+                        className="text-base px-4 py-2"
                         data-testid={`submit-comment-btn-${post.id}`}
                       >
                         댓글 작성
@@ -342,7 +342,7 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
 
       {/* 글쓰기 다이얼로그 */}
       <Dialog open={showNewPostDialog} onOpenChange={setShowNewPostDialog}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-w-[95vw] p-4">
           <DialogHeader>
             <DialogTitle>새 게시글 작성</DialogTitle>
           </DialogHeader>
@@ -354,6 +354,7 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
                 value={newPostTitle}
                 onChange={(e) => setNewPostTitle(e.target.value)}
                 placeholder="게시글 제목을 입력하세요"
+                className="text-base"
               />
             </div>
             <div>
@@ -391,6 +392,7 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
                 onChange={(e) => setNewPostContent(e.target.value)}
                 placeholder="게시글 내용을 입력하세요"
                 rows={6}
+                className="text-base"
               />
             </div>
             <div className="flex justify-end space-x-2">
@@ -398,7 +400,7 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
                 취소
               </Button>
               <Button onClick={handleSubmitPost} data-testid="submit-post-btn">
-                작성 완료
+                작성
               </Button>
             </div>
           </div>
