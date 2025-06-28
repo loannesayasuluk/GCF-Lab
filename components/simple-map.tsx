@@ -661,8 +661,8 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
 
   return (
     <div className="relative h-full w-full">
-      {/* 지도 컨테이너 */}
-      <div ref={mapContainerRef} className="w-full h-full z-0" style={{ minHeight: 500, minWidth: 300 }} />
+      {/* 지도 컨테이너 (z-index: 0) */}
+      <div ref={mapContainerRef} className="w-full h-full" style={{ minHeight: 500, minWidth: 300, zIndex: 0, position: 'relative' }} />
 
       {/* 로딩 상태 */}
       {!mapReady && (
@@ -746,11 +746,11 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
         </>
       )}
 
-      {/* 마커 클릭 시 상세 안내 카드 (지도 위에 항상 최상단에 보이도록 z-index 강화) */}
+      {/* 세부내용 창: 지도 위에, 하나만, z-index: 3000, position: fixed */}
       {selectedReport && (
         <div
-          className="fixed bg-white rounded-lg shadow-2xl border border-gray-200 p-6 max-w-md w-[90vw] z-[3000] animate-fade-in"
-          style={{ ...getDetailCardPosition(), zIndex: 3000 }}
+          className="fixed bg-white rounded-lg shadow-2xl border border-gray-200 p-6 max-w-md w-[90vw] animate-fade-in"
+          style={{ ...(getDetailCardPosition ? getDetailCardPosition() : {}), zIndex: 3000, position: 'fixed' }}
         >
           <button
             className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 focus:outline-none"
