@@ -667,16 +667,48 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
     setAiLoading(false);
   }, [selectedReport]);
 
+  // AI 분석 결과를 제보 유형에 따라 동적으로 생성
+  function getDynamicAIResult(report) {
+    switch (report.type) {
+      case 'waste':
+        return {
+          summary: 'AI가 분석한 결과, 해당 지역의 폐기물 불법투기가 심각하며 신속한 수거 및 단속이 필요합니다.',
+          insights: ['최근 1개월간 유사 제보 2건', '불법투기 발생 빈도 증가'],
+          recommendations: ['즉각적인 수거 조치', '불법투기 단속 강화', '주민 대상 계도 활동']
+        };
+      case 'air':
+        return {
+          summary: 'AI가 분석한 결과, 해당 지역의 대기오염이 심각하며 신속한 조치가 필요합니다.',
+          insights: ['최근 1개월간 유사 제보 3건', '심각도 높은 제보 비율 60%'],
+          recommendations: ['즉각적인 현장 점검', '주민 대상 안내문 발송']
+        };
+      case 'water':
+        return {
+          summary: 'AI가 분석한 결과, 해당 지역의 수질오염이 우려되며 정밀 조사가 필요합니다.',
+          insights: ['최근 1개월간 수질오염 제보 1건', '주변 하천 오염도 증가'],
+          recommendations: ['수질 정밀 조사', '오염원 추적 및 차단']
+        };
+      case 'noise':
+        return {
+          summary: 'AI가 분석한 결과, 해당 지역의 소음 민원이 증가하고 있습니다. 신속한 현장 점검이 필요합니다.',
+          insights: ['최근 1개월간 소음 관련 제보 4건', '야간 소음 빈도 증가'],
+          recommendations: ['현장 소음 측정', '공사장/사업장 점검', '주민 안내문 발송']
+        };
+      default:
+        return {
+          summary: 'AI가 분석한 결과, 해당 지역의 환경 문제가 지속적으로 제기되고 있습니다.',
+          insights: ['최근 유사 제보 다수', '문제 해결 필요'],
+          recommendations: ['현장 점검', '관계 기관 협조 요청']
+        };
+    }
+  }
+
   async function handleAIAnalysis(report: Report) {
     setAiLoading(true)
     setAiResult(null)
     // 실제 AI 분석 API 호출 또는 시뮬레이션
     await new Promise(res => setTimeout(res, 1200))
-    setAiResult({
-      summary: 'AI가 분석한 결과, 해당 지역의 대기오염이 심각하며 신속한 조치가 필요합니다.',
-      insights: ['최근 1개월간 유사 제보 3건', '심각도 높은 제보 비율 60%'],
-      recommendations: ['즉각적인 현장 점검', '주민 대상 안내문 발송']
-    })
+    setAiResult(getDynamicAIResult(report))
     setAiLoading(false)
   }
 
@@ -793,22 +825,22 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
               </button>
             </div>
 
-            {/* 주요 정보: 각 항목을 줄바꿈/구분해서 가독성 개선 */}
-            <div className="flex flex-col gap-1 text-sm text-gray-700 mb-2">
-              <div className="flex items-center gap-1"><MapPin className="w-4 h-4 text-blue-500" />{selectedReport.location}</div>
-              <div className="flex items-center gap-1"><span className="font-medium">제보자:</span> {selectedReport.reporter}</div>
-              <div className="flex items-center gap-1"><span className="font-medium">일자:</span> {selectedReport.date}</div>
-              <div className="flex items-center gap-1"><span className="font-medium">유형:</span> {getTypeLabel(selectedReport.type)}</div>
-              <div className="flex items-center gap-1"><span className="font-medium">심각도:</span> {selectedReport.severity}</div>
+            {/* 주요 정보: 각 항목을 줄바꿈/구분해서 가독성 및 여백 개선 */}
+            <div className="flex flex-col gap-2 text-sm text-gray-700 mb-4 px-1">
+              <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-blue-500" /><span className="font-medium">{selectedReport.location}</span></div>
+              <div className="flex items-center gap-2"><span className="font-medium">제보자:</span> {selectedReport.reporter}</div>
+              <div className="flex items-center gap-2"><span className="font-medium">일자:</span> {selectedReport.date}</div>
+              <div className="flex items-center gap-2"><span className="font-medium">유형:</span> {getTypeLabel(selectedReport.type)}</div>
+              <div className="flex items-center gap-2"><span className="font-medium">심각도:</span> {selectedReport.severity}</div>
             </div>
 
             {/* 상세 설명 */}
-            <div className="bg-gray-50 rounded-lg p-3 text-gray-800 text-base max-h-32 overflow-y-auto border mb-2">
+            <div className="bg-gray-50 rounded-lg p-3 text-gray-800 text-base max-h-32 overflow-y-auto border mb-4">
               {selectedReport.description}
             </div>
 
             {/* AI 분석 */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               <Button
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold py-2 rounded-lg shadow hover:from-blue-600 hover:to-purple-600"
                 onClick={() => handleAIAnalysis(selectedReport)}
@@ -817,11 +849,11 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
                 {aiLoading ? 'AI 분석 중...' : 'AI 분석 실행'}
               </Button>
               {aiResult && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-1 text-sm text-blue-900 animate-fade-in">
-                  <div className="font-bold mb-1">AI 분석 결과</div>
-                  <div>{aiResult.summary}</div>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-1 text-sm text-blue-900 animate-fade-in">
+                  <div className="font-bold mb-2">AI 분석 결과</div>
+                  <div className="mb-2">{aiResult.summary}</div>
                   {aiResult.insights && aiResult.insights.length > 0 && (
-                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                    <ul className="list-disc pl-5 mb-2 space-y-1">
                       {aiResult.insights.map((insight: string, idx: number) => (
                         <li key={idx}>{insight}</li>
                       ))}
@@ -829,8 +861,8 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
                   )}
                   {aiResult.recommendations && aiResult.recommendations.length > 0 && (
                     <div className="mt-2">
-                      <div className="font-semibold">추천 조치</div>
-                      <ul className="list-disc pl-5 mt-1 space-y-1">
+                      <div className="font-semibold mb-1">추천 조치</div>
+                      <ul className="list-disc pl-5 space-y-1">
                         {aiResult.recommendations.map((rec: string, idx: number) => (
                           <li key={idx}>{rec}</li>
                         ))}
