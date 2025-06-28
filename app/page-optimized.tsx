@@ -713,7 +713,7 @@ export default function EnvironmentalMapPlatform() {
           </section>
         )}
 
-        {/* 통계/현황/커뮤니티 - 지도 아래 */}
+        {/* 통계/현황/커뮤니티 - 지도 아래 3분할 */}
         {currentView === "map" && (
           <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* 실시간 통계 */}
