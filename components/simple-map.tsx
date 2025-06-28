@@ -661,6 +661,12 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
     // selectedReport, detailCardPos 등은 의존성에서 제외
   }, [mapType, reports])
 
+  // selectedReport가 바뀔 때마다 AI 분석 결과/로딩 초기화
+  useEffect(() => {
+    setAiResult(null);
+    setAiLoading(false);
+  }, [selectedReport]);
+
   async function handleAIAnalysis(report: Report) {
     setAiLoading(true)
     setAiResult(null)
@@ -787,8 +793,8 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
               </button>
             </div>
 
-            {/* 주요 정보 */}
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-700 mb-2">
+            {/* 주요 정보: 각 항목을 줄바꿈/구분해서 가독성 개선 */}
+            <div className="flex flex-col gap-1 text-sm text-gray-700 mb-2">
               <div className="flex items-center gap-1"><MapPin className="w-4 h-4 text-blue-500" />{selectedReport.location}</div>
               <div className="flex items-center gap-1"><span className="font-medium">제보자:</span> {selectedReport.reporter}</div>
               <div className="flex items-center gap-1"><span className="font-medium">일자:</span> {selectedReport.date}</div>
