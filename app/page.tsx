@@ -847,7 +847,7 @@ export default function EnvironmentalMapPlatform() {
                 />
               </CardContent>
             </Card>
-            {/* 통계 카드: 지도 바로 아래, 모바일에서도 항상 보임 */}
+            {/* 통계 카드: 지도 바로 아래, 모바일에서도 항상 보임 (강제 추가) */}
             <Card className="mobile-optimized mb-2 p-2">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base sm:text-xl flex items-center space-x-2">
