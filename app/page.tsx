@@ -825,8 +825,8 @@ export default function EnvironmentalMapPlatform() {
         )}
         {/* 뷰별 콘텐츠 */}
         {currentView === "map" && (
-          <div className="flex flex-col gap-3 pb-20 sm:pb-0">
-            {/* 지도 영역 */}
+          <div className="환경지도-area flex flex-col gap-3 pb-20 sm:pb-0">
+            {/* 지도 */}
             <Card className="h-[220px] sm:h-[600px] lg:h-[700px] relative z-0 mobile-optimized mb-2">
               <CardHeader className="pb-2">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
@@ -847,7 +847,9 @@ export default function EnvironmentalMapPlatform() {
                 />
               </CardContent>
             </Card>
-            {/* 통계 카드: 지도 바로 아래, 모바일에서도 항상 보임 (중복 없이 한 번만) */}
+            {/* 구분선 */}
+            <Separator />
+            {/* 통계 */}
             <Card className="mobile-optimized mb-2 p-2">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base sm:text-xl flex items-center space-x-2">
@@ -884,6 +886,8 @@ export default function EnvironmentalMapPlatform() {
                 </div>
               </CardContent>
             </Card>
+            {/* 구분선 */}
+            <Separator />
             {/* 최근 제보 */}
             <Card className="mobile-optimized mb-0 p-2">
               <CardHeader className="pb-2">
