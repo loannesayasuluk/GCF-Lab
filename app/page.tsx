@@ -1,3 +1,4 @@
+// deploy trigger - 환경 지도 B안 레이아웃 적용 확인용
 "use client"
 
 import React, { useState, useEffect, useRef, useMemo } from "react"
