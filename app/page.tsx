@@ -673,13 +673,15 @@ export default function EnvironmentalMapPlatform() {
     ))
   }
 
-  if (isMobile) {
-    // 모바일 전용 JSX (모바일 반응형만 적용)
-    return <div>모바일 화면</div>;
-  } else {
-    // PC 전용 JSX (PC 반응형만 적용)
-    return <div>PC 화면</div>;
-  }
+  return (
+    <div>
+      {isMobile ? (
+        <div>모바일 화면</div>
+      ) : (
+        <div>PC 화면</div>
+      )}
+    </div>
+  );
 }
 
 // InfoRow 컴포넌트와 severityColor 함수 추가 (컴포넌트 하단에 위치)
