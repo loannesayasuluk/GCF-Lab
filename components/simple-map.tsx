@@ -745,6 +745,31 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
           </button>
         </>
       )}
+
+      {/* 마커 클릭 시 상세 안내 카드 (지도 위에 항상 최상단에 보이도록 z-index 강화) */}
+      {selectedReport && (
+        <div
+          className="fixed bg-white rounded-lg shadow-2xl border border-gray-200 p-6 max-w-md w-[90vw] z-[3000] animate-fade-in"
+          style={{ ...getDetailCardPosition(), zIndex: 3000 }}
+        >
+          <button
+            className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 focus:outline-none"
+            onClick={closeDetailCard}
+            aria-label="닫기"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <div className="mb-2 flex items-center gap-2">
+            <span className="text-2xl">{getTypeIcon(selectedReport.type)}</span>
+            <span className="font-bold text-lg text-gray-800">{selectedReport.title}</span>
+            <Badge className={getStatusColor(selectedReport.status)}>{selectedReport.status}</Badge>
+          </div>
+          <div className="text-gray-700 text-sm mb-2">{selectedReport.description}</div>
+          <div className="text-xs text-gray-500 mb-1">위치: {selectedReport.location}</div>
+          <div className="text-xs text-gray-500 mb-1">제보자: {selectedReport.reporter}</div>
+          <div className="text-xs text-gray-500">제보일: {selectedReport.date}</div>
+        </div>
+      )}
     </div>
   )
 }

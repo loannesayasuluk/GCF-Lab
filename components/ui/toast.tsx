@@ -45,13 +45,38 @@ const Toast = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
     VariantProps<typeof toastVariants>
 >(({ className, variant, ...props }, ref) => {
+  // Custom handler to dismiss toast on tap or swipe
+  const [isTouching, setIsTouching] = React.useState(false);
+  const touchStartX = React.useRef(0);
+  const touchEndX = React.useRef(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsTouching(true);
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    setIsTouching(false);
+    touchEndX.current = e.changedTouches[0].clientX;
+    // If tap (no movement) or swipe (movement > 30px), close toast
+    if (Math.abs(touchEndX.current - touchStartX.current) < 10) {
+      // Tap
+      if (props.onOpenChange) props.onOpenChange(false);
+    } else if (Math.abs(touchEndX.current - touchStartX.current) > 30) {
+      // Swipe
+      if (props.onOpenChange) props.onOpenChange(false);
+    }
+  };
+
   return (
     <ToastPrimitives.Root
       ref={ref}
       className={cn(toastVariants({ variant }), className)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       {...props}
     />
-  )
+  );
 })
 Toast.displayName = ToastPrimitives.Root.displayName
 
