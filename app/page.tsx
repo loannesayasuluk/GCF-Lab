@@ -322,8 +322,6 @@ export default function EnvironmentalMapPlatform() {
     }
   }, [currentUser]);
 
-  if (!checked) return null; // 렌더링 전 userAgent 체크 대기
-
   // 제보 데이터
   const [reports, setReports] = useState<Report[]>([
     {
@@ -674,11 +672,80 @@ export default function EnvironmentalMapPlatform() {
   }
 
   return (
-    <div>
-      {isMobile ? (
-        <div>모바일 화면</div>
-      ) : (
-        <div>PC 화면</div>
+    <div className="min-h-screen bg-gray-50">
+      {/* 헤더 */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <Leaf className="h-8 w-8 text-green-600 mr-3" />
+              <h1 className="text-xl font-bold text-gray-900">환경 지도 플랫폼</h1>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              {isLoggedIn ? (
+                <div className="flex items-center space-x-2">
+                  <Avatar>
+                    <AvatarFallback>{currentUser?.name?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm text-gray-700">{currentUser?.name}</span>
+                  <Button variant="outline" size="sm" onClick={handleLogout}>
+                    <LogOut className="h-4 w-4 mr-1" />
+                    로그아웃
+                  </Button>
+                </div>
+              ) : (
+                <Button onClick={() => setShowAuthDialog(true)}>
+                  <LogIn className="h-4 w-4 mr-1" />
+                  로그인
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* 메인 컨텐츠 */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {currentView === "map" && (
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-2xl font-bold mb-4">환경 제보 지도</h2>
+            <div className="h-96 bg-gray-200 rounded-lg flex items-center justify-center">
+              <p className="text-gray-500">지도 컴포넌트가 여기에 표시됩니다</p>
+            </div>
+          </div>
+        )}
+
+        {currentView === "stats" && (
+          <StatsView stats={stats} reports={displayReports} />
+        )}
+
+        {currentView === "analysis" && (
+          <AnalysisView reports={displayReports} />
+        )}
+
+        {currentView === "community" && (
+          <CommunityView 
+            posts={communityPosts}
+            onAddPost={handleCommunityPost}
+            onAddComment={handleAddComment}
+            onToggleLike={handleToggleLike}
+            currentUser={currentUser}
+            isLoggedIn={isLoggedIn}
+          />
+        )}
+      </main>
+
+      {/* 모바일 탭바 */}
+      <MobileTabBar currentView={currentView} setCurrentView={setCurrentView} />
+
+      {/* 인증 다이얼로그 */}
+      {showAuthDialog && (
+        <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+          <DialogContent>
+            <AuthDialog onLogin={handleLogin} onSignup={handleSignup} />
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
