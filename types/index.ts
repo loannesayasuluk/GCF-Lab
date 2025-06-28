@@ -1,6 +1,6 @@
 // 환경 제보 관련 타입
 export interface Report {
-  id: number
+  id: string
   title: string
   location: string
   type: 'waste' | 'air' | 'water' | 'noise'
@@ -30,7 +30,7 @@ export interface Report {
 
 // 커뮤니티 포스트 타입
 export interface CommunityPost {
-  id: number
+  id: string
   title: string
   author: string
   date: string

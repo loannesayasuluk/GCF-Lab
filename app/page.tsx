@@ -48,7 +48,7 @@ import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 import SimpleMap from "@/components/simple-map"
 import { Menu } from "@headlessui/react"
-import { collection, addDoc, getDocs, query, where, updateDoc, deleteDoc, doc, writeBatch } from "firebase/firestore";
+import { collection, addDoc, getDocs, query, where, updateDoc, deleteDoc, doc, writeBatch, orderBy, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { auth } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile, updateEmail } from "firebase/auth";
@@ -273,6 +273,20 @@ function AuthDialog({
   );
 }
 
+// 기기 및 화면비율 체크 유틸리티
+function useDeviceType() {
+  const [device, setDevice] = useState<'mobile' | 'tablet' | 'pc'>('pc');
+  useEffect(() => {
+    const userAgent = typeof window !== 'undefined' ? navigator.userAgent : '';
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+    const width = window.innerWidth;
+    if (isMobile || width < 600) setDevice('mobile');
+    else if (width < 1024) setDevice('tablet');
+    else setDevice('pc');
+  }, []);
+  return device;
+}
+
 export default function EnvironmentalMapPlatform() {
   // 모든 훅은 컴포넌트 최상단에서 선언
   const { toast } = useToast()
@@ -310,6 +324,8 @@ export default function EnvironmentalMapPlatform() {
   const [isMobile, setIsMobile] = useState(false);
   const [checked, setChecked] = useState(false);
 
+  const device = useDeviceType();
+
   useEffect(() => {
     setIsMobile(isMobileDevice());
     setChecked(true);
@@ -322,10 +338,10 @@ export default function EnvironmentalMapPlatform() {
     }
   }, [currentUser]);
 
-  // 제보 데이터
+  // Firestore에서 reports 불러오기
   const [reports, setReports] = useState<Report[]>([
     {
-      id: 1,
+      id: "1",
       title: "강북구 공원 쓰레기 무단투기",
       location: "강북구 번동 공원",
       type: "waste",
@@ -336,17 +352,14 @@ export default function EnvironmentalMapPlatform() {
       description: "공원 내 벤치 주변에 음식물 쓰레기와 플라스틱 병들이 무단으로 버려져 있습니다. 아이들이 놀기 전에 정리가 필요합니다.",
       coordinates: { lat: 37.5665, lng: 126.9780 },
       images: ["/placeholder-user.jpg", "/placeholder-logo.png"],
-      aiAnalysis: {
-        summary: "공원 내 쓰레기 무단투기 문제로, 신속한 정리가 필요합니다.",
-        keywords: ["쓰레기", "공원", "정리"],
-        category: "폐기물 관리",
-        urgency: "medium",
-        estimatedCost: "50만원",
-        expectedDuration: "3일"
-      }
+      assignedTo: undefined,
+      processingNotes: undefined,
+      resolvedDate: undefined,
+      resolutionReport: undefined,
+      aiAnalysis: undefined,
     },
     {
-      id: 2,
+      id: "2",
       title: "성북구 대기오염 심각",
       location: "성북구 동소문로",
       type: "air",
@@ -358,10 +371,13 @@ export default function EnvironmentalMapPlatform() {
       coordinates: { lat: 37.5894, lng: 127.0167 },
       images: ["/placeholder-logo.svg"],
       assignedTo: "환경과 김과장",
-      processingNotes: "대기질 측정 장비 설치 완료. 24시간 모니터링 중입니다."
+      processingNotes: "대기질 측정 장비 설치 완료. 24시간 모니터링 중입니다.",
+      resolvedDate: undefined,
+      resolutionReport: undefined,
+      aiAnalysis: undefined,
     },
     {
-      id: 3,
+      id: "3",
       title: "종로구 하천 오염",
       location: "종로구 청운동 하천",
       type: "water",
@@ -372,11 +388,14 @@ export default function EnvironmentalMapPlatform() {
       description: "하천에 기름기가 떠다니고 물이 탁해졌습니다. 생태계에 영향을 줄 수 있습니다.",
       coordinates: { lat: 37.5735, lng: 126.9789 },
       images: ["/placeholder.jpg"],
+      assignedTo: undefined,
+      processingNotes: undefined,
       resolvedDate: "2024-01-20",
-      resolutionReport: "하천 정화 작업 완료. 오염원 차단 조치 완료."
+      resolutionReport: "하천 정화 작업 완료. 오염원 차단 조치 완료.",
+      aiAnalysis: undefined,
     },
     {
-      id: 4,
+      id: "4",
       title: "마포구 야간 소음",
       location: "마포구 합정동",
       type: "noise",
@@ -386,10 +405,15 @@ export default function EnvironmentalMapPlatform() {
       status: "제보접수",
       description: "새벽 2시경부터 공사장 소음이 들립니다. 주민들의 수면에 지장을 주고 있습니다.",
       coordinates: { lat: 37.5492, lng: 126.9136 },
-      images: ["/placeholder.jpg"]
+      images: ["/placeholder.jpg"],
+      assignedTo: undefined,
+      processingNotes: undefined,
+      resolvedDate: undefined,
+      resolutionReport: undefined,
+      aiAnalysis: undefined,
     },
     {
-      id: 5,
+      id: "5",
       title: "용산구 폐건축자재 불법투기",
       location: "용산구 한강대로",
       type: "waste",
@@ -400,14 +424,47 @@ export default function EnvironmentalMapPlatform() {
       description: "도로변에 건축자재들이 버려져 있습니다. 통행에 불편을 주고 있습니다.",
       coordinates: { lat: 37.5320, lng: 126.9904 },
       images: ["/placeholder.jpg"],
-      assignedTo: "청소과 박대리"
-    }
-  ])
+      assignedTo: "청소과 박대리",
+      processingNotes: undefined,
+      resolvedDate: undefined,
+      resolutionReport: undefined,
+      aiAnalysis: undefined,
+    },
+  ]);
+  useEffect(() => {
+    const fetchReports = async () => {
+      const q = query(collection(db, "reports"), orderBy("date", "desc"));
+      const querySnapshot = await getDocs(q);
+      const data = querySnapshot.docs.map(doc => {
+        const d = doc.data();
+        return {
+          id: doc.id,
+          title: d.title ?? "",
+          location: d.location ?? "",
+          type: d.type ?? "waste",
+          severity: d.severity ?? "low",
+          reporter: d.reporter ?? "",
+          date: d.date ?? "",
+          status: d.status ?? "제보접수",
+          description: d.description ?? "",
+          coordinates: d.coordinates ?? { lat: 0, lng: 0 },
+          images: d.images ?? [],
+          assignedTo: d.assignedTo,
+          processingNotes: d.processingNotes,
+          resolvedDate: d.resolvedDate,
+          resolutionReport: d.resolutionReport,
+          aiAnalysis: d.aiAnalysis,
+        } as Report;
+      });
+      if (data.length > 0) setReports(data);
+    };
+    fetchReports();
+  }, []);
 
-  // 커뮤니티 데이터
+  // Firestore에서 communityPosts 불러오기
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([
     {
-      id: 1,
+      id: "1",
       title: "우리 동네 환경 개선 프로젝트 참여하세요!",
       author: "환경지킴이",
       date: "2024-01-20",
@@ -417,19 +474,10 @@ export default function EnvironmentalMapPlatform() {
       category: "모임",
       severity: "medium",
       isLiked: false,
-      commentsList: [
-        { author: "유저1", content: "좋은 프로젝트네요!", date: "2024-01-20" },
-        { author: "유저2", content: "저도 참여하고 싶어요!", date: "2024-01-20" },
-        { author: "유저3", content: "매주 토요일 기대됩니다.", date: "2024-01-21" },
-        { author: "유저4", content: "친구랑 같이 가도 되나요?", date: "2024-01-21" },
-        { author: "유저5", content: "장소가 어디인가요?", date: "2024-01-21" },
-        { author: "유저6", content: "준비물이 있나요?", date: "2024-01-22" },
-        { author: "유저7", content: "아이도 참여 가능한가요?", date: "2024-01-22" },
-        { author: "유저8", content: "좋은 취지네요!", date: "2024-01-22" }
-      ]
+      commentsList: [],
     },
     {
-      id: 2,
+      id: "2",
       title: "미세먼지 측정 결과 공유",
       author: "데이터분석가",
       date: "2024-01-19",
@@ -439,16 +487,10 @@ export default function EnvironmentalMapPlatform() {
       category: "정보",
       severity: "low",
       isLiked: false,
-      commentsList: [
-        { author: "유저A", content: "정보 감사합니다!", date: "2024-01-19" },
-        { author: "유저B", content: "측정 위치가 어디인가요?", date: "2024-01-19" },
-        { author: "유저C", content: "다음 주도 기대할게요.", date: "2024-01-20" },
-        { author: "유저D", content: "수고 많으십니다.", date: "2024-01-20" },
-        { author: "유저E", content: "데이터 공유 고맙습니다.", date: "2024-01-20" }
-      ]
+      commentsList: [],
     },
     {
-      id: 3,
+      id: "3",
       title: "환경 교육 프로그램 추천해주세요",
       author: "초보환경인",
       date: "2024-01-18",
@@ -458,23 +500,10 @@ export default function EnvironmentalMapPlatform() {
       category: "질문",
       severity: "medium",
       isLiked: false,
-      commentsList: [
-        { author: "답변1", content: "환경부 공식 사이트 참고해보세요!", date: "2024-01-18" },
-        { author: "답변2", content: "지역 도서관에서 강의가 있어요.", date: "2024-01-18" },
-        { author: "답변3", content: "온라인 강의도 많아요!", date: "2024-01-19" },
-        { author: "답변4", content: "유튜브에 좋은 채널 많아요.", date: "2024-01-19" },
-        { author: "답변5", content: "저도 추천 부탁드려요!", date: "2024-01-19" },
-        { author: "답변6", content: "환경교육센터 추천합니다.", date: "2024-01-19" },
-        { author: "답변7", content: "아이들과 함께 듣기 좋아요.", date: "2024-01-20" },
-        { author: "답변8", content: "무료 강의도 있나요?", date: "2024-01-20" },
-        { author: "답변9", content: "링크 공유 부탁드려요.", date: "2024-01-20" },
-        { author: "답변10", content: "오프라인 강의도 있나요?", date: "2024-01-20" },
-        { author: "답변11", content: "관심있는 분들 모여요!", date: "2024-01-21" },
-        { author: "답변12", content: "좋은 정보 감사합니다.", date: "2024-01-21" }
-      ]
+      commentsList: [],
     },
     {
-      id: 4,
+      id: "4",
       title: "플라스틱 사용 줄이기 캠페인 제안",
       author: "그린라이프",
       date: "2024-01-17",
@@ -484,25 +513,55 @@ export default function EnvironmentalMapPlatform() {
       category: "제안",
       severity: "high",
       isLiked: false,
-      commentsList: [
-        { author: "참여1", content: "좋은 제안입니다!", date: "2024-01-17" },
-        { author: "참여2", content: "저도 동참할게요.", date: "2024-01-17" },
-        { author: "참여3", content: "구체적인 계획이 있나요?", date: "2024-01-17" },
-        { author: "참여4", content: "포스터 만들어볼까요?", date: "2024-01-18" },
-        { author: "참여5", content: "SNS 홍보도 필요해요.", date: "2024-01-18" },
-        { author: "참여6", content: "학교에도 알릴게요.", date: "2024-01-18" },
-        { author: "참여7", content: "플라스틱 줄이기 실천 중입니다.", date: "2024-01-18" },
-        { author: "참여8", content: "동네 카페와 협업하면 좋겠어요.", date: "2024-01-19" },
-        { author: "참여9", content: "참여 방법이 궁금해요.", date: "2024-01-19" },
-        { author: "참여10", content: "캠페인 일정이 있나요?", date: "2024-01-19" },
-        { author: "참여11", content: "아이디어 모임 열어요!", date: "2024-01-19" },
-        { author: "참여12", content: "포인트 제도 도입 어떨까요?", date: "2024-01-20" },
-        { author: "참여13", content: "분리수거 교육도 함께!", date: "2024-01-20" },
-        { author: "참여14", content: "동참할게요!", date: "2024-01-20" },
-        { author: "참여15", content: "좋은 캠페인 기대합니다.", date: "2024-01-20" }
-      ]
-    }
-  ])
+      commentsList: [],
+    },
+  ]);
+  useEffect(() => {
+    const fetchPosts = async () => {
+      const q = query(collection(db, "communityPosts"), orderBy("date", "desc"));
+      const querySnapshot = await getDocs(q);
+      const data = querySnapshot.docs.map(doc => {
+        const d = doc.data();
+        return {
+          id: doc.id,
+          title: d.title ?? "",
+          author: d.author ?? "",
+          date: d.date ?? "",
+          content: d.content ?? "",
+          likes: d.likes ?? 0,
+          comments: d.comments ?? 0,
+          category: d.category ?? "정보",
+          severity: d.severity ?? "low",
+          isLiked: d.isLiked ?? false,
+          commentsList: d.commentsList ?? [],
+        } as CommunityPost;
+      });
+      if (data.length > 0) setCommunityPosts(data);
+    };
+    fetchPosts();
+  }, []);
+
+  // 제보 작성/추가 시 Firestore에 저장
+  const handleAddReport = async (reportData: Omit<Report, "id">) => {
+    const docRef = await addDoc(collection(db, "reports"), {
+      ...reportData,
+      date: reportData.date || Timestamp.now(),
+    });
+    setReports(prev => [{ id: docRef.id, ...reportData }, ...prev]);
+  };
+
+  // 커뮤니티 글 작성 시 Firestore에 저장
+  const handleCommunityPost = async (postData: Omit<CommunityPost, 'id' | 'likes' | 'comments' | 'isLiked' | 'commentsList'>) => {
+    const docRef = await addDoc(collection(db, "communityPosts"), {
+      ...postData,
+      date: postData.date || Timestamp.now(),
+      likes: 0,
+      comments: 0,
+      isLiked: false,
+      commentsList: [],
+    });
+    setCommunityPosts(prev => [{ id: docRef.id, ...postData, likes: 0, comments: 0, isLiked: false, commentsList: [] }, ...prev]);
+  };
 
   // 통계 데이터 계산
   const stats: Stats = useMemo(() => {
@@ -620,18 +679,6 @@ export default function EnvironmentalMapPlatform() {
     })
   }
 
-  const handleCommunityPost = (postData: Omit<CommunityPost, 'id' | 'likes' | 'comments' | 'isLiked' | 'commentsList'>) => {
-    const newPost: CommunityPost = {
-      ...postData,
-      id: Date.now(),
-      likes: 0,
-      comments: 0,
-      isLiked: false,
-      commentsList: []
-    }
-    setCommunityPosts(prev => [newPost, ...prev])
-  }
-
   const handleSearch = () => {
     if (searchTerm.trim()) {
       setSearchApplied(true)
@@ -646,9 +693,9 @@ export default function EnvironmentalMapPlatform() {
   }
 
   // 커뮤니티 댓글 추가
-  const handleAddComment = (postId: number, comment: { author: string; content: string; date: string }) => {
+  const handleAddComment = (postId: string, comment: { author: string; content: string; date: string }) => {
     setCommunityPosts(prevPosts => prevPosts.map(post =>
-      post.id === postId
+      post.id === String(postId)
         ? {
             ...post,
             comments: (post.comments || 0) + 1,
@@ -659,9 +706,9 @@ export default function EnvironmentalMapPlatform() {
   }
 
   // 커뮤니티 공감(좋아요) 추가/취소
-  const handleToggleLike = (postId: number, isLike: boolean) => {
+  const handleToggleLike = (postId: string, isLike: boolean) => {
     setCommunityPosts(prevPosts => prevPosts.map(post =>
-      post.id === postId
+      post.id === String(postId)
         ? {
             ...post,
             likes: Math.max(0, (post.likes || 0) + (isLike ? 1 : -1)),
@@ -671,83 +718,50 @@ export default function EnvironmentalMapPlatform() {
     ))
   }
 
+  if (device === 'mobile') {
+    return (
+      <MobileMainPage
+        isLoggedIn={isLoggedIn}
+        currentUser={currentUser}
+        handleLogout={handleLogout}
+        showAuthDialog={showAuthDialog}
+        setShowAuthDialog={setShowAuthDialog}
+        handleLogin={handleLogin}
+        handleSignup={handleSignup}
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+        displayReports={displayReports}
+        stats={stats}
+        communityPosts={communityPosts}
+        handleCommunityPost={handleCommunityPost}
+        handleAddComment={handleAddComment}
+        handleToggleLike={handleToggleLike}
+        selectedReport={selectedReport}
+        setSelectedReport={setSelectedReport}
+      />
+    );
+  }
+  // 태블릿은 PC와 동일하게 처리하거나, 필요시 TabletMainPage로 분기 가능
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Leaf className="h-8 w-8 text-green-600 mr-3" />
-              <h1 className="text-xl font-bold text-gray-900">환경 지도 플랫폼</h1>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              {isLoggedIn ? (
-                <div className="flex items-center space-x-2">
-                  <Avatar>
-                    <AvatarFallback>{currentUser?.name?.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm text-gray-700">{currentUser?.name}</span>
-                  <Button variant="outline" size="sm" onClick={handleLogout}>
-                    <LogOut className="h-4 w-4 mr-1" />
-                    로그아웃
-                  </Button>
-                </div>
-              ) : (
-                <Button onClick={() => setShowAuthDialog(true)}>
-                  <LogIn className="h-4 w-4 mr-1" />
-                  로그인
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* 메인 컨텐츠 */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {currentView === "map" && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold mb-4">환경 제보 지도</h2>
-            <div className="h-96 bg-gray-200 rounded-lg flex items-center justify-center">
-              <p className="text-gray-500">지도 컴포넌트가 여기에 표시됩니다</p>
-            </div>
-          </div>
-        )}
-
-        {currentView === "stats" && (
-          <StatsView stats={stats} reports={displayReports} />
-        )}
-
-        {currentView === "analysis" && (
-          <AnalysisView reports={displayReports} />
-        )}
-
-        {currentView === "community" && (
-          <CommunityView 
-            posts={communityPosts}
-            onAddPost={handleCommunityPost}
-            onAddComment={handleAddComment}
-            onToggleLike={handleToggleLike}
-            currentUser={currentUser}
-            isLoggedIn={isLoggedIn}
-          />
-        )}
-      </main>
-
-      {/* 모바일 탭바 */}
-      <MobileTabBar currentView={currentView} setCurrentView={setCurrentView} />
-
-      {/* 인증 다이얼로그 */}
-      {showAuthDialog && (
-        <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
-          <DialogContent>
-            <AuthDialog onLogin={handleLogin} onSignup={handleSignup} />
-          </DialogContent>
-        </Dialog>
-      )}
-    </div>
+    <PCMainPage
+      isLoggedIn={isLoggedIn}
+      currentUser={currentUser}
+      handleLogout={handleLogout}
+      showAuthDialog={showAuthDialog}
+      setShowAuthDialog={setShowAuthDialog}
+      handleLogin={handleLogin}
+      handleSignup={handleSignup}
+      currentView={currentView}
+      setCurrentView={setCurrentView}
+      displayReports={displayReports}
+      stats={stats}
+      communityPosts={communityPosts}
+      handleCommunityPost={handleCommunityPost}
+      handleAddComment={handleAddComment}
+      handleToggleLike={handleToggleLike}
+      selectedReport={selectedReport}
+      setSelectedReport={setSelectedReport}
+    />
   );
 }
 
@@ -766,4 +780,130 @@ function severityColor(severity: string) {
   if (severity === '심각') return 'bg-red-400';
   if (severity === '보통') return 'bg-yellow-300';
   return 'bg-green-400';
+}
+
+// 모바일 전용 메인 페이지
+function MobileMainPage({
+  isLoggedIn, currentUser, handleLogout, showAuthDialog, setShowAuthDialog, handleLogin, handleSignup,
+  currentView, setCurrentView, displayReports, stats, communityPosts, handleCommunityPost, handleAddComment, handleToggleLike,
+  selectedReport, setSelectedReport
+}: any) {
+  // 탭 상태는 상위에서 props로 관리
+  return (
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* 상단 앱바 */}
+      <header className="flex items-center justify-between px-4 h-14 shadow">
+        <div className="flex items-center gap-2">
+          <Leaf className="h-7 w-7 text-green-600" />
+          <span className="font-bold text-lg">환경 지도</span>
+        </div>
+        {isLoggedIn ? (
+          <div className="flex items-center gap-2">
+            <Avatar>
+              <AvatarFallback>{currentUser?.name?.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <Button variant="outline" size="sm" onClick={handleLogout}>로그아웃</Button>
+          </div>
+        ) : (
+          <Button size="sm" onClick={() => setShowAuthDialog(true)}>로그인</Button>
+        )}
+      </header>
+      {/* 메인 컨텐츠 */}
+      <main className="flex-1 overflow-y-auto p-2">
+        {currentView === "map" && <SimpleMap reports={displayReports} selectedReport={selectedReport} onReportSelect={setSelectedReport} />}
+        {currentView === "stats" && <StatsView stats={stats} reports={displayReports} />}
+        {currentView === "analysis" && <AnalysisView reports={displayReports} />}
+        {currentView === "community" && (
+          <CommunityView 
+            posts={communityPosts}
+            onAddPost={handleCommunityPost}
+            onAddComment={handleAddComment}
+            onToggleLike={handleToggleLike}
+            currentUser={currentUser}
+            isLoggedIn={isLoggedIn}
+          />
+        )}
+      </main>
+      {/* 하단 탭바 */}
+      <nav className="h-14 border-t flex justify-around items-center bg-white shadow-inner">
+        <button className={currentView === "map" ? "text-green-600 font-bold" : "text-gray-400"} onClick={() => setCurrentView("map")}>지도</button>
+        <button className={currentView === "stats" ? "text-blue-600 font-bold" : "text-gray-400"} onClick={() => setCurrentView("stats")}>통계</button>
+        <button className={currentView === "analysis" ? "text-purple-600 font-bold" : "text-gray-400"} onClick={() => setCurrentView("analysis")}>분석</button>
+        <button className={currentView === "community" ? "text-green-600 font-bold" : "text-gray-400"} onClick={() => setCurrentView("community")}>커뮤니티</button>
+      </nav>
+      {/* 인증 다이얼로그 */}
+      {showAuthDialog && (
+        <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+          <DialogContent>
+            <AuthDialog onLogin={handleLogin} onSignup={handleSignup} />
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+}
+
+// PC 전용 메인 페이지
+function PCMainPage({
+  isLoggedIn, currentUser, handleLogout, showAuthDialog, setShowAuthDialog, handleLogin, handleSignup,
+  currentView, setCurrentView, displayReports, stats, communityPosts, handleCommunityPost, handleAddComment, handleToggleLike,
+  selectedReport, setSelectedReport
+}: any) {
+  // 탭 상태는 상위에서 props로 관리
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* 상단 헤더 */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 flex justify-between items-center h-16">
+          <div className="flex items-center">
+            <Leaf className="h-8 w-8 text-green-600 mr-3" />
+            <h1 className="text-xl font-bold text-gray-900">환경 지도 플랫폼</h1>
+          </div>
+          {isLoggedIn ? (
+            <div className="flex items-center gap-2">
+              <Avatar>
+                <AvatarFallback>{currentUser?.name?.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <Button variant="outline" size="sm" onClick={handleLogout}>로그아웃</Button>
+            </div>
+          ) : (
+            <Button onClick={() => setShowAuthDialog(true)}>로그인</Button>
+          )}
+        </div>
+      </header>
+      {/* PC용 탭 네비게이션 */}
+      <nav className="max-w-7xl mx-auto w-full flex gap-4 py-2 px-4">
+        <button className={currentView === "map" ? "text-green-600 font-bold" : "text-gray-400"} onClick={() => setCurrentView("map")}>지도</button>
+        <button className={currentView === "stats" ? "text-blue-600 font-bold" : "text-gray-400"} onClick={() => setCurrentView("stats")}>통계</button>
+        <button className={currentView === "analysis" ? "text-purple-600 font-bold" : "text-gray-400"} onClick={() => setCurrentView("analysis")}>분석</button>
+        <button className={currentView === "community" ? "text-green-600 font-bold" : "text-gray-400"} onClick={() => setCurrentView("community")}>커뮤니티</button>
+      </nav>
+      {/* 메인 컨텐츠 */}
+      <main className="max-w-7xl mx-auto flex-1 w-full flex gap-6 py-8">
+        <div className="flex-1">
+          {currentView === "map" && <SimpleMap reports={displayReports} selectedReport={selectedReport} onReportSelect={setSelectedReport} />}
+          {currentView === "stats" && <StatsView stats={stats} reports={displayReports} />}
+          {currentView === "analysis" && <AnalysisView reports={displayReports} />}
+          {currentView === "community" && (
+            <CommunityView 
+              posts={communityPosts}
+              onAddPost={handleCommunityPost}
+              onAddComment={handleAddComment}
+              onToggleLike={handleToggleLike}
+              currentUser={currentUser}
+              isLoggedIn={isLoggedIn}
+            />
+          )}
+        </div>
+      </main>
+      {/* 인증 다이얼로그 */}
+      {showAuthDialog && (
+        <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+          <DialogContent>
+            <AuthDialog onLogin={handleLogin} onSignup={handleSignup} />
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
 }

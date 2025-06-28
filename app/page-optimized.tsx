@@ -274,7 +274,7 @@ export default function EnvironmentalMapPlatform() {
   // 제보 데이터
   const [reports, setReports] = useState<Report[]>([
     {
-      id: 1,
+      id: "1",
       title: "강북구 공원 쓰레기 무단투기",
       location: "강북구 번동 공원",
       type: "waste",
@@ -295,7 +295,7 @@ export default function EnvironmentalMapPlatform() {
       }
     },
     {
-      id: 2,
+      id: "2",
       title: "성북구 대기오염 심각",
       location: "성북구 동소문로",
       type: "air",
@@ -310,7 +310,7 @@ export default function EnvironmentalMapPlatform() {
       processingNotes: "대기질 측정 장비 설치 완료. 24시간 모니터링 중입니다."
     },
     {
-      id: 3,
+      id: "3",
       title: "종로구 하천 오염",
       location: "종로구 청운동 하천",
       type: "water",
@@ -325,7 +325,7 @@ export default function EnvironmentalMapPlatform() {
       resolutionReport: "하천 정화 작업 완료. 오염원 차단 조치 완료."
     },
     {
-      id: 4,
+      id: "4",
       title: "마포구 야간 소음",
       location: "마포구 합정동",
       type: "noise",
@@ -338,7 +338,7 @@ export default function EnvironmentalMapPlatform() {
       images: ["/placeholder.jpg"]
     },
     {
-      id: 5,
+      id: "5",
       title: "용산구 폐건축자재 불법투기",
       location: "용산구 한강대로",
       type: "waste",
@@ -356,7 +356,7 @@ export default function EnvironmentalMapPlatform() {
   // 커뮤니티 데이터
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([
     {
-      id: 1,
+      id: "1",
       title: "우리 동네 환경 개선 프로젝트 참여하세요!",
       author: "환경지킴이",
       date: "2024-01-20",
@@ -366,7 +366,7 @@ export default function EnvironmentalMapPlatform() {
       category: "모임",
     },
     {
-      id: 2,
+      id: "2",
       title: "미세먼지 측정 결과 공유",
       author: "데이터분석가",
       date: "2024-01-19",
@@ -376,7 +376,7 @@ export default function EnvironmentalMapPlatform() {
       category: "정보",
     },
     {
-      id: 3,
+      id: "3",
       title: "환경 보호를 위한 실천 방법",
       author: "환경전문가",
       date: "2024-01-18",
@@ -506,7 +506,7 @@ export default function EnvironmentalMapPlatform() {
   const handleCommunityPost = (postData: Omit<CommunityPost, 'id' | 'likes' | 'comments'>) => {
     const newPost: CommunityPost = {
       ...postData,
-      id: Date.now(),
+      id: Date.now().toString(),
       likes: 0,
       comments: 0
     }
@@ -877,14 +877,14 @@ export default function EnvironmentalMapPlatform() {
             onAddPost={handleCommunityPost}
             onAddComment={(postId, comment) => {
               setCommunityPosts(prev => prev.map(post => 
-                post.id === postId 
+                post.id === String(postId) 
                   ? { ...post, comments: post.comments + 1, commentsList: [...(post.commentsList || []), comment] }
                   : post
               ))
             }}
             onToggleLike={(postId, isLike) => {
               setCommunityPosts(prev => prev.map(post => 
-                post.id === postId 
+                post.id === String(postId) 
                   ? { ...post, likes: post.likes + (isLike ? 1 : -1), isLiked: isLike }
                   : post
               ))

@@ -17,18 +17,18 @@ import { CommunityPost, Comment, User } from "@/types"
 interface CommunityViewProps {
   posts: CommunityPost[]
   onAddPost: (post: Omit<CommunityPost, 'id' | 'likes' | 'comments'>) => void
-  onAddComment: (postId: number, comment: { author: string; content: string; date: string }) => void
-  onToggleLike: (postId: number, isLike: boolean) => void
+  onAddComment: (postId: string, comment: { author: string; content: string; date: string }) => void
+  onToggleLike: (postId: string, isLike: boolean) => void
   currentUser: User | null
   isLoggedIn: boolean
 }
 
 interface ExpandedPosts {
-  [key: number]: boolean
+  [key: string]: boolean
 }
 
 interface NewComments {
-  [key: number]: string
+  [key: string]: string
 }
 
 export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, currentUser, isLoggedIn }: CommunityViewProps) {
@@ -82,7 +82,7 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
     }
   }
 
-  const handleLike = (postId: number) => {
+  const handleLike = (postId: string) => {
     if (!isLoggedIn) {
       toast({
         title: "로그인 필요",
@@ -106,7 +106,7 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
     })
   }
 
-  const handleComment = (postId: number) => {
+  const handleComment = (postId: string) => {
     if (!isLoggedIn) {
       toast({
         title: "로그인 필요",
@@ -122,7 +122,7 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
     }))
   }
 
-  const handleSubmitComment = (postId: number) => {
+  const handleSubmitComment = (postId: string) => {
     const comment = newComments[postId]
     if (!comment || !comment.trim()) {
       toast({
