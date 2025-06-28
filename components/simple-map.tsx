@@ -761,77 +761,92 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
         </>
       )}
 
-      {/* 세부내용 창: 지도 위에, 하나만, z-index: 3000, position: fixed, 리디자인 + AI 분석 */}
+      {/* 세부내용 카드: 항상 화면 중앙, 잘리지 않게, 정보 중복/정렬/라벨/스타일/반응형 개선 */}
       {selectedReport && (
         <div
-          className="fixed left-1/2 top-1/2 bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 max-w-md w-[92vw] z-[3000] animate-fade-in flex flex-col gap-4"
-          style={{ ...(getDetailCardPosition ? getDetailCardPosition() : {}), zIndex: 3000, position: 'fixed', transform: 'translate(-50%, -55%)' }}
+          className="fixed inset-0 flex items-center justify-center z-[3000] px-2"
+          style={{ pointerEvents: 'none' }}
         >
-          {/* 상단: 아이콘, 제목, 상태, 닫기 */}
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-3xl">{getTypeIcon(selectedReport.type)}</span>
-              <span className="font-bold text-xl text-gray-900">{selectedReport.title}</span>
-              <Badge className={getStatusColor(selectedReport.status)}>{selectedReport.status}</Badge>
+          <div
+            className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 max-w-md w-full animate-fade-in flex flex-col gap-4"
+            style={{ pointerEvents: 'auto', maxHeight: '90vh', overflowY: 'auto' }}
+          >
+            {/* 상단: 아이콘, 제목, 상태, 닫기 */}
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-3xl">{getTypeIcon(selectedReport.type)}</span>
+                <span className="font-bold text-xl text-gray-900">{selectedReport.title}</span>
+                <Badge className={getStatusColor(selectedReport.status)}>{selectedReport.status}</Badge>
+              </div>
+              <button
+                className="ml-2 text-gray-400 hover:text-gray-700 focus:outline-none"
+                onClick={closeDetailCard}
+                aria-label="닫기"
+              >
+                <X className="w-6 h-6" />
+              </button>
             </div>
-            <button
-              className="ml-2 text-gray-400 hover:text-gray-700 focus:outline-none"
-              onClick={closeDetailCard}
-              aria-label="닫기"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
 
-          {/* 주요 정보 */}
-          <div className="flex flex-wrap gap-3 text-sm text-gray-700 mb-2">
-            <div className="flex items-center gap-1"><MapPin className="w-4 h-4 text-blue-500" />{selectedReport.location}</div>
-            <div className="flex items-center gap-1"><span className="font-medium">제보자:</span> {selectedReport.reporter}</div>
-            <div className="flex items-center gap-1"><span className="font-medium">일자:</span> {selectedReport.date}</div>
-            <div className="flex items-center gap-1"><span className="font-medium">유형:</span> {selectedReport.type}</div>
-            <div className="flex items-center gap-1"><span className="font-medium">심각도:</span> {selectedReport.severity}</div>
-          </div>
+            {/* 주요 정보 */}
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-700 mb-2">
+              <div className="flex items-center gap-1"><MapPin className="w-4 h-4 text-blue-500" />{selectedReport.location}</div>
+              <div className="flex items-center gap-1"><span className="font-medium">제보자:</span> {selectedReport.reporter}</div>
+              <div className="flex items-center gap-1"><span className="font-medium">일자:</span> {selectedReport.date}</div>
+              <div className="flex items-center gap-1"><span className="font-medium">유형:</span> {getTypeLabel(selectedReport.type)}</div>
+              <div className="flex items-center gap-1"><span className="font-medium">심각도:</span> {selectedReport.severity}</div>
+            </div>
 
-          {/* 상세 설명 */}
-          <div className="bg-gray-50 rounded-lg p-3 text-gray-800 text-base max-h-32 overflow-y-auto border mb-2">
-            {selectedReport.description}
-          </div>
+            {/* 상세 설명 */}
+            <div className="bg-gray-50 rounded-lg p-3 text-gray-800 text-base max-h-32 overflow-y-auto border mb-2">
+              {selectedReport.description}
+            </div>
 
-          {/* AI 분석 */}
-          <div className="flex flex-col gap-2">
-            <Button
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold py-2 rounded-lg shadow hover:from-blue-600 hover:to-purple-600"
-              onClick={() => handleAIAnalysis(selectedReport)}
-              disabled={aiLoading}
-            >
-              {aiLoading ? 'AI 분석 중...' : 'AI 분석 실행'}
-            </Button>
-            {aiResult && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-1 text-sm text-blue-900 animate-fade-in">
-                <div className="font-bold mb-1">AI 분석 결과</div>
-                <div>{aiResult.summary}</div>
-                {aiResult.insights && aiResult.insights.length > 0 && (
-                  <ul className="list-disc pl-5 mt-2 space-y-1">
-                    {aiResult.insights.map((insight: string, idx: number) => (
-                      <li key={idx}>{insight}</li>
-                    ))}
-                  </ul>
-                )}
-                {aiResult.recommendations && aiResult.recommendations.length > 0 && (
-                  <div className="mt-2">
-                    <div className="font-semibold">추천 조치</div>
-                    <ul className="list-disc pl-5 mt-1 space-y-1">
-                      {aiResult.recommendations.map((rec: string, idx: number) => (
-                        <li key={idx}>{rec}</li>
+            {/* AI 분석 */}
+            <div className="flex flex-col gap-2">
+              <Button
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold py-2 rounded-lg shadow hover:from-blue-600 hover:to-purple-600"
+                onClick={() => handleAIAnalysis(selectedReport)}
+                disabled={aiLoading}
+              >
+                {aiLoading ? 'AI 분석 중...' : 'AI 분석 실행'}
+              </Button>
+              {aiResult && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-1 text-sm text-blue-900 animate-fade-in">
+                  <div className="font-bold mb-1">AI 분석 결과</div>
+                  <div>{aiResult.summary}</div>
+                  {aiResult.insights && aiResult.insights.length > 0 && (
+                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                      {aiResult.insights.map((insight: string, idx: number) => (
+                        <li key={idx}>{insight}</li>
                       ))}
                     </ul>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+                  {aiResult.recommendations && aiResult.recommendations.length > 0 && (
+                    <div className="mt-2">
+                      <div className="font-semibold">추천 조치</div>
+                      <ul className="list-disc pl-5 mt-1 space-y-1">
+                        {aiResult.recommendations.map((rec: string, idx: number) => (
+                          <li key={idx}>{rec}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
     </div>
   )
+}
+
+function getTypeLabel(type: string) {
+  switch (type) {
+    case 'waste': return '폐기물';
+    case 'air': return '대기오염';
+    case 'water': return '수질오염';
+    case 'noise': return '소음';
+    default: return type;
+  }
 }
