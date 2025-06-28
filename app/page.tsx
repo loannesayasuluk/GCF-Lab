@@ -1344,11 +1344,8 @@ function PCMainPage({
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <div className="text-center">
-                        <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-500">지도가 여기에 표시됩니다</p>
-                      </div>
+                    <div className="h-96 rounded-lg overflow-hidden">
+                      <SimpleMap />
                     </div>
                   </CardContent>
                 </Card>
