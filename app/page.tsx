@@ -1080,196 +1080,136 @@ function PCMainPage({
 
       {/* 메인 컨텐츠 */}
       <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-12 gap-8">
-          {/* 사이드바 */}
-          <div className="col-span-3">
-            <div className="sticky top-24 space-y-6">
-              {/* 네비게이션 */}
-              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-                <CardContent className="p-4">
-                  <nav className="space-y-2">
-                    <button
-                      onClick={() => setCurrentView("map")}
-                      className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                        currentView === "map" 
-                          ? "bg-emerald-100 text-emerald-700" 
-                          : "text-gray-600 hover:bg-gray-100"
-                      }`}
-                    >
-                      <Home className="w-5 h-5" />
-                      <span className="font-medium">지도 보기</span>
-                    </button>
-                    <button
-                      onClick={() => setCurrentView("stats")}
-                      className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                        currentView === "stats" 
-                          ? "bg-blue-100 text-blue-700" 
-                          : "text-gray-600 hover:bg-gray-100"
-                      }`}
-                    >
-                      <BarChart3 className="w-5 h-5" />
-                      <span className="font-medium">통계</span>
-                    </button>
-                    <button
-                      onClick={() => setCurrentView("analysis")}
-                      className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                        currentView === "analysis" 
-                          ? "bg-purple-100 text-purple-700" 
-                          : "text-gray-600 hover:bg-gray-100"
-                      }`}
-                    >
-                      <PieChart className="w-5 h-5" />
-                      <span className="font-medium">분석</span>
-                    </button>
-                    <button
-                      onClick={() => setCurrentView("community")}
-                      className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                        currentView === "community" 
-                          ? "bg-green-100 text-green-700" 
-                          : "text-gray-600 hover:bg-gray-100"
-                      }`}
-                    >
-                      <MessageSquare className="w-5 h-5" />
-                      <span className="font-medium">커뮤니티</span>
-                    </button>
-                  </nav>
-                </CardContent>
-              </Card>
-
-              {/* 빠른 통계 */}
-              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">빠른 통계</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">총 신고</span>
-                    <span className="font-semibold text-gray-900">{stats.totalReports}</span>
+        {/* 환경 지도 - B안: 상단 크게 */}
+        {currentView === "map" && (
+          <section>
+            <Card className="w-full h-[500px] sm:h-[600px] lg:h-[700px] mb-8">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                  <Globe className="w-6 h-6 text-emerald-600" />
+                  환경 지도
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 relative z-0" style={{ minHeight: '400px' }}>
+                <SimpleMap
+                  reports={displayReports}
+                  selectedReport={selectedReport}
+                  onReportSelect={setSelectedReport}
+                />
+              </CardContent>
+            </Card>
+          </section>
+        )}
+        {/* 통계/현황/커뮤니티 - 지도 아래 3분할 */}
+        {currentView === "map" && (
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* 실시간 통계 */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg sm:text-xl flex items-center space-x-2">
+                  <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <span>실시간 통계</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <div className="text-2xl sm:text-3xl font-bold text-green-600">{stats.totalReports}</div>
+                    <div className="text-sm sm:text-base text-gray-600">총 신고</div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">활성 신고</span>
-                    <span className="font-semibold text-red-600">{stats.activeReports}</span>
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="text-2xl sm:text-3xl font-bold text-blue-600">{stats.activeReports}</div>
+                    <div className="text-sm sm:text-base text-gray-600">활성 신고</div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">해결 완료</span>
-                    <span className="font-semibold text-green-600">{stats.resolvedReports}</span>
+                  <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                    <div className="text-2xl sm:text-3xl font-bold text-yellow-600">{stats.resolvedReports}</div>
+                    <div className="text-sm sm:text-base text-gray-600">해결 완료</div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">참여자</span>
-                    <span className="font-semibold text-blue-600">{stats.totalUsers}</span>
+                  <div className="text-center p-4 bg-red-50 rounded-lg">
+                    <div className="text-2xl sm:text-3xl font-bold text-red-600">{stats.totalUsers}</div>
+                    <div className="text-sm sm:text-base text-gray-600">참여자</div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          {/* 메인 컨텐츠 영역 */}
-          <div className="col-span-9">
-            {currentView === "map" && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-                    <CardHeader>
-                      <CardTitle className="flex items-center space-x-2">
-                        <MapPin className="w-5 h-5 text-emerald-600" />
-                        <span>실시간 환경 현황</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {displayReports.slice(0, 5).map((report) => {
-                          let locationText: string;
-                          if (hasAddressField(report.location)) {
-                            locationText = report.location.address;
-                          } else {
-                            locationText = report.location;
-                          }
-                          return (
-                            <div key={report.id} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
-                              <div className={`w-4 h-4 rounded-full mt-2 flex-shrink-0 ${
-                                report.severity === 'high' ? 'bg-red-500' :
-                                report.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
-                              }`} />
-                              <div className="flex-1">
-                                <h4 className="font-medium text-gray-900">{report.title}</h4>
-                                <p className="text-sm text-gray-500 mt-1">{locationText}</p>
-                                <div className="flex items-center space-x-2 mt-2">
-                                  <Badge variant="outline">
-                                    {report.category === 'air' ? '대기오염' : 
-                                     report.category === 'water' ? '수질오염' : '기타'}
-                                  </Badge>
-                                  <span className="text-xs text-gray-400">
-                                    {new Date(report.date).toLocaleDateString()}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-                    <CardHeader>
-                      <CardTitle className="flex items-center space-x-2">
-                        <TrendingUp className="w-5 h-5 text-blue-600" />
-                        <span>최근 활동</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {communityPosts.slice(0, 3).map((post) => (
-                          <div key={post.id} className="p-4 bg-gray-50 rounded-lg">
-                            <h4 className="font-medium text-gray-900">{post.title}</h4>
-                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">{post.content}</p>
-                            <div className="flex items-center space-x-4 mt-2 text-xs text-gray-400">
-                              <span>{post.author}</span>
-                              <span>{new Date(post.date).toLocaleDateString()}</span>
-                              <span>❤️ {post.likes}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
                 </div>
-
-                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <Globe className="w-5 h-5 text-emerald-600" />
-                      <span>환경 지도</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-96 rounded-lg overflow-hidden">
-                      <SimpleMap reports={reports} selectedReport={selectedReport} onReportSelect={setSelectedReport} />
+              </CardContent>
+            </Card>
+            {/* 실시간 환경 현황 */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg sm:text-xl flex items-center space-x-2">
+                  <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
+                  <span>실시간 환경 현황</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {displayReports.slice(0, 5).map((report) => {
+                    let locationText: string;
+                    if (hasAddressField(report.location)) {
+                      locationText = report.location.address;
+                    } else {
+                      locationText = report.location;
+                    }
+                    return (
+                      <div key={report.id} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+                        <div className={`w-4 h-4 rounded-full mt-2 flex-shrink-0 ${
+                          report.severity === 'high' ? 'bg-red-500' :
+                          report.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                        }`} />
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900">{report.title}</h4>
+                          <p className="text-sm text-gray-500 mt-1">{locationText}</p>
+                          <div className="flex items-center space-x-2 mt-2">
+                            <Badge variant="outline">
+                              {report.category === 'air' ? '대기오염' : 
+                               report.category === 'water' ? '수질오염' : '기타'}
+                            </Badge>
+                            <span className="text-xs text-gray-400">
+                              {new Date(report.date).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+            {/* 커뮤니티 */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg sm:text-xl flex items-center space-x-2">
+                  <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+                  <span>커뮤니티</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {communityPosts.slice(0, 3).map((post) => (
+                    <div key={post.id} className="p-4 bg-gray-50 rounded-lg">
+                      <h4 className="font-medium text-gray-900">{post.title}</h4>
+                      <p className="text-sm text-gray-500 mt-1 line-clamp-2">{post.content}</p>
+                      <div className="flex items-center space-x-4 mt-2 text-xs text-gray-400">
+                        <span>{post.author}</span>
+                        <span>{new Date(post.date).toLocaleDateString()}</span>
+                        <span>❤️ {post.likes}</span>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {currentView === "stats" && (
-              <div className="space-y-6">
-                <StatsView stats={stats} reports={reports} />
-              </div>
-            )}
-
-            {currentView === "analysis" && (
-              <div className="space-y-6">
-                <AnalysisView reports={displayReports} />
-              </div>
-            )}
-
-            {currentView === "community" && (
-              <div className="space-y-6">
-                <CommunityView posts={communityPosts} currentUser={currentUser} onAddPost={handleCommunityPost} onAddComment={handleAddComment} onToggleLike={handleToggleLike} isLoggedIn={isLoggedIn} />
-              </div>
-            )}
-          </div>
-        </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        )}
+        {/* 기존 통계/분석/커뮤니티 뷰는 지도 뷰가 아닐 때만 노출 */}
+        {currentView === "stats" && (
+          <StatsView stats={stats} reports={reports} />
+        )}
+        {currentView === "analysis" && (
+          <AnalysisView reports={displayReports} />
+        )}
+        {currentView === "community" && (
+          <CommunityView posts={communityPosts} currentUser={currentUser} onAddPost={handleCommunityPost} onAddComment={handleAddComment} onToggleLike={handleToggleLike} isLoggedIn={isLoggedIn} />
+        )}
       </main>
 
       {/* 인증 다이얼로그 */}
