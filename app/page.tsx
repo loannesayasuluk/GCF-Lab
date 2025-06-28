@@ -687,14 +687,10 @@ export default function EnvironmentalMapPlatform() {
 
   if (isMobile) {
     // 모바일 전용 JSX (모바일 반응형만 적용)
-    return (
-      // ...모바일 코드...
-    );
+    return <div>모바일 화면</div>;
   } else {
     // PC 전용 JSX (PC 반응형만 적용)
-    return (
-      // ...PC 코드...
-    );
+    return <div>PC 화면</div>;
   }
 }
 
