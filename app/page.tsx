@@ -31,12 +31,147 @@ import {
   ChevronUp,
   Heart,
   Home,
+  Menu,
+  Filter,
+  Grid,
+  List,
+  Star,
+  Share2,
+  Bookmark,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Flag,
+  Shield,
+  Globe,
+  Zap,
+  Droplets,
+  Wind,
+  Sun,
+  Cloud,
+  CloudRain,
+  Thermometer,
+  Gauge,
+  AlertTriangle,
+  Info,
+  Check,
+  XCircle,
+  Minus,
+  Maximize2,
+  Minimize2,
+  RotateCcw,
+  RefreshCw,
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Volume2,
+  VolumeX,
+  Mic,
+  MicOff,
+  Video,
+  VideoOff,
+  Phone,
+  PhoneOff,
+  Mail,
+  Send,
+  Paperclip,
+  Smile,
+  Image,
+  File,
+  Folder,
+  HardDrive,
+  Database,
+  Server,
+  Network,
+  Wifi,
+  WifiOff,
+  Bluetooth,
+  BluetoothOff,
+  Battery,
+  BatteryCharging,
+  Power,
+  PowerOff,
+  Lock,
+  Unlock,
+  Key,
+  EyeOff,
+  EyeOn,
+  ShieldCheck,
+  ShieldAlert,
+  ShieldX,
+  Verified,
+  Award,
+  Trophy,
+  Medal,
+  Crown,
+  Diamond,
+  Gem,
+  Sparkles,
+  Magic,
+  Wand,
+  Hat,
+  Glasses,
+  Watch,
+  Timer,
+  Stopwatch,
+  Hourglass,
+  CalendarDays,
+  CalendarCheck,
+  CalendarX,
+  CalendarPlus,
+  CalendarMinus,
+  CalendarRange,
+  CalendarWeek,
+  CalendarMonth,
+  CalendarYear,
+  CalendarTime,
+  CalendarClock,
+  CalendarEvent,
+  CalendarHeart,
+  CalendarStar,
+  CalendarUser,
+  CalendarSettings,
+  CalendarSearch,
+  CalendarEdit,
+  CalendarTrash,
+  CalendarDownload,
+  CalendarUpload,
+  CalendarShare,
+  CalendarLock,
+  CalendarUnlock,
+  CalendarKey,
+  CalendarEye,
+  CalendarEyeOff,
+  CalendarShield,
+  CalendarAlert,
+  CalendarCheckCircle,
+  CalendarXCircle,
+  CalendarMinusCircle,
+  CalendarPlusCircle,
+  CalendarHeartCircle,
+  CalendarStarCircle,
+  CalendarUserCircle,
+  CalendarSettingsCircle,
+  CalendarSearchCircle,
+  CalendarEditCircle,
+  CalendarTrashCircle,
+  CalendarDownloadCircle,
+  CalendarUploadCircle,
+  CalendarShareCircle,
+  CalendarLockCircle,
+  CalendarUnlockCircle,
+  CalendarKeyCircle,
+  CalendarEyeCircle,
+  CalendarEyeOffCircle,
+  CalendarShieldCircle,
+  CalendarAlertCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -47,7 +182,7 @@ import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 import SimpleMap from "@/components/simple-map"
-import { Menu } from "@headlessui/react"
+import { Menu as HeadlessUIMenu } from "@headlessui/react"
 import { collection, addDoc, getDocs, query, where, updateDoc, deleteDoc, doc, writeBatch, orderBy, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { auth } from "@/lib/firebase";
@@ -112,9 +247,11 @@ function isMobileDevice() {
 function AuthDialog({
   onLogin,
   onSignup,
+  onClose,
 }: {
   onLogin: (email: string, password: string) => void
   onSignup: (email: string, password: string, name: string) => void
+  onClose: () => void
 }) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -158,118 +295,117 @@ function AuthDialog({
   }
 
   return (
-    <DialogContent className="w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-8">
-      <DialogHeader>
-        <DialogTitle className="text-xl sm:text-2xl font-bold text-center">로그인 / 회원가입</DialogTitle>
-      </DialogHeader>
-      <div className="flex space-x-1 p-2 bg-gray-100 rounded-lg mb-6">
-        <button
-          onClick={() => setActiveTab("login")}
-          className={`flex-1 py-3 px-4 rounded-md text-base font-medium transition-all ${
-            activeTab === "login"
-              ? "bg-white text-green-600 shadow-sm"
-              : "text-gray-600 hover:text-gray-900"
-          }`}
-        >
-          로그인
-        </button>
-        <button
-          onClick={() => setActiveTab("signup")}
-          className={`flex-1 py-3 px-4 rounded-md text-base font-medium transition-all ${
-            activeTab === "signup"
-              ? "bg-white text-green-600 shadow-sm"
-              : "text-gray-600 hover:text-gray-900"
-          }`}
-        >
-          회원가입
-        </button>
-      </div>
-      {activeTab === "login" && (
-        <div className="space-y-5">
-          <div className="space-y-3">
-            <Label htmlFor="login-email" className="text-base font-medium">이메일</Label>
-            <Input
-              id="login-email"
-              type="email"
-              placeholder="이메일을 입력하세요"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
-              disabled={isLoading}
-            />
-          </div>
-          <div className="space-y-3">
-            <Label htmlFor="login-password" className="text-base font-medium">비밀번호</Label>
-            <Input
-              id="login-password"
-              type="password"
-              placeholder="비밀번호를 입력하세요"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
-              disabled={isLoading}
-            />
-          </div>
-          <Button 
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-4 rounded-lg transition-colors text-base" 
-            onClick={handleLogin}
-            disabled={isLoading}
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-8">
+        <DialogHeader>
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-center">환경지킴이에 오신 것을 환영합니다</DialogTitle>
+        </DialogHeader>
+        <div className="flex space-x-1 p-2 bg-gray-100 rounded-lg mb-6">
+          <button
+            onClick={() => setActiveTab("login")}
+            className={`flex-1 py-3 px-4 rounded-md text-base font-medium transition-all ${
+              activeTab === "login"
+                ? "bg-white text-emerald-600 shadow-sm"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
           >
-            {isLoading ? "로그인 중..." : "로그인"}
-          </Button>
-          <div className="text-center text-sm text-gray-600 bg-gray-50 p-4 rounded-lg">
-            <p className="text-base">관리자 계정으로 로그인하려면</p>
-            <p className="text-sm">이메일에 "admin" 또는 "관리자"를 포함하세요</p>
-          </div>
-        </div>
-      )}
-      {activeTab === "signup" && (
-        <div className="space-y-5">
-          <div className="space-y-3">
-            <Label htmlFor="signup-name" className="text-base font-medium">이름</Label>
-            <Input
-              id="signup-name"
-              placeholder="이름을 입력하세요"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
-              disabled={isLoading}
-            />
-          </div>
-          <div className="space-y-3">
-            <Label htmlFor="signup-email" className="text-base font-medium">이메일</Label>
-            <Input
-              id="signup-email"
-              type="email"
-              placeholder="이메일을 입력하세요"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
-              disabled={isLoading}
-            />
-          </div>
-          <div className="space-y-3">
-            <Label htmlFor="signup-password" className="text-base font-medium">비밀번호</Label>
-            <Input
-              id="signup-password"
-              type="password"
-              placeholder="비밀번호를 입력하세요 (6자 이상)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
-              disabled={isLoading}
-            />
-          </div>
-          <Button 
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-4 rounded-lg transition-colors text-base" 
-            onClick={handleSignup}
-            disabled={isLoading}
+            로그인
+          </button>
+          <button
+            onClick={() => setActiveTab("signup")}
+            className={`flex-1 py-3 px-4 rounded-md text-base font-medium transition-all ${
+              activeTab === "signup"
+                ? "bg-white text-emerald-600 shadow-sm"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
           >
-            {isLoading ? "회원가입 중..." : "회원가입"}
-          </Button>
+            회원가입
+          </button>
         </div>
-      )}
-    </DialogContent>
+        {activeTab === "login" && (
+          <div className="space-y-5">
+            <div className="space-y-3">
+              <Label htmlFor="login-email" className="text-base font-medium">이메일</Label>
+              <Input
+                id="login-email"
+                type="email"
+                placeholder="이메일을 입력하세요"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-base"
+                disabled={isLoading}
+              />
+            </div>
+            <div className="space-y-3">
+              <Label htmlFor="login-password" className="text-base font-medium">비밀번호</Label>
+              <Input
+                id="login-password"
+                type="password"
+                placeholder="비밀번호를 입력하세요"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-base"
+                disabled={isLoading}
+              />
+            </div>
+            <Button
+              onClick={handleLogin}
+              disabled={isLoading}
+              className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors"
+            >
+              {isLoading ? "로그인 중..." : "로그인"}
+            </Button>
+          </div>
+        )}
+        {activeTab === "signup" && (
+          <div className="space-y-5">
+            <div className="space-y-3">
+              <Label htmlFor="signup-name" className="text-base font-medium">이름</Label>
+              <Input
+                id="signup-name"
+                type="text"
+                placeholder="이름을 입력하세요"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-base"
+                disabled={isLoading}
+              />
+            </div>
+            <div className="space-y-3">
+              <Label htmlFor="signup-email" className="text-base font-medium">이메일</Label>
+              <Input
+                id="signup-email"
+                type="email"
+                placeholder="이메일을 입력하세요"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-base"
+                disabled={isLoading}
+              />
+            </div>
+            <div className="space-y-3">
+              <Label htmlFor="signup-password" className="text-base font-medium">비밀번호</Label>
+              <Input
+                id="signup-password"
+                type="password"
+                placeholder="비밀번호를 입력하세요"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-base"
+                disabled={isLoading}
+              />
+            </div>
+            <Button
+              onClick={handleSignup}
+              disabled={isLoading}
+              className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors"
+            >
+              {isLoading ? "회원가입 중..." : "회원가입"}
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -598,7 +734,7 @@ export default function EnvironmentalMapPlatform() {
     const term = searchTerm.toLowerCase()
     return reports.filter(report => 
       report.title.toLowerCase().includes(term) ||
-      report.location.toLowerCase().includes(term) ||
+      report.location.address.toLowerCase().includes(term) ||
       report.description.toLowerCase().includes(term) ||
       report.reporter.toLowerCase().includes(term)
     )
@@ -738,6 +874,9 @@ export default function EnvironmentalMapPlatform() {
         handleToggleLike={handleToggleLike}
         selectedReport={selectedReport}
         setSelectedReport={setSelectedReport}
+        handleAddReport={handleAddReport}
+        searchQuery={searchTerm}
+        setSearchQuery={setSearchTerm}
       />
     );
   }
@@ -761,6 +900,9 @@ export default function EnvironmentalMapPlatform() {
       handleToggleLike={handleToggleLike}
       selectedReport={selectedReport}
       setSelectedReport={setSelectedReport}
+      handleAddReport={handleAddReport}
+      searchQuery={searchTerm}
+      setSearchQuery={setSearchTerm}
     />
   );
 }
@@ -786,124 +928,468 @@ function severityColor(severity: string) {
 function MobileMainPage({
   isLoggedIn, currentUser, handleLogout, showAuthDialog, setShowAuthDialog, handleLogin, handleSignup,
   currentView, setCurrentView, displayReports, stats, communityPosts, handleCommunityPost, handleAddComment, handleToggleLike,
-  selectedReport, setSelectedReport
+  selectedReport, setSelectedReport, handleAddReport, searchQuery, setSearchQuery
 }: any) {
   // 탭 상태는 상위에서 props로 관리
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* 상단 앱바 */}
-      <header className="flex items-center justify-between px-4 h-14 shadow">
-        <div className="flex items-center gap-2">
-          <Leaf className="h-7 w-7 text-green-600" />
-          <span className="font-bold text-lg">환경 지도</span>
-        </div>
-        {isLoggedIn ? (
-          <div className="flex items-center gap-2">
-            <Avatar>
-              <AvatarFallback>{currentUser?.name?.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <Button variant="outline" size="sm" onClick={handleLogout}>로그아웃</Button>
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-cyan-50">
+      {/* 헤더 */}
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200">
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-xl flex items-center justify-center">
+              <Leaf className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">환경지킴이</h1>
+              <p className="text-xs text-gray-500">우리 동네 환경을 지켜요</p>
+            </div>
           </div>
-        ) : (
-          <Button size="sm" onClick={() => setShowAuthDialog(true)}>로그인</Button>
-        )}
+          <div className="flex items-center space-x-2">
+            {isLoggedIn ? (
+              <div className="flex items-center space-x-2">
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src={currentUser?.avatar} />
+                  <AvatarFallback className="bg-emerald-100 text-emerald-600 text-sm">
+                    {currentUser?.name?.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </div>
+            ) : (
+              <Button size="sm" onClick={() => setShowAuthDialog(true)}>
+                <LogIn className="w-4 h-4 mr-2" />
+                로그인
+              </Button>
+            )}
+          </div>
+        </div>
       </header>
+
       {/* 메인 컨텐츠 */}
-      <main className="flex-1 overflow-y-auto p-2">
-        {currentView === "map" && <SimpleMap reports={displayReports} selectedReport={selectedReport} onReportSelect={setSelectedReport} />}
-        {currentView === "stats" && <StatsView stats={stats} reports={displayReports} />}
-        {currentView === "analysis" && <AnalysisView reports={displayReports} />}
+      <main className="pb-20">
+        {currentView === "map" && (
+          <div className="p-4">
+            <div className="mb-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="지역이나 문제를 검색해보세요"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-white/70 backdrop-blur-sm border-gray-200"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-4 mb-6">
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-gray-900">실시간 환경 현황</h3>
+                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
+                      {displayReports.length}건
+                    </Badge>
+                  </div>
+                  <div className="space-y-3">
+                    {displayReports.slice(0, 3).map((report) => (
+                      <div key={report.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                        <div className={`w-3 h-3 rounded-full mt-2 ${
+                          report.severity === 'high' ? 'bg-red-500' :
+                          report.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                        }`} />
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 text-sm">{report.title}</h4>
+                          <p className="text-sm text-gray-500 mt-1">{report.location.address}</p>
+                          <div className="flex items-center space-x-2 mt-2">
+                            <Badge variant="outline" className="text-xs">
+                              {report.category === 'air' ? '대기' : 
+                               report.category === 'water' ? '수질' : 
+                               report.category === 'noise' ? '소음' : '기타'}
+                            </Badge>
+                            <span className="text-xs text-gray-400">
+                              {new Date(report.date).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-0 shadow-lg">
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Activity className="w-5 h-5" />
+                    <span className="font-semibold">활성 신고</span>
+                  </div>
+                  <p className="text-2xl font-bold">{stats.activeReports}</p>
+                  <p className="text-xs opacity-90">현재 처리 중</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-lg">
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Users className="w-5 h-5" />
+                    <span className="font-semibold">참여자</span>
+                  </div>
+                  <p className="text-2xl font-bold">{stats.totalUsers}</p>
+                  <p className="text-xs opacity-90">환경 지킴이</p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {currentView === "stats" && (
+          <div className="p-4">
+            <StatsView stats={stats} />
+          </div>
+        )}
+
+        {currentView === "analysis" && (
+          <div className="p-4">
+            <AnalysisView reports={displayReports} />
+          </div>
+        )}
+
         {currentView === "community" && (
-          <CommunityView 
-            posts={communityPosts}
-            onAddPost={handleCommunityPost}
-            onAddComment={handleAddComment}
-            onToggleLike={handleToggleLike}
-            currentUser={currentUser}
-            isLoggedIn={isLoggedIn}
-          />
+          <div className="p-4">
+            <CommunityView 
+              posts={communityPosts}
+              onAddPost={handleCommunityPost}
+              onAddComment={handleAddComment}
+              onToggleLike={handleToggleLike}
+              isLoggedIn={isLoggedIn}
+            />
+          </div>
         )}
       </main>
-      {/* 하단 탭바 */}
-      <nav className="h-14 border-t flex justify-around items-center bg-white shadow-inner">
-        <button className={currentView === "map" ? "text-green-600 font-bold" : "text-gray-400"} onClick={() => setCurrentView("map")}>지도</button>
-        <button className={currentView === "stats" ? "text-blue-600 font-bold" : "text-gray-400"} onClick={() => setCurrentView("stats")}>통계</button>
-        <button className={currentView === "analysis" ? "text-purple-600 font-bold" : "text-gray-400"} onClick={() => setCurrentView("analysis")}>분석</button>
-        <button className={currentView === "community" ? "text-green-600 font-bold" : "text-gray-400"} onClick={() => setCurrentView("community")}>커뮤니티</button>
+
+      {/* 하단 네비게이션 */}
+      <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 z-50">
+        <div className="flex justify-around items-center h-16">
+          <button
+            onClick={() => setCurrentView("map")}
+            className={`flex flex-col items-center space-y-1 p-2 ${
+              currentView === "map" ? "text-emerald-600" : "text-gray-400"
+            }`}
+          >
+            <Home className="w-6 h-6" />
+            <span className="text-xs">지도</span>
+          </button>
+          <button
+            onClick={() => setCurrentView("stats")}
+            className={`flex flex-col items-center space-y-1 p-2 ${
+              currentView === "stats" ? "text-blue-600" : "text-gray-400"
+            }`}
+          >
+            <BarChart3 className="w-6 h-6" />
+            <span className="text-xs">통계</span>
+          </button>
+          <button
+            onClick={() => setCurrentView("analysis")}
+            className={`flex flex-col items-center space-y-1 p-2 ${
+              currentView === "analysis" ? "text-purple-600" : "text-gray-400"
+            }`}
+          >
+            <PieChart className="w-6 h-6" />
+            <span className="text-xs">분석</span>
+          </button>
+          <button
+            onClick={() => setCurrentView("community")}
+            className={`flex flex-col items-center space-y-1 p-2 ${
+              currentView === "community" ? "text-green-600" : "text-gray-400"
+            }`}
+          >
+            <MessageSquare className="w-6 h-6" />
+            <span className="text-xs">커뮤니티</span>
+          </button>
+        </div>
       </nav>
+
       {/* 인증 다이얼로그 */}
       {showAuthDialog && (
-        <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
-          <DialogContent>
-            <AuthDialog onLogin={handleLogin} onSignup={handleSignup} />
-          </DialogContent>
-        </Dialog>
+        <AuthDialog
+          onLogin={handleLogin}
+          onSignup={handleSignup}
+          onClose={() => setShowAuthDialog(false)}
+        />
       )}
     </div>
-  );
+  )
 }
 
 // PC 전용 메인 페이지
 function PCMainPage({
   isLoggedIn, currentUser, handleLogout, showAuthDialog, setShowAuthDialog, handleLogin, handleSignup,
   currentView, setCurrentView, displayReports, stats, communityPosts, handleCommunityPost, handleAddComment, handleToggleLike,
-  selectedReport, setSelectedReport
+  selectedReport, setSelectedReport, handleAddReport, searchQuery, setSearchQuery
 }: any) {
-  // 탭 상태는 상위에서 props로 관리
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* 상단 헤더 */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <Leaf className="h-8 w-8 text-green-600 mr-3" />
-            <h1 className="text-xl font-bold text-gray-900">환경 지도 플랫폼</h1>
-          </div>
-          {isLoggedIn ? (
-            <div className="flex items-center gap-2">
-              <Avatar>
-                <AvatarFallback>{currentUser?.name?.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <Button variant="outline" size="sm" onClick={handleLogout}>로그아웃</Button>
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-cyan-50">
+      {/* 헤더 */}
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-2xl flex items-center justify-center">
+                <Leaf className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">환경지킴이</h1>
+                <p className="text-sm text-gray-500">우리 동네 환경을 함께 지켜요</p>
+              </div>
             </div>
-          ) : (
-            <Button onClick={() => setShowAuthDialog(true)}>로그인</Button>
-          )}
+            
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="지역이나 환경 문제를 검색해보세요"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-80 pl-10 bg-white/70 backdrop-blur-sm border-gray-200"
+                />
+              </div>
+              
+              {isLoggedIn ? (
+                <div className="flex items-center space-x-3">
+                  <Button variant="outline" size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    신고하기
+                  </Button>
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={currentUser?.avatar} />
+                    <AvatarFallback className="bg-emerald-100 text-emerald-600">
+                      {currentUser?.name?.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <Button variant="ghost" size="sm" onClick={handleLogout}>
+                    <LogOut className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <Button onClick={() => setShowAuthDialog(true)}>
+                  <LogIn className="w-4 h-4 mr-2" />
+                  로그인
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
       </header>
-      {/* PC용 탭 네비게이션 */}
-      <nav className="max-w-7xl mx-auto w-full flex gap-4 py-2 px-4">
-        <button className={currentView === "map" ? "text-green-600 font-bold" : "text-gray-400"} onClick={() => setCurrentView("map")}>지도</button>
-        <button className={currentView === "stats" ? "text-blue-600 font-bold" : "text-gray-400"} onClick={() => setCurrentView("stats")}>통계</button>
-        <button className={currentView === "analysis" ? "text-purple-600 font-bold" : "text-gray-400"} onClick={() => setCurrentView("analysis")}>분석</button>
-        <button className={currentView === "community" ? "text-green-600 font-bold" : "text-gray-400"} onClick={() => setCurrentView("community")}>커뮤니티</button>
-      </nav>
+
       {/* 메인 컨텐츠 */}
-      <main className="max-w-7xl mx-auto flex-1 w-full flex gap-6 py-8">
-        <div className="flex-1">
-          {currentView === "map" && <SimpleMap reports={displayReports} selectedReport={selectedReport} onReportSelect={setSelectedReport} />}
-          {currentView === "stats" && <StatsView stats={stats} reports={displayReports} />}
-          {currentView === "analysis" && <AnalysisView reports={displayReports} />}
-          {currentView === "community" && (
-            <CommunityView 
-              posts={communityPosts}
-              onAddPost={handleCommunityPost}
-              onAddComment={handleAddComment}
-              onToggleLike={handleToggleLike}
-              currentUser={currentUser}
-              isLoggedIn={isLoggedIn}
-            />
-          )}
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-12 gap-8">
+          {/* 사이드바 */}
+          <div className="col-span-3">
+            <div className="sticky top-24 space-y-6">
+              {/* 네비게이션 */}
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+                <CardContent className="p-4">
+                  <nav className="space-y-2">
+                    <button
+                      onClick={() => setCurrentView("map")}
+                      className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+                        currentView === "map" 
+                          ? "bg-emerald-100 text-emerald-700" 
+                          : "text-gray-600 hover:bg-gray-100"
+                      }`}
+                    >
+                      <Home className="w-5 h-5" />
+                      <span className="font-medium">지도 보기</span>
+                    </button>
+                    <button
+                      onClick={() => setCurrentView("stats")}
+                      className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+                        currentView === "stats" 
+                          ? "bg-blue-100 text-blue-700" 
+                          : "text-gray-600 hover:bg-gray-100"
+                      }`}
+                    >
+                      <BarChart3 className="w-5 h-5" />
+                      <span className="font-medium">통계</span>
+                    </button>
+                    <button
+                      onClick={() => setCurrentView("analysis")}
+                      className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+                        currentView === "analysis" 
+                          ? "bg-purple-100 text-purple-700" 
+                          : "text-gray-600 hover:bg-gray-100"
+                      }`}
+                    >
+                      <PieChart className="w-5 h-5" />
+                      <span className="font-medium">분석</span>
+                    </button>
+                    <button
+                      onClick={() => setCurrentView("community")}
+                      className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+                        currentView === "community" 
+                          ? "bg-green-100 text-green-700" 
+                          : "text-gray-600 hover:bg-gray-100"
+                      }`}
+                    >
+                      <MessageSquare className="w-5 h-5" />
+                      <span className="font-medium">커뮤니티</span>
+                    </button>
+                  </nav>
+                </CardContent>
+              </Card>
+
+              {/* 빠른 통계 */}
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">빠른 통계</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">총 신고</span>
+                    <span className="font-semibold text-gray-900">{stats.totalReports}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">활성 신고</span>
+                    <span className="font-semibold text-red-600">{stats.activeReports}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">해결 완료</span>
+                    <span className="font-semibold text-green-600">{stats.resolvedReports}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">참여자</span>
+                    <span className="font-semibold text-blue-600">{stats.totalUsers}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* 메인 컨텐츠 영역 */}
+          <div className="col-span-9">
+            {currentView === "map" && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2">
+                        <MapPin className="w-5 h-5 text-emerald-600" />
+                        <span>실시간 환경 현황</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {displayReports.slice(0, 5).map((report) => (
+                          <div key={report.id} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+                            <div className={`w-4 h-4 rounded-full mt-2 flex-shrink-0 ${
+                              report.severity === 'high' ? 'bg-red-500' :
+                              report.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                            }`} />
+                            <div className="flex-1">
+                              <h4 className="font-medium text-gray-900">{report.title}</h4>
+                              <p className="text-sm text-gray-500 mt-1">{report.location.address}</p>
+                              <div className="flex items-center space-x-2 mt-2">
+                                <Badge variant="outline">
+                                  {report.category === 'air' ? '대기오염' : 
+                                   report.category === 'water' ? '수질오염' : 
+                                   report.category === 'noise' ? '소음공해' : '기타'}
+                                </Badge>
+                                <span className="text-xs text-gray-400">
+                                  {new Date(report.date).toLocaleDateString()}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2">
+                        <TrendingUp className="w-5 h-5 text-blue-600" />
+                        <span>최근 활동</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {communityPosts.slice(0, 3).map((post) => (
+                          <div key={post.id} className="p-4 bg-gray-50 rounded-lg">
+                            <h4 className="font-medium text-gray-900">{post.title}</h4>
+                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">{post.content}</p>
+                            <div className="flex items-center space-x-4 mt-2 text-xs text-gray-400">
+                              <span>{post.author}</span>
+                              <span>{new Date(post.date).toLocaleDateString()}</span>
+                              <span>❤️ {post.likes}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Globe className="w-5 h-5 text-emerald-600" />
+                      <span>환경 지도</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <div className="text-center">
+                        <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-500">지도가 여기에 표시됩니다</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {currentView === "stats" && (
+              <div className="space-y-6">
+                <StatsView stats={stats} />
+              </div>
+            )}
+
+            {currentView === "analysis" && (
+              <div className="space-y-6">
+                <AnalysisView reports={displayReports} />
+              </div>
+            )}
+
+            {currentView === "community" && (
+              <div className="space-y-6">
+                <CommunityView 
+                  posts={communityPosts}
+                  onAddPost={handleCommunityPost}
+                  onAddComment={handleAddComment}
+                  onToggleLike={handleToggleLike}
+                  isLoggedIn={isLoggedIn}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </main>
+
       {/* 인증 다이얼로그 */}
       {showAuthDialog && (
-        <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
-          <DialogContent>
-            <AuthDialog onLogin={handleLogin} onSignup={handleSignup} />
-          </DialogContent>
-        </Dialog>
+        <AuthDialog
+          onLogin={handleLogin}
+          onSignup={handleSignup}
+          onClose={() => setShowAuthDialog(false)}
+        />
       )}
     </div>
-  );
+  )
 }
