@@ -978,198 +978,126 @@ function PCMainPage({
   currentView, setCurrentView, displayReports, stats, communityPosts, handleCommunityPost, handleAddComment, handleToggleLike,
   selectedReport, setSelectedReport, handleAddReport, searchQuery, setSearchQuery, reports
 }: any) {
+  // 탭 메뉴 상태
+  const [activeTab, setActiveTab] = useState<'stats' | 'analysis' | 'community'>('stats');
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-cyan-50">
-      {/* 헤더 */}
+      {/* 상단 메뉴 탭 */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-2xl flex items-center justify-center">
-                <Leaf className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">환경지킴이</h1>
-                <p className="text-sm text-gray-500">우리 동네 환경을 함께 지켜요</p>
-              </div>
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-2xl flex items-center justify-center">
+              <Leaf className="w-8 h-8 text-white" />
             </div>
-            
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="지역이나 환경 문제를 검색해보세요"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-80 pl-10 bg-white/70 backdrop-blur-sm border-gray-200"
-                />
-              </div>
-              
-              {isLoggedIn ? (
-                <div className="flex items-center space-x-3">
-                  <Button variant="outline" size="sm">
-                    <Plus className="w-4 h-4 mr-2" />
-                    신고하기
-                  </Button>
-                  <Avatar className="w-10 h-10">
-                    <AvatarImage src={currentUser?.avatar} />
-                    <AvatarFallback className="bg-emerald-100 text-emerald-600">
-                      {currentUser?.name?.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <Button variant="ghost" size="sm" onClick={handleLogout}>
-                    <LogOut className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : (
-                <Button onClick={() => setShowAuthDialog(true)}>
-                  <LogIn className="w-4 h-4 mr-2" />
-                  로그인
-                </Button>
-              )}
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">환경지킴이</h1>
+              <p className="text-sm text-gray-500">우리 동네 환경을 함께 지켜요</p>
             </div>
+          </div>
+          <nav className="flex space-x-2">
+            <button onClick={() => setActiveTab('stats')} className={`px-4 py-2 rounded-lg font-semibold ${activeTab === 'stats' ? 'bg-emerald-100 text-emerald-700' : 'text-gray-500 hover:bg-gray-100'}`}>통계 및 데이터</button>
+            <button onClick={() => setActiveTab('analysis')} className={`px-4 py-2 rounded-lg font-semibold ${activeTab === 'analysis' ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:bg-gray-100'}`}>분석</button>
+            <button onClick={() => setActiveTab('community')} className={`px-4 py-2 rounded-lg font-semibold ${activeTab === 'community' ? 'bg-green-100 text-green-700' : 'text-gray-500 hover:bg-gray-100'}`}>커뮤니티</button>
+          </nav>
+          <div>
+            {isLoggedIn ? (
+              <Button variant="ghost" size="sm" onClick={handleLogout}><LogOut className="w-4 h-4" /></Button>
+            ) : (
+              <Button onClick={() => setShowAuthDialog(true)}><LogIn className="w-4 h-4 mr-2" />로그인</Button>
+            )}
           </div>
         </div>
       </header>
-
-      {/* 메인 컨텐츠 */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* 환경 지도 - B안: 상단 크게 */}
-        {currentView === "map" && (
-          <section>
-            <Card className="w-full h-[500px] sm:h-[600px] lg:h-[700px] mb-8">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-                  <Globe className="w-6 h-6 text-emerald-600" />
-                  환경 지도
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 relative z-0" style={{ minHeight: '400px' }}>
-                <SimpleMap
-                  reports={displayReports}
-                  selectedReport={selectedReport}
-                  onReportSelect={setSelectedReport}
-                />
-              </CardContent>
-            </Card>
-          </section>
-        )}
-        {/* 통계/현황/커뮤니티 - 지도 아래 3분할 */}
-        {currentView === "map" && (
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* 실시간 통계 */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg sm:text-xl flex items-center space-x-2">
-                  <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6" />
-                  <span>실시간 통계</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl sm:text-3xl font-bold text-green-600">{stats.totalReports}</div>
-                    <div className="text-sm sm:text-base text-gray-600">총 신고</div>
-                  </div>
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl sm:text-3xl font-bold text-blue-600">{stats.activeReports}</div>
-                    <div className="text-sm sm:text-base text-gray-600">활성 신고</div>
-                  </div>
-                  <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                    <div className="text-2xl sm:text-3xl font-bold text-yellow-600">{stats.resolvedReports}</div>
-                    <div className="text-sm sm:text-base text-gray-600">해결 완료</div>
-                  </div>
-                  <div className="text-center p-4 bg-red-50 rounded-lg">
-                    <div className="text-2xl sm:text-3xl font-bold text-red-600">{stats.totalUsers}</div>
-                    <div className="text-sm sm:text-base text-gray-600">참여자</div>
+      {/* 메인 컨텐츠: 좌측 사이드바 + 우측 지도 */}
+      <main className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* 좌측 사이드바 (통계/현황/커뮤니티) */}
+        <aside className="col-span-1 space-y-6">
+          {/* 실시간 통계 */}
+          <Card className="p-0">
+            <CardHeader className="pb-3"><CardTitle className="text-lg flex items-center gap-2"><BarChart3 className="h-5 w-5" />실시간 통계</CardTitle></CardHeader>
+            <CardContent className="grid grid-cols-2 gap-3">
+              <div className="text-center p-3 bg-green-50 rounded-lg"><div className="text-xl font-bold text-green-600">{stats.totalReports}</div><div className="text-xs text-gray-600">총 신고</div></div>
+              <div className="text-center p-3 bg-blue-50 rounded-lg"><div className="text-xl font-bold text-blue-600">{stats.activeReports}</div><div className="text-xs text-gray-600">활성 신고</div></div>
+              <div className="text-center p-3 bg-yellow-50 rounded-lg"><div className="text-xl font-bold text-yellow-600">{stats.resolvedReports}</div><div className="text-xs text-gray-600">해결 완료</div></div>
+              <div className="text-center p-3 bg-red-50 rounded-lg"><div className="text-xl font-bold text-red-600">{stats.totalUsers}</div><div className="text-xs text-gray-600">참여자</div></div>
+            </CardContent>
+          </Card>
+          {/* 실시간 환경 현황 */}
+          <Card className="p-0">
+            <CardHeader className="pb-3"><CardTitle className="text-lg flex items-center gap-2"><MapPin className="h-5 w-5 text-emerald-600" />실시간 환경 현황</CardTitle></CardHeader>
+            <CardContent className="space-y-2">
+              {reports.map((report) => (
+                <div key={report.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                  <span className={`w-3 h-3 rounded-full ${getSeverityLabel(report.severity) === '심각' ? 'bg-red-500' : getSeverityLabel(report.severity) === '보통' ? 'bg-yellow-500' : 'bg-green-500'}`}></span>
+                  <span className="font-medium text-sm">{report.title}</span>
+                  <span className="text-xs text-gray-400">{getTypeLabel(report.type)}</span>
+                  <span className="text-xs text-gray-400">{formatDate(report.date)}</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+          {/* 커뮤니티 */}
+          <Card className="p-0">
+            <CardHeader className="pb-3"><CardTitle className="text-lg flex items-center gap-2"><TrendingUp className="h-5 w-5 text-blue-600" />커뮤니티</CardTitle></CardHeader>
+            <CardContent className="space-y-2">
+              {communityPosts.map((post) => (
+                <div key={post.id} className="p-2 bg-gray-50 rounded-lg">
+                  <div className="font-medium text-sm">{post.title}</div>
+                  <div className="text-xs text-gray-500 line-clamp-2">{post.content}</div>
+                  <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
+                    <span>{post.author}</span>
+                    <span>{formatDate(post.date)}</span>
+                    <span>❤️ {post.likes}</span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-            {/* 실시간 환경 현황 */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg sm:text-xl flex items-center space-x-2">
-                  <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
-                  <span>실시간 환경 현황</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {displayReports.slice(0, 5).map((report) => {
-                    let locationText: string;
-                    if (hasAddressField(report.location)) {
-                      locationText = report.location.address;
-                    } else {
-                      locationText = report.location;
-                    }
-                    return (
-                      <div key={report.id} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
-                        <div className={`w-4 h-4 rounded-full mt-2 flex-shrink-0 ${
-                          report.severity === 'high' ? 'bg-red-500' :
-                          report.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
-                        }`} />
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">{report.title}</h4>
-                          <p className="text-sm text-gray-500 mt-1">{locationText}</p>
-                          <div className="flex items-center space-x-2 mt-2">
-                            <Badge variant="outline">
-                              {report.category === 'air' ? '대기오염' : 
-                               report.category === 'water' ? '수질오염' : '기타'}
-                            </Badge>
-                            <span className="text-xs text-gray-400">
-                              {new Date(report.date).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-            {/* 커뮤니티 */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg sm:text-xl flex items-center space-x-2">
-                  <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
-                  <span>커뮤니티</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {communityPosts.slice(0, 3).map((post) => (
-                    <div key={post.id} className="p-4 bg-gray-50 rounded-lg">
-                      <h4 className="font-medium text-gray-900">{post.title}</h4>
-                      <p className="text-sm text-gray-500 mt-1 line-clamp-2">{post.content}</p>
-                      <div className="flex items-center space-x-4 mt-2 text-xs text-gray-400">
-                        <span>{post.author}</span>
-                        <span>{new Date(post.date).toLocaleDateString()}</span>
-                        <span>❤️ {post.likes}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </section>
-        )}
-        {/* 기존 통계/분석/커뮤니티 뷰는 지도 뷰가 아닐 때만 노출 */}
-        {currentView === "stats" && (
-          <StatsView stats={stats} reports={reports} />
-        )}
-        {currentView === "analysis" && (
-          <AnalysisView reports={displayReports} />
-        )}
-        {currentView === "community" && (
-          <CommunityView posts={communityPosts} currentUser={currentUser} onAddPost={handleCommunityPost} onAddComment={handleAddComment} onToggleLike={handleToggleLike} isLoggedIn={isLoggedIn} />
-        )}
+              ))}
+            </CardContent>
+          </Card>
+        </aside>
+        {/* 우측 지도/메인 */}
+        <section className="col-span-3 flex flex-col gap-6">
+          {/* 지도 + 신고/필터/범례 */}
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <Button className="bg-emerald-600 text-white" onClick={handleAddReport}><Plus className="w-4 h-4 mr-1" />신고하기</Button>
+            <Input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="검색어를 입력하세요" className="w-full md:w-64" />
+            <div className="flex items-center gap-2 text-xs">
+              <span className="font-semibold">범례:</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-red-500 inline-block"></span>심각</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span>보통</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-green-500 inline-block"></span>경미</span>
+              <span className="flex items-center gap-1">🗑️ 폐기물</span>
+              <span className="flex items-center gap-1">💨 대기오염</span>
+              <span className="flex items-center gap-1">💧 수질오염</span>
+              <span className="flex items-center gap-1">🔊 소음</span>
+            </div>
+          </div>
+          <Card className="w-full h-[400px] md:h-[500px] lg:h-[600px]">
+            <CardHeader className="pb-2"><CardTitle className="text-lg flex items-center gap-2"><Globe className="w-6 h-6 text-emerald-600" />환경 지도</CardTitle></CardHeader>
+            <CardContent className="p-0 relative z-0" style={{ minHeight: '300px' }}>
+              <SimpleMap
+                reports={displayReports}
+                selectedReport={selectedReport}
+                onReportSelect={setSelectedReport}
+              />
+            </CardContent>
+          </Card>
+          {/* 탭별 메인 컨텐츠 */}
+          {activeTab === 'stats' && (
+            <StatsView stats={stats} reports={reports} />
+          )}
+          {activeTab === 'analysis' && (
+            <AnalysisView reports={displayReports} />
+          )}
+          {activeTab === 'community' && (
+            <CommunityView posts={communityPosts} currentUser={currentUser} onAddPost={handleCommunityPost} onAddComment={handleAddComment} onToggleLike={handleToggleLike} isLoggedIn={isLoggedIn} />
+          )}
+        </section>
       </main>
-
       {/* 인증 다이얼로그 */}
       <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
         <AuthDialog onLogin={handleLogin} onSignup={handleSignup} />
       </Dialog>
     </div>
-  )
+  );
 }
