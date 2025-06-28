@@ -834,12 +834,47 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
               <div className="flex items-center gap-2"><span className="font-medium">일자:</span> {selectedReport.date}</div>
               <div className="flex items-center gap-2"><span className="font-medium">유형:</span> {getTypeLabel(selectedReport.type)}</div>
               <div className="flex items-center gap-2"><span className="font-medium">심각도:</span> {selectedReport.severity}</div>
+              {selectedReport.assignedTo && (
+                <div className="flex items-center gap-2"><span className="font-medium">담당자:</span> {selectedReport.assignedTo}</div>
+              )}
+              {selectedReport.resolvedDate && (
+                <div className="flex items-center gap-2"><span className="font-medium text-green-700">해결일:</span> {selectedReport.resolvedDate}</div>
+              )}
             </div>
 
             {/* 상세 설명 */}
             <div className="bg-gray-50 rounded-lg p-3 text-gray-800 text-base max-h-32 overflow-y-auto border mb-4">
               {selectedReport.description}
             </div>
+
+            {/* 처리 노트 */}
+            {selectedReport.processingNotes && (
+              <div className="bg-orange-50 rounded-lg p-3 text-orange-800 text-sm border-l-4 border-orange-200 mb-2">
+                <span className="font-semibold mr-2">처리 노트:</span>{selectedReport.processingNotes}
+              </div>
+            )}
+            {/* 해결 보고서 */}
+            {selectedReport.resolutionReport && (
+              <div className="bg-green-50 rounded-lg p-3 text-green-800 text-sm border-l-4 border-green-200 mb-2">
+                <span className="font-semibold mr-2">해결 보고서:</span>{selectedReport.resolutionReport}
+              </div>
+            )}
+            {/* 첨부 이미지 */}
+            {selectedReport.images && selectedReport.images.length > 0 && (
+              <div className="mb-2">
+                <div className="font-semibold text-gray-700 mb-1">첨부 이미지</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {selectedReport.images.map((img, idx) => (
+                    <img
+                      key={idx}
+                      src={img}
+                      alt={`제보 이미지 ${idx + 1}`}
+                      className="w-full h-24 object-cover rounded border"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* AI 분석 */}
             <div className="flex flex-col gap-3">
