@@ -41,55 +41,14 @@ import {
   LogOut,
   LogIn
 } from 'lucide-react'
-
-// Types
-interface Report {
-  id: string
-  title: string
-  description: string
-  location: { lat: number; lng: number; address: string } | string
-  type: 'waste' | 'air' | 'water' | 'noise'
-  severity: 'low' | 'medium' | 'high'
-  status: '제보접수' | '처리중' | '처리완료'
-  date: string
-  reporter: string
-  images: string[]
-  assignedTo?: string
-  notes?: string
-  resolvedDate?: string
-}
-
-interface CommunityPost {
-  id: string
-  title: string
-  content: string
-  author: string
-  date: string
-  likes: number
-  comments: number
-  isLiked?: boolean
-  commentsList?: Array<{
-    author: string
-    content: string
-    date: string
-  }>
-}
-
-interface User {
-  id: string
-  name: string
-  email: string
-  isAdmin: boolean
-}
-
-interface Stats {
-  totalReports: number
-  resolvedReports: number
-  pendingReports: number
-  communityPosts: number
-  topIssues: Array<{ type: string; count: number }>
-  recentActivity: Array<{ type: string; description: string; date: string }>
-}
+import { collection, addDoc, getDocs, query, where, updateDoc, deleteDoc, doc, writeBatch } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from "firebase/auth";
+import { AnalysisView } from "@/components/analysis-view"
+import { CommunityView } from "@/components/community-view"
+import { StatsView } from "@/components/stats-view"
+import { Report, CommunityPost, User as GCFUser, Stats, Filters, Location, Notification } from "@/types"
 
 // Utility functions
 function getSeverityLabel(severity: string) {
@@ -129,16 +88,15 @@ export default function EnvironmentalMapPlatform() {
   const { toast } = useToast()
   
   // State
+  const [stats, setStats] = useState<Stats>({
+    total: 0,
+    pending: 0,
+    processing: 0,
+    resolved: 0,
+    thisWeek: 0
+  })
   const [reports, setReports] = useState<Report[]>([])
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([])
-  const [stats, setStats] = useState<Stats>({
-    totalReports: 0,
-    resolvedReports: 0,
-    pendingReports: 0,
-    communityPosts: 0,
-    topIssues: [],
-    recentActivity: []
-  })
   const [selectedReport, setSelectedReport] = useState<Report | null>(null)
   const [currentView, setCurrentView] = useState('map')
   const [searchTerm, setSearchTerm] = useState('')
@@ -150,7 +108,7 @@ export default function EnvironmentalMapPlatform() {
     dateRange: 'all'
   })
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [currentUser, setCurrentUser] = useState<GCFUser | null>(null)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [showReportDialog, setShowReportDialog] = useState(false)
   const [showCommunityDialog, setShowCommunityDialog] = useState(false)
@@ -163,7 +121,7 @@ export default function EnvironmentalMapPlatform() {
         id: '1',
         title: '강변에 쓰레기 무단 투기',
         description: '한강변에 대량의 쓰레기가 무단으로 버려져 있습니다.',
-        location: { lat: 37.5665, lng: 126.9780, address: '서울시 강남구' },
+        location: '서울시 강남구',
         type: 'waste',
         severity: 'high',
         status: '처리중',
@@ -171,25 +129,26 @@ export default function EnvironmentalMapPlatform() {
         reporter: '김철수',
         images: ['/placeholder.jpg'],
         assignedTo: '환경과 김영희',
-        notes: '현장 확인 후 즉시 수거 예정'
+        coordinates: { lat: 37.5665, lng: 126.9780 }
       },
       {
         id: '2',
         title: '공장에서 검은 연기 발생',
         description: '산업단지 내 공장에서 검은 연기가 지속적으로 발생하고 있습니다.',
-        location: { lat: 37.5665, lng: 126.9780, address: '서울시 마포구' },
+        location: '서울시 마포구',
         type: 'air',
         severity: 'medium',
         status: '제보접수',
         date: '2024-01-14',
         reporter: '이영희',
-        images: ['/placeholder.jpg']
+        images: ['/placeholder.jpg'],
+        coordinates: { lat: 37.5665, lng: 126.9780 }
       },
       {
         id: '3',
         title: '하천에 기름 유출',
         description: '작은 하천에 기름이 유출되어 물고기가 떠다니고 있습니다.',
-        location: { lat: 37.5665, lng: 126.9780, address: '서울시 서초구' },
+        location: '서울시 서초구',
         type: 'water',
         severity: 'high',
         status: '처리완료',
@@ -197,20 +156,21 @@ export default function EnvironmentalMapPlatform() {
         reporter: '박민수',
         images: ['/placeholder.jpg'],
         assignedTo: '수질과 최성호',
-        notes: '기름 제거 완료, 생태계 복구 진행 중',
-        resolvedDate: '2024-01-16'
+        resolvedDate: '2024-01-16',
+        coordinates: { lat: 37.5665, lng: 126.9780 }
       }
     ]
 
     const mockPosts: CommunityPost[] = [
       {
         id: '1',
-        title: '우리 동네 환경 개선 아이디어',
-        content: '함께 더 깨끗한 동네를 만들어봐요!',
+        title: '우리 동네 환경 개선 프로젝트 참여하세요!',
         author: '환경지킴이',
-        date: '2024-01-15',
+        date: '2024-01-20',
+        content: '함께 우리 동네를 더 깨끗하게 만들어요. 매주 토요일 오전 10시에 모입니다.',
         likes: 15,
         comments: 8,
+        category: '모임',
         commentsList: [
           { author: '김철수', content: '좋은 아이디어네요!', date: '2024-01-15' },
           { author: '이영희', content: '참여하고 싶습니다.', date: '2024-01-15' }
@@ -221,19 +181,11 @@ export default function EnvironmentalMapPlatform() {
     setReports(mockReports)
     setCommunityPosts(mockPosts)
     setStats({
-      totalReports: mockReports.length,
-      resolvedReports: mockReports.filter(r => r.status === '처리완료').length,
-      pendingReports: mockReports.filter(r => r.status !== '처리완료').length,
-      communityPosts: mockPosts.length,
-      topIssues: [
-        { type: '폐기물', count: 1 },
-        { type: '대기', count: 1 },
-        { type: '수질', count: 1 }
-      ],
-      recentActivity: [
-        { type: '제보', description: '강변에 쓰레기 무단 투기', date: '2024-01-15' },
-        { type: '처리완료', description: '하천 기름 유출 해결', date: '2024-01-16' }
-      ]
+      total: mockReports.length,
+      pending: mockReports.filter(r => r.status !== '처리완료').length,
+      processing: mockReports.filter(r => r.status === '처리중').length,
+      resolved: mockReports.filter(r => r.status === '처리완료').length,
+      thisWeek: mockReports.filter(r => new Date(r.date) >= new Date(new Date().toISOString().split('T')[0])).length
     })
     setIsLoading(false)
   }, [])
@@ -283,13 +235,14 @@ export default function EnvironmentalMapPlatform() {
     })
   }
 
-  const handleCommunityPost = async (postData: Omit<CommunityPost, 'id' | 'likes' | 'comments' | 'isLiked' | 'commentsList'>) => {
+  const handleCommunityPost = (postData: Omit<CommunityPost, 'id' | 'likes' | 'comments' | 'isLiked' | 'commentsList'>) => {
     const newPost: CommunityPost = {
+      id: String(Date.now()),
       ...postData,
-      id: Date.now().toString(),
       likes: 0,
       comments: 0,
-      commentsList: []
+      commentsList: [],
+      category: postData.category || '모임'
     }
     setCommunityPosts(prev => [newPost, ...prev])
     setShowCommunityDialog(false)
@@ -324,19 +277,32 @@ export default function EnvironmentalMapPlatform() {
   }
 
   const handleLogin = async (email: string, password: string) => {
-    // Mock login
-    setCurrentUser({
-      id: '1',
-      name: '사용자',
-      email,
-      isAdmin: false
-    })
-    setIsLoggedIn(true)
-    setShowAuthDialog(false)
-    toast({
-      title: "로그인 성공",
-      description: "환영합니다!",
-    })
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      const user = userCredential.user
+      
+      // 관리자 권한 확인
+      const isAdmin = email.includes('admin') || email.includes('관리자')
+      
+      setCurrentUser({
+        id: user.uid,
+        name: user.displayName || '사용자',
+        email: user.email || '',
+        isAdmin
+      })
+      setIsLoggedIn(true)
+      setShowAuthDialog(false)
+      toast({
+        title: "로그인 성공",
+        description: "환영합니다!",
+      })
+    } catch (error) {
+      toast({
+        title: "로그인 실패",
+        description: "이메일 또는 비밀번호가 올바르지 않습니다.",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleSignup = async (email: string, password: string, name: string) => {
@@ -427,22 +393,22 @@ export default function EnvironmentalMapPlatform() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{stats.totalReports}</div>
+                    <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
                     <div className="text-sm text-gray-600">총 제보</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{stats.resolvedReports}</div>
+                    <div className="text-2xl font-bold text-green-600">{stats.resolved}</div>
                     <div className="text-sm text-gray-600">해결됨</div>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-600">{stats.pendingReports}</div>
+                    <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
                     <div className="text-sm text-gray-600">처리중</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">{stats.communityPosts}</div>
-                    <div className="text-sm text-gray-600">커뮤니티</div>
+                    <div className="text-2xl font-bold text-purple-600">{stats.thisWeek}</div>
+                    <div className="text-sm text-gray-600">이번주</div>
                   </div>
                 </div>
               </CardContent>
@@ -600,7 +566,7 @@ export default function EnvironmentalMapPlatform() {
                               </span>
                               <span className="flex items-center">
                                 <MapPin className="h-3 w-3 mr-1" />
-                                {typeof report.location === 'string' ? report.location : report.location.address}
+                                {report.location}
                               </span>
                             </div>
                           </div>
@@ -734,13 +700,14 @@ export default function EnvironmentalMapPlatform() {
             <Button className="w-full" onClick={() => handleAddReport({
               title: '새로운 환경 제보',
               description: '환경 문제에 대한 상세한 설명',
-              location: { lat: 37.5665, lng: 126.9780, address: '서울시' },
+              location: '서울시',
               type: 'waste',
               severity: 'medium',
               status: '제보접수',
               date: new Date().toISOString(),
               reporter: currentUser?.name || '익명',
-              images: []
+              images: [],
+              coordinates: { lat: 37.5665, lng: 126.9780 }
             })}>
               제보 등록
             </Button>
@@ -766,7 +733,8 @@ export default function EnvironmentalMapPlatform() {
               title: '새로운 커뮤니티 글',
               content: '환경에 대한 의견과 아이디어를 공유합니다.',
               author: currentUser?.name || '익명',
-              date: new Date().toISOString()
+              date: new Date().toISOString(),
+              category: '모임'
             })}>
               글 등록
             </Button>
@@ -800,7 +768,7 @@ export default function EnvironmentalMapPlatform() {
                   <span className="font-medium">제보일:</span> {formatDate(selectedReport.date)}
                 </div>
                 <div>
-                  <span className="font-medium">위치:</span> {typeof selectedReport.location === 'string' ? selectedReport.location : selectedReport.location.address}
+                  <span className="font-medium">위치:</span> {selectedReport.location}
                 </div>
                 {selectedReport.assignedTo && (
                   <div>
@@ -808,17 +776,6 @@ export default function EnvironmentalMapPlatform() {
                   </div>
                 )}
               </div>
-              {selectedReport.notes && (
-                <div>
-                  <span className="font-medium">처리 노트:</span>
-                  <p className="text-gray-600 mt-1">{selectedReport.notes}</p>
-                </div>
-              )}
-              {selectedReport.resolvedDate && (
-                <div>
-                  <span className="font-medium">해결일:</span> {formatDate(selectedReport.resolvedDate)}
-                </div>
-              )}
               {selectedReport.images.length > 0 && (
                 <div>
                   <span className="font-medium">이미지:</span>
