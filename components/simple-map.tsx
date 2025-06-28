@@ -9,8 +9,6 @@ import { Badge } from "@/components/ui/badge"
 import { X, MapPin, RotateCcw } from "lucide-react"
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import MarkerClusterGroup from 'react-leaflet-markercluster';
-import 'react-leaflet-markercluster/dist/styles.min.css';
 
 interface SimpleMapProps {
   reports: Report[]
