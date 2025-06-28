@@ -753,19 +753,19 @@ export default function EnvironmentalMapPlatform() {
       </header>
 
       {/* 메인 콘텐츠 */}
-      <main className="w-full max-w-none lg:max-w-screen-2xl mx-auto px-1 sm:px-4 md:px-10 lg:px-16 py-1 sm:py-8 overflow-x-hidden pb-16 mobile-optimized">
+      <main className="w-full max-w-none lg:max-w-screen-2xl mx-auto px-2 sm:px-4 md:px-10 lg:px-16 py-2 sm:py-8 overflow-x-hidden pb-20 mobile-optimized">
         {/* 검색 및 필터 */}
         {(currentView === "map" || !currentView) && (
-          <div className="mb-1 space-y-1 mobile-padding">
-            <div className="flex flex-row gap-1 items-center">
+          <div className="mb-2 space-y-2 mobile-padding">
+            <div className="flex flex-row gap-2 items-center">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-1 top-1/2 transform -translate-y-1/2 text-gray-400 h-3.5 w-3.5" />
+                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
                     placeholder="제보 검색..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-7 h-7 text-xs rounded-md border-gray-300 mobile-optimized"
+                    className="pl-8 h-9 text-sm rounded-md border-gray-300 mobile-optimized"
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   />
                   {searchApplied && (
@@ -773,21 +773,21 @@ export default function EnvironmentalMapPlatform() {
                       variant="ghost"
                       size="sm"
                       onClick={clearSearch}
-                      className="absolute right-0.5 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 flex items-center justify-center"
+                      className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0 flex items-center justify-center"
                     >
-                      <X className="h-3.5 w-3.5" />
+                      <X className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
               </div>
-              <Button onClick={handleSearch} className="bg-blue-600 hover:bg-blue-700 h-7 px-2 text-xs rounded-md mobile-optimized">
+              <Button onClick={handleSearch} className="bg-blue-600 hover:bg-blue-700 h-9 px-3 text-sm rounded-md mobile-optimized">
                 검색
               </Button>
             </div>
             {/* 필터 */}
-            <div className="flex flex-row gap-1 mobile-margin">
+            <div className="flex flex-row gap-2 mobile-margin">
               <Select value={filters.type} onValueChange={(value: Filters['type']) => setFilters(prev => ({ ...prev, type: value }))}>
-                <SelectTrigger className="w-16 h-7 text-[11px] rounded-md mobile-optimized">
+                <SelectTrigger className="w-20 h-8 text-xs rounded-md mobile-optimized">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -799,7 +799,7 @@ export default function EnvironmentalMapPlatform() {
                 </SelectContent>
               </Select>
               <Select value={filters.status} onValueChange={(value: Filters['status']) => setFilters(prev => ({ ...prev, status: value }))}>
-                <SelectTrigger className="w-16 h-7 text-[11px] rounded-md mobile-optimized">
+                <SelectTrigger className="w-20 h-8 text-xs rounded-md mobile-optimized">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -810,7 +810,7 @@ export default function EnvironmentalMapPlatform() {
                 </SelectContent>
               </Select>
               <Select value={filters.severity} onValueChange={(value: Filters['severity']) => setFilters(prev => ({ ...prev, severity: value }))}>
-                <SelectTrigger className="w-16 h-7 text-[11px] rounded-md mobile-optimized">
+                <SelectTrigger className="w-20 h-8 text-xs rounded-md mobile-optimized">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -825,20 +825,20 @@ export default function EnvironmentalMapPlatform() {
         )}
         {/* 뷰별 콘텐츠 */}
         {currentView === "map" && (
-          <div className="flex flex-col gap-1 pb-16 sm:pb-0">
+          <div className="flex flex-col gap-3 pb-20 sm:pb-0">
             {/* 지도 영역 */}
-            <Card className="h-[180px] sm:h-[600px] lg:h-[700px] relative z-0 mobile-optimized mb-1">
-              <CardHeader className="pb-1">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5">
-                  <CardTitle className="text-sm sm:text-xl">환경 제보 지도</CardTitle>
-                  <div className="flex items-center space-x-1">
-                    <Badge variant="outline" className="text-[11px] px-1.5 py-0.5">
+            <Card className="h-[220px] sm:h-[600px] lg:h-[700px] relative z-0 mobile-optimized mb-2">
+              <CardHeader className="pb-2">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                  <CardTitle className="text-base sm:text-xl">환경 제보 지도</CardTitle>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="outline" className="text-xs px-2 py-0.5">
                       {displayReports.length}건 표시
                     </Badge>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-0 relative z-0" style={{ minHeight: '90px' }}>
+              <CardContent className="p-0 relative z-0" style={{ minHeight: '120px' }}>
                 <SimpleMap
                   reports={displayReports}
                   selectedReport={selectedReport}
@@ -848,60 +848,60 @@ export default function EnvironmentalMapPlatform() {
               </CardContent>
             </Card>
             {/* 통계 카드: 지도 바로 아래, 모바일에서도 항상 보임 */}
-            <Card className="mobile-optimized mb-1 p-1">
-              <CardHeader className="pb-1">
-                <CardTitle className="text-sm sm:text-xl flex items-center space-x-1">
-                  <BarChart3 className="h-3.5 w-3.5 sm:h-6 sm:w-6" />
+            <Card className="mobile-optimized mb-2 p-2">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base sm:text-xl flex items-center space-x-2">
+                  <BarChart3 className="h-4 w-4 sm:h-6 sm:w-6" />
                   <span>실시간 통계</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-1">
-                <div className="grid grid-cols-2 gap-1 sm:gap-4">
-                  <div className="text-center p-0.5 sm:p-4 bg-green-50 rounded-lg">
-                    <div className="text-xs sm:text-3xl font-bold text-green-600">{stats.total}</div>
-                    <div className="text-[10px] sm:text-base text-gray-600">총 제보건수</div>
+              <CardContent className="p-2">
+                <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                  <div className="text-center p-1 sm:p-4 bg-green-50 rounded-lg">
+                    <div className="text-sm sm:text-3xl font-bold text-green-600">{stats.total}</div>
+                    <div className="text-xs sm:text-base text-gray-600">총 제보건수</div>
                   </div>
-                  <div className="text-center p-0.5 sm:p-4 bg-blue-50 rounded-lg">
-                    <div className="text-xs sm:text-3xl font-bold text-blue-600">{stats.thisWeek}</div>
-                    <div className="text-[10px] sm:text-base text-gray-600">이번 주</div>
+                  <div className="text-center p-1 sm:p-4 bg-blue-50 rounded-lg">
+                    <div className="text-sm sm:text-3xl font-bold text-blue-600">{stats.thisWeek}</div>
+                    <div className="text-xs sm:text-base text-gray-600">이번 주</div>
                   </div>
-                  <div className="text-center p-0.5 sm:p-4 bg-yellow-50 rounded-lg">
-                    <div className="text-xs sm:text-3xl font-bold text-yellow-600">{stats.pending}</div>
-                    <div className="text-[10px] sm:text-base text-gray-600">제보접수</div>
+                  <div className="text-center p-1 sm:p-4 bg-yellow-50 rounded-lg">
+                    <div className="text-sm sm:text-3xl font-bold text-yellow-600">{stats.pending}</div>
+                    <div className="text-xs sm:text-base text-gray-600">제보접수</div>
                   </div>
-                  <div className="text-center p-0.5 sm:p-4 bg-red-50 rounded-lg">
-                    <div className="text-xs sm:text-3xl font-bold text-red-600">{stats.processing}</div>
-                    <div className="text-[10px] sm:text-base text-gray-600">처리중</div>
+                  <div className="text-center p-1 sm:p-4 bg-red-50 rounded-lg">
+                    <div className="text-sm sm:text-3xl font-bold text-red-600">{stats.processing}</div>
+                    <div className="text-xs sm:text-base text-gray-600">처리중</div>
                   </div>
                 </div>
-                <Separator className="my-0.5 sm:my-4" />
-                <div className="space-y-0.5 sm:space-y-3">
-                  <div className="flex justify-between text-[10px] sm:text-base">
+                <Separator className="my-2 sm:my-4" />
+                <div className="space-y-2 sm:space-y-3">
+                  <div className="flex justify-between text-xs sm:text-base">
                     <span>처리 완료율</span>
                     <span>{Math.round((stats.resolved / stats.total) * 100)}%</span>
                   </div>
-                  <Progress value={(stats.resolved / stats.total) * 100} className="h-1" />
+                  <Progress value={(stats.resolved / stats.total) * 100} className="h-2" />
                 </div>
               </CardContent>
             </Card>
             {/* 최근 제보 */}
-            <Card className="mobile-optimized mb-0 p-1">
-              <CardHeader className="pb-1">
-                <CardTitle className="text-sm sm:text-xl">최근 제보</CardTitle>
+            <Card className="mobile-optimized mb-0 p-2">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base sm:text-xl">최근 제보</CardTitle>
               </CardHeader>
-              <CardContent className="p-1">
-                <div className="space-y-0.5 sm:space-y-3">
+              <CardContent className="p-2">
+                <div className="space-y-2 sm:space-y-3">
                   {displayReports.slice(0, 5).map((report) => (
                     <div
                       key={report.id}
-                      className="p-1 sm:p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                      className="p-2 sm:p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                       onClick={() => setSelectedReport(report)}
                     >
-                      <div className="flex items-center justify-between mb-0.5">
-                        <h4 className="font-medium text-[11px] sm:text-sm line-clamp-1">{report.title}</h4>
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="font-medium text-xs sm:text-sm line-clamp-1">{report.title}</h4>
                         <Badge
                           variant="outline"
-                          className={`text-[11px] ${
+                          className={`text-xs ${
                             report.severity === "high"
                               ? "border-red-200 text-red-700"
                               : report.severity === "medium"
@@ -912,8 +912,8 @@ export default function EnvironmentalMapPlatform() {
                           {report.severity}
                         </Badge>
                       </div>
-                      <p className="text-[10px] text-gray-500 line-clamp-2">{report.location}</p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">{report.date}</p>
+                      <p className="text-xs text-gray-500 line-clamp-2">{report.location}</p>
+                      <p className="text-xs text-gray-400 mt-1">{report.date}</p>
                     </div>
                   ))}
                 </div>
