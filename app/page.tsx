@@ -847,43 +847,45 @@ export default function EnvironmentalMapPlatform() {
                 />
               </CardContent>
             </Card>
-            {/* 통계 카드: 지도 바로 아래, 모바일에서도 항상 보임 (강제 추가) */}
-            <Card className="mobile-optimized mb-2 p-2">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base sm:text-xl flex items-center space-x-2">
-                  <BarChart3 className="h-4 w-4 sm:h-6 sm:w-6" />
-                  <span>실시간 통계</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-2">
-                <div className="grid grid-cols-2 gap-2 sm:gap-4">
-                  <div className="text-center p-1 sm:p-4 bg-green-50 rounded-lg">
-                    <div className="text-sm sm:text-3xl font-bold text-green-600">{stats.total}</div>
-                    <div className="text-xs sm:text-base text-gray-600">총 제보건수</div>
+            {/* 통계 카드: 지도 바로 아래, 모바일에서도 항상 보임 (기존 코드 완전 삭제 후 강제 추가) */}
+            <div style={{display: 'block'}}>
+              <Card className="mobile-optimized mb-2 p-2">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base sm:text-xl flex items-center space-x-2">
+                    <BarChart3 className="h-4 w-4 sm:h-6 sm:w-6" />
+                    <span>실시간 통계</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-2">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                    <div className="text-center p-1 sm:p-4 bg-green-50 rounded-lg">
+                      <div className="text-sm sm:text-3xl font-bold text-green-600">{stats.total}</div>
+                      <div className="text-xs sm:text-base text-gray-600">총 제보건수</div>
+                    </div>
+                    <div className="text-center p-1 sm:p-4 bg-blue-50 rounded-lg">
+                      <div className="text-sm sm:text-3xl font-bold text-blue-600">{stats.thisWeek}</div>
+                      <div className="text-xs sm:text-base text-gray-600">이번 주</div>
+                    </div>
+                    <div className="text-center p-1 sm:p-4 bg-yellow-50 rounded-lg">
+                      <div className="text-sm sm:text-3xl font-bold text-yellow-600">{stats.pending}</div>
+                      <div className="text-xs sm:text-base text-gray-600">제보접수</div>
+                    </div>
+                    <div className="text-center p-1 sm:p-4 bg-red-50 rounded-lg">
+                      <div className="text-sm sm:text-3xl font-bold text-red-600">{stats.processing}</div>
+                      <div className="text-xs sm:text-base text-gray-600">처리중</div>
+                    </div>
                   </div>
-                  <div className="text-center p-1 sm:p-4 bg-blue-50 rounded-lg">
-                    <div className="text-sm sm:text-3xl font-bold text-blue-600">{stats.thisWeek}</div>
-                    <div className="text-xs sm:text-base text-gray-600">이번 주</div>
+                  <Separator className="my-2 sm:my-4" />
+                  <div className="space-y-2 sm:space-y-3">
+                    <div className="flex justify-between text-xs sm:text-base">
+                      <span>처리 완료율</span>
+                      <span>{Math.round((stats.resolved / stats.total) * 100)}%</span>
+                    </div>
+                    <Progress value={(stats.resolved / stats.total) * 100} className="h-2" />
                   </div>
-                  <div className="text-center p-1 sm:p-4 bg-yellow-50 rounded-lg">
-                    <div className="text-sm sm:text-3xl font-bold text-yellow-600">{stats.pending}</div>
-                    <div className="text-xs sm:text-base text-gray-600">제보접수</div>
-                  </div>
-                  <div className="text-center p-1 sm:p-4 bg-red-50 rounded-lg">
-                    <div className="text-sm sm:text-3xl font-bold text-red-600">{stats.processing}</div>
-                    <div className="text-xs sm:text-base text-gray-600">처리중</div>
-                  </div>
-                </div>
-                <Separator className="my-2 sm:my-4" />
-                <div className="space-y-2 sm:space-y-3">
-                  <div className="flex justify-between text-xs sm:text-base">
-                    <span>처리 완료율</span>
-                    <span>{Math.round((stats.resolved / stats.total) * 100)}%</span>
-                  </div>
-                  <Progress value={(stats.resolved / stats.total) * 100} className="h-2" />
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
             {/* 최근 제보 */}
             <Card className="mobile-optimized mb-0 p-2">
               <CardHeader className="pb-2">
