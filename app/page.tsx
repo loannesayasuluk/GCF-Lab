@@ -847,9 +847,9 @@ export default function EnvironmentalMapPlatform() {
                 />
               </CardContent>
             </Card>
-            {/* 통계 카드: 지도 바로 아래, 모바일에서도 항상 보임 (기존 코드 완전 삭제 후 강제 추가) */}
-            <div style={{display: 'block'}}>
-              <Card className="mobile-optimized mb-2 p-2">
+            {/* 통계 카드: 지도 바로 아래, 모바일에서도 항상 보임 (인라인 스타일로 무조건 보이게 강제) */}
+            <div style={{display: 'block', background: '#fff', zIndex: 10000, position: 'relative', width: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.03)'}}>
+              <Card className="mobile-optimized mb-2 p-2" style={{display: 'block', background: '#fff', zIndex: 10000, position: 'relative', width: '100%'}}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base sm:text-xl flex items-center space-x-2">
                     <BarChart3 className="h-4 w-4 sm:h-6 sm:w-6" />
