@@ -22,6 +22,8 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
   const [detailCardPos, setDetailCardPos] = useState<{x: number, y: number} | null>(null)
   const [windowSize, setWindowSize] = useState<{width: number, height: number}>({ width: 0, height: 0 })
   const mapRef = useRef<any>(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiResult, setAiResult] = useState<any>(null)
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -659,6 +661,19 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
     // selectedReport, detailCardPos 등은 의존성에서 제외
   }, [mapType, reports])
 
+  async function handleAIAnalysis(report: Report) {
+    setAiLoading(true)
+    setAiResult(null)
+    // 실제 AI 분석 API 호출 또는 시뮬레이션
+    await new Promise(res => setTimeout(res, 1200))
+    setAiResult({
+      summary: 'AI가 분석한 결과, 해당 지역의 대기오염이 심각하며 신속한 조치가 필요합니다.',
+      insights: ['최근 1개월간 유사 제보 3건', '심각도 높은 제보 비율 60%'],
+      recommendations: ['즉각적인 현장 점검', '주민 대상 안내문 발송']
+    })
+    setAiLoading(false)
+  }
+
   return (
     <div className="relative h-full w-full">
       {/* 지도 컨테이너 (z-index: 0) */}
@@ -746,28 +761,75 @@ export default function SimpleMap({ reports, selectedReport, onReportSelect, cur
         </>
       )}
 
-      {/* 세부내용 창: 지도 위에, 하나만, z-index: 3000, position: fixed */}
+      {/* 세부내용 창: 지도 위에, 하나만, z-index: 3000, position: fixed, 리디자인 + AI 분석 */}
       {selectedReport && (
         <div
-          className="fixed bg-white rounded-lg shadow-2xl border border-gray-200 p-6 max-w-md w-[90vw] animate-fade-in"
-          style={{ ...(getDetailCardPosition ? getDetailCardPosition() : {}), zIndex: 3000, position: 'fixed' }}
+          className="fixed left-1/2 top-1/2 bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 max-w-md w-[92vw] z-[3000] animate-fade-in flex flex-col gap-4"
+          style={{ ...(getDetailCardPosition ? getDetailCardPosition() : {}), zIndex: 3000, position: 'fixed', transform: 'translate(-50%, -55%)' }}
         >
-          <button
-            className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 focus:outline-none"
-            onClick={closeDetailCard}
-            aria-label="닫기"
-          >
-            <X className="w-5 h-5" />
-          </button>
-          <div className="mb-2 flex items-center gap-2">
-            <span className="text-2xl">{getTypeIcon(selectedReport.type)}</span>
-            <span className="font-bold text-lg text-gray-800">{selectedReport.title}</span>
-            <Badge className={getStatusColor(selectedReport.status)}>{selectedReport.status}</Badge>
+          {/* 상단: 아이콘, 제목, 상태, 닫기 */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-3xl">{getTypeIcon(selectedReport.type)}</span>
+              <span className="font-bold text-xl text-gray-900">{selectedReport.title}</span>
+              <Badge className={getStatusColor(selectedReport.status)}>{selectedReport.status}</Badge>
+            </div>
+            <button
+              className="ml-2 text-gray-400 hover:text-gray-700 focus:outline-none"
+              onClick={closeDetailCard}
+              aria-label="닫기"
+            >
+              <X className="w-6 h-6" />
+            </button>
           </div>
-          <div className="text-gray-700 text-sm mb-2">{selectedReport.description}</div>
-          <div className="text-xs text-gray-500 mb-1">위치: {selectedReport.location}</div>
-          <div className="text-xs text-gray-500 mb-1">제보자: {selectedReport.reporter}</div>
-          <div className="text-xs text-gray-500">제보일: {selectedReport.date}</div>
+
+          {/* 주요 정보 */}
+          <div className="flex flex-wrap gap-3 text-sm text-gray-700 mb-2">
+            <div className="flex items-center gap-1"><MapPin className="w-4 h-4 text-blue-500" />{selectedReport.location}</div>
+            <div className="flex items-center gap-1"><span className="font-medium">제보자:</span> {selectedReport.reporter}</div>
+            <div className="flex items-center gap-1"><span className="font-medium">일자:</span> {selectedReport.date}</div>
+            <div className="flex items-center gap-1"><span className="font-medium">유형:</span> {selectedReport.type}</div>
+            <div className="flex items-center gap-1"><span className="font-medium">심각도:</span> {selectedReport.severity}</div>
+          </div>
+
+          {/* 상세 설명 */}
+          <div className="bg-gray-50 rounded-lg p-3 text-gray-800 text-base max-h-32 overflow-y-auto border mb-2">
+            {selectedReport.description}
+          </div>
+
+          {/* AI 분석 */}
+          <div className="flex flex-col gap-2">
+            <Button
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold py-2 rounded-lg shadow hover:from-blue-600 hover:to-purple-600"
+              onClick={() => handleAIAnalysis(selectedReport)}
+              disabled={aiLoading}
+            >
+              {aiLoading ? 'AI 분석 중...' : 'AI 분석 실행'}
+            </Button>
+            {aiResult && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-1 text-sm text-blue-900 animate-fade-in">
+                <div className="font-bold mb-1">AI 분석 결과</div>
+                <div>{aiResult.summary}</div>
+                {aiResult.insights && aiResult.insights.length > 0 && (
+                  <ul className="list-disc pl-5 mt-2 space-y-1">
+                    {aiResult.insights.map((insight: string, idx: number) => (
+                      <li key={idx}>{insight}</li>
+                    ))}
+                  </ul>
+                )}
+                {aiResult.recommendations && aiResult.recommendations.length > 0 && (
+                  <div className="mt-2">
+                    <div className="font-semibold">추천 조치</div>
+                    <ul className="list-disc pl-5 mt-1 space-y-1">
+                      {aiResult.recommendations.map((rec: string, idx: number) => (
+                        <li key={idx}>{rec}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
