@@ -25,7 +25,7 @@ import {
   Filter, 
   MapPin, 
   Calendar, 
-  User, 
+  User as UserIcon, 
   MessageCircle, 
   Heart, 
   Share2, 
@@ -557,7 +557,7 @@ export default function EnvironmentalMapPlatform() {
                             <p className="text-sm text-gray-600 mb-2">{report.description}</p>
                             <div className="flex items-center space-x-4 text-xs text-gray-500">
                               <span className="flex items-center">
-                                <User className="h-3 w-3 mr-1" />
+                                <UserIcon className="h-3 w-3 mr-1" />
                                 {report.reporter}
                               </span>
                               <span className="flex items-center">
