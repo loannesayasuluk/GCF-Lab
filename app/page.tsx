@@ -103,17 +103,6 @@ function MobileTabBar({ currentView, setCurrentView }: { currentView: string, se
   );
 }
 
-function useIsPC() {
-  const [isPC, setIsPC] = useState(true);
-  useEffect(() => {
-    const check = () => setIsPC(window.innerWidth >= 641);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-  return isPC;
-}
-
 function isMobileDevice() {
   if (typeof window === "undefined") return false;
   return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(window.navigator.userAgent);
@@ -326,7 +315,6 @@ export default function EnvironmentalMapPlatform() {
     setChecked(true);
   }, []);
 
-  // currentUser가 변경될 때 profile 정보 업데이트
   useEffect(() => {
     if (currentUser) {
       setProfileName(currentUser.name || "");
