@@ -57,7 +57,7 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
         title: newPostTitle.trim(),
         content: newPostContent.trim(),
         category: newPostCategory,
-        severity: newPostSeverity,
+        severity: newPostSeverity as 'low' | 'medium' | 'high',
         author: currentUser?.name || "익명",
         date: new Date().toLocaleDateString(),
       })

@@ -315,8 +315,8 @@ export default function EnvironmentalMapPlatform() {
   const [showProfileDialog, setShowProfileDialog] = useState(false)
   const [showMyReports, setShowMyReports] = useState(false)
   const [editProfile, setEditProfile] = useState(false)
-  const [profileName, setProfileName] = useState(currentUser?.name || "")
-  const [profileEmail, setProfileEmail] = useState(currentUser?.email || "")
+  const [profileName, setProfileName] = useState("")
+  const [profileEmail, setProfileEmail] = useState("")
   const [profileLoading, setProfileLoading] = useState(false)
   const [isMobile, setIsMobile] = useState(false);
   const [checked, setChecked] = useState(false);
@@ -325,6 +325,14 @@ export default function EnvironmentalMapPlatform() {
     setIsMobile(isMobileDevice());
     setChecked(true);
   }, []);
+
+  // currentUser가 변경될 때 profile 정보 업데이트
+  useEffect(() => {
+    if (currentUser) {
+      setProfileName(currentUser.name || "");
+      setProfileEmail(currentUser.email || "");
+    }
+  }, [currentUser]);
 
   if (!checked) return null; // 렌더링 전 userAgent 체크 대기
 
@@ -335,7 +343,7 @@ export default function EnvironmentalMapPlatform() {
       title: "강북구 공원 쓰레기 무단투기",
       location: "강북구 번동 공원",
       type: "waste",
-      severity: "보통",
+      severity: "medium",
       reporter: "김철수",
       date: "2024-01-20",
       status: "제보접수",
@@ -346,7 +354,7 @@ export default function EnvironmentalMapPlatform() {
         summary: "공원 내 쓰레기 무단투기 문제로, 신속한 정리가 필요합니다.",
         keywords: ["쓰레기", "공원", "정리"],
         category: "폐기물 관리",
-        urgency: "보통",
+        urgency: "medium",
         estimatedCost: "50만원",
         expectedDuration: "3일"
       }
@@ -356,7 +364,7 @@ export default function EnvironmentalMapPlatform() {
       title: "성북구 대기오염 심각",
       location: "성북구 동소문로",
       type: "air",
-      severity: "심각",
+      severity: "high",
       reporter: "이영희",
       date: "2024-01-19",
       status: "처리중",
@@ -371,7 +379,7 @@ export default function EnvironmentalMapPlatform() {
       title: "종로구 하천 오염",
       location: "종로구 청운동 하천",
       type: "water",
-      severity: "심각",
+      severity: "high",
       reporter: "박민수",
       date: "2024-01-18",
       status: "처리완료",
@@ -386,7 +394,7 @@ export default function EnvironmentalMapPlatform() {
       title: "마포구 야간 소음",
       location: "마포구 합정동",
       type: "noise",
-      severity: "보통",
+      severity: "medium",
       reporter: "최지영",
       date: "2024-01-17",
       status: "제보접수",
@@ -399,7 +407,7 @@ export default function EnvironmentalMapPlatform() {
       title: "용산구 폐건축자재 불법투기",
       location: "용산구 한강대로",
       type: "waste",
-      severity: "경미",
+      severity: "low",
       reporter: "정수민",
       date: "2024-01-16",
       status: "처리중",

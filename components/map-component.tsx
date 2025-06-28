@@ -228,7 +228,8 @@ export default function MapComponent({ reports, selectedReport, onReportSelect, 
       const script = document.createElement("script")
       script.src = "https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"
       script.async = true
-      script.defer = true(window as any).initMap = () => {
+      script.defer = true
+      ;(window as any).initMap = () => {
         try {
           const map = new (window as any).google.maps.Map(mapRef.current, {
             center: { lat: 37.5665, lng: 126.978 },
