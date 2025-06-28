@@ -304,6 +304,33 @@ function hasAddressField(location: any): location is { address: string } {
   return typeof location === 'object' && location !== null && 'address' in location;
 }
 
+// 한글 변환 유틸
+function getSeverityLabel(severity: string) {
+  if (severity === 'high' || severity === '심각') return '심각';
+  if (severity === 'medium' || severity === '보통') return '보통';
+  if (severity === 'low' || severity === '경미') return '경미';
+  return severity;
+}
+function getTypeLabel(type: string) {
+  if (type === 'waste') return '폐기물';
+  if (type === 'air') return '대기오염';
+  if (type === 'water') return '수질오염';
+  if (type === 'noise') return '소음';
+  return type;
+}
+function getStatusLabel(status: string) {
+  if (status === '제보접수') return '제보접수';
+  if (status === '처리중') return '처리중';
+  if (status === '처리완료') return '처리완료';
+  return status;
+}
+function formatDate(date: string) {
+  if (!date) return '';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('ko-KR');
+}
+
 export default function EnvironmentalMapPlatform() {
   // 모든 훅은 컴포넌트 최상단에서 선언
   const { toast } = useToast()
@@ -340,6 +367,8 @@ export default function EnvironmentalMapPlatform() {
   const [profileLoading, setProfileLoading] = useState(false)
   const [isMobile, setIsMobile] = useState(false);
   const [checked, setChecked] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const device = useDeviceType();
 
@@ -358,95 +387,56 @@ export default function EnvironmentalMapPlatform() {
   // Firestore에서 reports 불러오기
   const [reports, setReports] = useState<Report[]>([
     {
-      id: "1",
-      title: "강북구 공원 쓰레기 무단투기",
-      location: "강북구 번동 공원",
-      type: "waste",
-      severity: "medium",
-      reporter: "김철수",
-      date: "2024-01-20",
-      status: "제보접수",
-      description: "공원 내 벤치 주변에 음식물 쓰레기와 플라스틱 병들이 무단으로 버려져 있습니다. 아이들이 놀기 전에 정리가 필요합니다.",
+      id: '1',
+      title: '강북구 공원 쓰레기 무단투기',
+      location: '강북구 번동 공원',
+      type: 'waste',
+      severity: 'medium',
+      reporter: '김철수',
+      date: '2024-01-20',
+      status: '제보접수',
+      description: '공원 내 벤치 주변에 음식물 쓰레기와 플라스틱 병들이 무단으로 버려져 있습니다. 아이들이 놀기 전에 정리가 필요합니다.',
       coordinates: { lat: 37.5665, lng: 126.9780 },
-      images: ["/placeholder-user.jpg", "/placeholder-logo.png"],
-      assignedTo: undefined,
-      processingNotes: undefined,
-      resolvedDate: undefined,
-      resolutionReport: undefined,
-      aiAnalysis: undefined,
+      images: ['/placeholder-user.jpg', '/placeholder-logo.png'],
+      aiAnalysis: {
+        summary: '공원 내 쓰레기 무단투기 문제로, 신속한 정리가 필요합니다.',
+        keywords: ['쓰레기', '공원', '정리'],
+        category: '폐기물 관리',
+        urgency: 'medium',
+        estimatedCost: '50만원',
+        expectedDuration: '3일'
+      }
     },
     {
-      id: "2",
-      title: "성북구 대기오염 심각",
-      location: "성북구 동소문로",
-      type: "air",
-      severity: "high",
-      reporter: "이영희",
-      date: "2024-01-19",
-      status: "처리중",
-      description: "도로변에서 매연 냄새가 심하게 나고 있습니다. 특히 오후 시간대에 더욱 심해집니다.",
+      id: '2',
+      title: '성북구 대기오염 심각',
+      location: '성북구 동소문로',
+      type: 'air',
+      severity: 'high',
+      reporter: '이영희',
+      date: '2024-01-19',
+      status: '처리중',
+      description: '도로변에서 매연 냄새가 심하게 나고 있습니다. 특히 오후 시간대에 더욱 심해집니다.',
       coordinates: { lat: 37.5894, lng: 127.0167 },
-      images: ["/placeholder-logo.svg"],
-      assignedTo: "환경과 김과장",
-      processingNotes: "대기질 측정 장비 설치 완료. 24시간 모니터링 중입니다.",
-      resolvedDate: undefined,
-      resolutionReport: undefined,
-      aiAnalysis: undefined,
+      images: ['/placeholder-logo.svg'],
+      assignedTo: '환경과 김과장',
+      processingNotes: '대기질 측정 장비 설치 완료. 24시간 모니터링 중입니다.'
     },
     {
-      id: "3",
-      title: "종로구 하천 오염",
-      location: "종로구 청운동 하천",
-      type: "water",
-      severity: "high",
-      reporter: "박민수",
-      date: "2024-01-18",
-      status: "처리완료",
-      description: "하천에 기름기가 떠다니고 물이 탁해졌습니다. 생태계에 영향을 줄 수 있습니다.",
+      id: '3',
+      title: '종로구 하천 오염',
+      location: '종로구 청운동 하천',
+      type: 'water',
+      severity: 'high',
+      reporter: '박민수',
+      date: '2024-01-18',
+      status: '처리완료',
+      description: '하천에 기름기가 떠다니고 물이 탁해졌습니다. 생태계에 영향을 줄 수 있습니다.',
       coordinates: { lat: 37.5735, lng: 126.9789 },
-      images: ["/placeholder.jpg"],
-      assignedTo: undefined,
-      processingNotes: undefined,
-      resolvedDate: "2024-01-20",
-      resolutionReport: "하천 정화 작업 완료. 오염원 차단 조치 완료.",
-      aiAnalysis: undefined,
-    },
-    {
-      id: "4",
-      title: "마포구 야간 소음",
-      location: "마포구 합정동",
-      type: "noise",
-      severity: "medium",
-      reporter: "최지영",
-      date: "2024-01-17",
-      status: "제보접수",
-      description: "새벽 2시경부터 공사장 소음이 들립니다. 주민들의 수면에 지장을 주고 있습니다.",
-      coordinates: { lat: 37.5492, lng: 126.9136 },
-      images: ["/placeholder.jpg"],
-      assignedTo: undefined,
-      processingNotes: undefined,
-      resolvedDate: undefined,
-      resolutionReport: undefined,
-      aiAnalysis: undefined,
-    },
-    {
-      id: "5",
-      title: "용산구 폐건축자재 불법투기",
-      location: "용산구 한강대로",
-      type: "waste",
-      severity: "low",
-      reporter: "정수민",
-      date: "2024-01-16",
-      status: "처리중",
-      description: "도로변에 건축자재들이 버려져 있습니다. 통행에 불편을 주고 있습니다.",
-      coordinates: { lat: 37.5320, lng: 126.9904 },
-      images: ["/placeholder.jpg"],
-      assignedTo: "청소과 박대리",
-      processingNotes: undefined,
-      resolvedDate: undefined,
-      resolutionReport: undefined,
-      aiAnalysis: undefined,
-    },
+      images: ['/placeholder.jpg'],
+      resolvedDate: '2024-01-20',
+      resolutionReport: '하천 정화 작업 완료. 오염원 차단 조치 완료.'
+    }
   ]);
   useEffect(() => {
     const fetchReports = async () => {
@@ -481,57 +471,25 @@ export default function EnvironmentalMapPlatform() {
   // Firestore에서 communityPosts 불러오기
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([
     {
-      id: "1",
-      title: "우리 동네 환경 개선 프로젝트 참여하세요!",
-      author: "환경지킴이",
-      date: "2024-01-20",
-      content: "함께 우리 동네를 더 깨끗하게 만들어요. 매주 토요일 오전 10시에 모입니다.",
+      id: '1',
+      title: '우리 동네 환경 개선 프로젝트 참여하세요!',
+      author: '환경지킴이',
+      date: '2024-01-20',
+      content: '함께 우리 동네를 더 깨끗하게 만들어요. 매주 토요일 오전 10시에 모입니다.',
       likes: 15,
       comments: 8,
-      category: "모임",
-      severity: "medium",
-      isLiked: false,
-      commentsList: [],
+      category: '모임',
     },
     {
-      id: "2",
-      title: "미세먼지 측정 결과 공유",
-      author: "데이터분석가",
-      date: "2024-01-19",
-      content: "이번 주 미세먼지 측정 결과를 공유합니다. 전반적으로 양호한 수준을 보이고 있습니다.",
-      likes: 12,
-      comments: 5,
-      category: "정보",
-      severity: "low",
-      isLiked: false,
-      commentsList: [],
-    },
-    {
-      id: "3",
-      title: "환경 교육 프로그램 추천해주세요",
-      author: "초보환경인",
-      date: "2024-01-18",
-      content: "환경에 대해 더 배우고 싶은데, 좋은 교육 프로그램이나 강의를 추천해주세요.",
-      likes: 8,
+      id: '2',
+      title: '미세먼지 측정 결과 공유',
+      author: '데이터분석가',
+      date: '2024-01-19',
+      content: '이번 주 우리 지역 미세먼지 농도 분석 결과를 공유합니다.',
+      likes: 23,
       comments: 12,
-      category: "질문",
-      severity: "medium",
-      isLiked: false,
-      commentsList: [],
-    },
-    {
-      id: "4",
-      title: "플라스틱 사용 줄이기 캠페인 제안",
-      author: "그린라이프",
-      date: "2024-01-17",
-      content: "우리 동네에서 플라스틱 사용을 줄이는 캠페인을 진행해보는 건 어떨까요?",
-      likes: 25,
-      comments: 15,
-      category: "제안",
-      severity: "high",
-      isLiked: false,
-      commentsList: [],
-    },
+      category: '정보',
+    }
   ]);
   useEffect(() => {
     const fetchPosts = async () => {
@@ -581,22 +539,18 @@ export default function EnvironmentalMapPlatform() {
   };
 
   // 통계 데이터 계산
-  const stats: Stats = useMemo(() => {
-    const total = reports.length
-    const pending = reports.filter(r => r.status === "제보접수").length
-    const processing = reports.filter(r => r.status === "처리중").length
-    const resolved = reports.filter(r => r.status === "처리완료").length
-    
-    // 이번 주 제보 수 계산
-    const now = new Date()
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-    const thisWeek = reports.filter(r => {
-      const reportDate = new Date(r.date)
-      return reportDate >= weekAgo && reportDate <= now
-    }).length
-
-    return { total, pending, processing, resolved, thisWeek }
-  }, [reports])
+  const stats = useMemo(() => {
+    const total = reports.length;
+    const pending = reports.filter(r => r.status === '제보접수').length;
+    const processing = reports.filter(r => r.status === '처리중').length;
+    const resolved = reports.filter(r => r.status === '처리완료').length;
+    return {
+      totalReports: total,
+      activeReports: pending + processing,
+      resolvedReports: resolved,
+      totalUsers: 42
+    };
+  }, [reports]);
 
   // 필터링된 제보
   const filteredReports = useMemo(() => {
