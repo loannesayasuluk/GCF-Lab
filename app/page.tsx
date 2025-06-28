@@ -120,6 +120,7 @@ function isMobileDevice() {
 }
 
 export default function EnvironmentalMapPlatform() {
+  // 모든 훅은 컴포넌트 최상단에서 선언
   const { toast } = useToast()
   const [selectedReport, setSelectedReport] = useState<Report | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -152,7 +153,6 @@ export default function EnvironmentalMapPlatform() {
   const [profileName, setProfileName] = useState(currentUser?.name || "")
   const [profileEmail, setProfileEmail] = useState(currentUser?.email || "")
   const [profileLoading, setProfileLoading] = useState(false)
-  const isPC = useIsPC()
   const [isMobile, setIsMobile] = useState(false);
   const [checked, setChecked] = useState(false);
 
