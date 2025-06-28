@@ -43,129 +43,7 @@ import {
   Trash2,
   Flag,
   Shield,
-  Globe,
-  Zap,
-  Droplets,
-  Wind,
-  Sun,
-  Cloud,
-  CloudRain,
-  Thermometer,
-  Gauge,
-  AlertTriangle,
-  Info,
-  Check,
-  XCircle,
-  Minus,
-  Maximize2,
-  Minimize2,
-  RotateCcw,
-  RefreshCw,
-  Play,
-  Pause,
-  SkipBack,
-  SkipForward,
-  Volume2,
-  VolumeX,
-  Mic,
-  MicOff,
-  Video,
-  VideoOff,
-  Phone,
-  PhoneOff,
-  Mail,
-  Send,
-  Paperclip,
-  Smile,
-  Image,
-  File,
-  Folder,
-  HardDrive,
-  Database,
-  Server,
-  Network,
-  Wifi,
-  WifiOff,
-  Bluetooth,
-  BluetoothOff,
-  Battery,
-  BatteryCharging,
-  Power,
-  PowerOff,
-  Lock,
-  Unlock,
-  Key,
-  EyeOff,
-  EyeOn,
-  ShieldCheck,
-  ShieldAlert,
-  ShieldX,
-  Verified,
-  Award,
-  Trophy,
-  Medal,
-  Crown,
-  Diamond,
-  Gem,
-  Sparkles,
-  Magic,
-  Wand,
-  Hat,
-  Glasses,
-  Watch,
-  Timer,
-  Stopwatch,
-  Hourglass,
-  CalendarDays,
-  CalendarCheck,
-  CalendarX,
-  CalendarPlus,
-  CalendarMinus,
-  CalendarRange,
-  CalendarWeek,
-  CalendarMonth,
-  CalendarYear,
-  CalendarTime,
-  CalendarClock,
-  CalendarEvent,
-  CalendarHeart,
-  CalendarStar,
-  CalendarUser,
-  CalendarSettings,
-  CalendarSearch,
-  CalendarEdit,
-  CalendarTrash,
-  CalendarDownload,
-  CalendarUpload,
-  CalendarShare,
-  CalendarLock,
-  CalendarUnlock,
-  CalendarKey,
-  CalendarEye,
-  CalendarEyeOff,
-  CalendarShield,
-  CalendarAlert,
-  CalendarCheckCircle,
-  CalendarXCircle,
-  CalendarMinusCircle,
-  CalendarPlusCircle,
-  CalendarHeartCircle,
-  CalendarStarCircle,
-  CalendarUserCircle,
-  CalendarSettingsCircle,
-  CalendarSearchCircle,
-  CalendarEditCircle,
-  CalendarTrashCircle,
-  CalendarDownloadCircle,
-  CalendarUploadCircle,
-  CalendarShareCircle,
-  CalendarLockCircle,
-  CalendarUnlockCircle,
-  CalendarKeyCircle,
-  CalendarEyeCircle,
-  CalendarEyeOffCircle,
-  CalendarShieldCircle,
-  CalendarAlertCircle,
+  Globe
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -421,6 +299,11 @@ function useDeviceType() {
     else setDevice('pc');
   }, []);
   return device;
+}
+
+// 타입 가드 함수 추가
+function hasAddressField(location: any): location is { address: string } {
+  return typeof location === 'object' && location !== null && 'address' in location;
 }
 
 export default function EnvironmentalMapPlatform() {
@@ -732,12 +615,24 @@ export default function EnvironmentalMapPlatform() {
     if (!searchApplied || !searchTerm.trim()) return []
     
     const term = searchTerm.toLowerCase()
-    return reports.filter(report => 
-      report.title.toLowerCase().includes(term) ||
-      report.location.address.toLowerCase().includes(term) ||
-      report.description.toLowerCase().includes(term) ||
-      report.reporter.toLowerCase().includes(term)
-    )
+    return reports.filter(report => {
+      const loc = report.location;
+      return (
+        report.title.toLowerCase().includes(term) ||
+        (
+          loc != null &&
+          (
+            typeof loc === 'object' && (loc as object) !== null && 'address' in (loc as object)
+              ? ((loc as unknown as { address: string }).address.toLowerCase().includes(term))
+              : typeof loc === 'string'
+                ? (loc as string).toLowerCase().includes(term)
+                : false
+          )
+        ) ||
+        report.description.toLowerCase().includes(term) ||
+        report.reporter.toLowerCase().includes(term)
+      );
+    })
   }, [reports, searchTerm, searchApplied])
 
   // 현재 표시할 제보 목록
@@ -877,6 +772,7 @@ export default function EnvironmentalMapPlatform() {
         handleAddReport={handleAddReport}
         searchQuery={searchTerm}
         setSearchQuery={setSearchTerm}
+        reports={reports}
       />
     );
   }
@@ -903,6 +799,7 @@ export default function EnvironmentalMapPlatform() {
       handleAddReport={handleAddReport}
       searchQuery={searchTerm}
       setSearchQuery={setSearchTerm}
+      reports={reports}
     />
   );
 }
@@ -928,7 +825,7 @@ function severityColor(severity: string) {
 function MobileMainPage({
   isLoggedIn, currentUser, handleLogout, showAuthDialog, setShowAuthDialog, handleLogin, handleSignup,
   currentView, setCurrentView, displayReports, stats, communityPosts, handleCommunityPost, handleAddComment, handleToggleLike,
-  selectedReport, setSelectedReport, handleAddReport, searchQuery, setSearchQuery
+  selectedReport, setSelectedReport, handleAddReport, searchQuery, setSearchQuery, reports
 }: any) {
   // 탭 상태는 상위에서 props로 관리
   return (
@@ -994,28 +891,35 @@ function MobileMainPage({
                     </Badge>
                   </div>
                   <div className="space-y-3">
-                    {displayReports.slice(0, 3).map((report) => (
-                      <div key={report.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                        <div className={`w-3 h-3 rounded-full mt-2 ${
-                          report.severity === 'high' ? 'bg-red-500' :
-                          report.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
-                        }`} />
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900 text-sm">{report.title}</h4>
-                          <p className="text-sm text-gray-500 mt-1">{report.location.address}</p>
-                          <div className="flex items-center space-x-2 mt-2">
-                            <Badge variant="outline" className="text-xs">
-                              {report.category === 'air' ? '대기' : 
-                               report.category === 'water' ? '수질' : 
-                               report.category === 'noise' ? '소음' : '기타'}
-                            </Badge>
-                            <span className="text-xs text-gray-400">
-                              {new Date(report.date).toLocaleDateString()}
-                            </span>
+                    {displayReports.slice(0, 3).map((report) => {
+                      let locationText: string;
+                      if (hasAddressField(report.location)) {
+                        locationText = report.location.address;
+                      } else {
+                        locationText = report.location;
+                      }
+                      return (
+                        <div key={report.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                          <div className={`w-3 h-3 rounded-full mt-2 ${
+                            report.severity === 'high' ? 'bg-red-500' :
+                            report.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                          }`} />
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900 text-sm">{report.title}</h4>
+                            <p className="text-sm text-gray-500 mt-1">{locationText}</p>
+                            <div className="flex items-center space-x-2 mt-2">
+                              <Badge variant="outline" className="text-xs">
+                                {report.category === 'air' ? '대기' : 
+                                 report.category === 'water' ? '수질' : '기타'}
+                              </Badge>
+                              <span className="text-xs text-gray-400">
+                                {new Date(report.date).toLocaleDateString()}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
@@ -1049,7 +953,7 @@ function MobileMainPage({
 
         {currentView === "stats" && (
           <div className="p-4">
-            <StatsView stats={stats} />
+            <StatsView stats={stats} reports={reports} />
           </div>
         )}
 
@@ -1061,13 +965,7 @@ function MobileMainPage({
 
         {currentView === "community" && (
           <div className="p-4">
-            <CommunityView 
-              posts={communityPosts}
-              onAddPost={handleCommunityPost}
-              onAddComment={handleAddComment}
-              onToggleLike={handleToggleLike}
-              isLoggedIn={isLoggedIn}
-            />
+            <CommunityView posts={communityPosts} currentUser={currentUser} onAddPost={handleCommunityPost} onAddComment={handleAddComment} onToggleLike={handleToggleLike} isLoggedIn={isLoggedIn} />
           </div>
         )}
       </main>
@@ -1130,7 +1028,7 @@ function MobileMainPage({
 function PCMainPage({
   isLoggedIn, currentUser, handleLogout, showAuthDialog, setShowAuthDialog, handleLogin, handleSignup,
   currentView, setCurrentView, displayReports, stats, communityPosts, handleCommunityPost, handleAddComment, handleToggleLike,
-  selectedReport, setSelectedReport, handleAddReport, searchQuery, setSearchQuery
+  selectedReport, setSelectedReport, handleAddReport, searchQuery, setSearchQuery, reports
 }: any) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-cyan-50">
@@ -1285,28 +1183,35 @@ function PCMainPage({
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {displayReports.slice(0, 5).map((report) => (
-                          <div key={report.id} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
-                            <div className={`w-4 h-4 rounded-full mt-2 flex-shrink-0 ${
-                              report.severity === 'high' ? 'bg-red-500' :
-                              report.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
-                            }`} />
-                            <div className="flex-1">
-                              <h4 className="font-medium text-gray-900">{report.title}</h4>
-                              <p className="text-sm text-gray-500 mt-1">{report.location.address}</p>
-                              <div className="flex items-center space-x-2 mt-2">
-                                <Badge variant="outline">
-                                  {report.category === 'air' ? '대기오염' : 
-                                   report.category === 'water' ? '수질오염' : 
-                                   report.category === 'noise' ? '소음공해' : '기타'}
-                                </Badge>
-                                <span className="text-xs text-gray-400">
-                                  {new Date(report.date).toLocaleDateString()}
-                                </span>
+                        {displayReports.slice(0, 5).map((report) => {
+                          let locationText: string;
+                          if (hasAddressField(report.location)) {
+                            locationText = report.location.address;
+                          } else {
+                            locationText = report.location;
+                          }
+                          return (
+                            <div key={report.id} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+                              <div className={`w-4 h-4 rounded-full mt-2 flex-shrink-0 ${
+                                report.severity === 'high' ? 'bg-red-500' :
+                                report.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                              }`} />
+                              <div className="flex-1">
+                                <h4 className="font-medium text-gray-900">{report.title}</h4>
+                                <p className="text-sm text-gray-500 mt-1">{locationText}</p>
+                                <div className="flex items-center space-x-2 mt-2">
+                                  <Badge variant="outline">
+                                    {report.category === 'air' ? '대기오염' : 
+                                     report.category === 'water' ? '수질오염' : '기타'}
+                                  </Badge>
+                                  <span className="text-xs text-gray-400">
+                                    {new Date(report.date).toLocaleDateString()}
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </CardContent>
                   </Card>
@@ -1345,7 +1250,7 @@ function PCMainPage({
                   </CardHeader>
                   <CardContent>
                     <div className="h-96 rounded-lg overflow-hidden">
-                      <SimpleMap />
+                      <SimpleMap reports={reports} selectedReport={selectedReport} onReportSelect={setSelectedReport} />
                     </div>
                   </CardContent>
                 </Card>
@@ -1354,7 +1259,7 @@ function PCMainPage({
 
             {currentView === "stats" && (
               <div className="space-y-6">
-                <StatsView stats={stats} />
+                <StatsView stats={stats} reports={reports} />
               </div>
             )}
 
@@ -1366,13 +1271,7 @@ function PCMainPage({
 
             {currentView === "community" && (
               <div className="space-y-6">
-                <CommunityView 
-                  posts={communityPosts}
-                  onAddPost={handleCommunityPost}
-                  onAddComment={handleAddComment}
-                  onToggleLike={handleToggleLike}
-                  isLoggedIn={isLoggedIn}
-                />
+                <CommunityView posts={communityPosts} currentUser={currentUser} onAddPost={handleCommunityPost} onAddComment={handleAddComment} onToggleLike={handleToggleLike} isLoggedIn={isLoggedIn} />
               </div>
             )}
           </div>
