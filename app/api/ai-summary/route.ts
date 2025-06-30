@@ -49,11 +49,29 @@ export async function POST(req: NextRequest) {
     // 디버깅용 콘솔 출력
     console.log('Gemini 응답:', data);
     console.log('파싱 시도 텍스트:', text);
+    let cleanText = text.trim();
+    // 코드블록(```json ... ```) 제거
+    if (cleanText.startsWith('```json')) {
+      cleanText = cleanText.replace(/^```json/, '').replace(/```$/, '').trim();
+    } else if (cleanText.startsWith('```')) {
+      cleanText = cleanText.replace(/^```/, '').replace(/```$/, '').trim();
+    }
     let result;
     try {
-      result = JSON.parse(text);
+      result = JSON.parse(cleanText);
     } catch {
-      result = { summary: text };
+      result = {
+        summary: 'AI 분석 결과를 불러오지 못했습니다.',
+        insights: [],
+        recommendations: [],
+        trends: [],
+        riskAreas: [],
+        efficiency: {
+          avgProcessingTime: '-',
+          completionRate: 0,
+          priorityIssues: 0
+        }
+      };
     }
     return NextResponse.json(result);
   } catch (error) {

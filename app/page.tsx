@@ -73,6 +73,8 @@ import { typeLabels, typeIcons, typeColors, safeDateString, safeString, safeLoca
 import dynamic from "next/dynamic";
 import ReportDetailDialog from "@/components/ReportDetailDialog"
 import { CATEGORY_STYLES } from '../lib/utils'
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 const SimpleMap = dynamic(() => import("@/components/simple-map"), { ssr: false });
 
 // OpenAI AI 분석 호출 함수
@@ -90,33 +92,25 @@ async function fetchAISummary(content: string) {
   }
 }
 
-function MobileTabBar({ currentView, setCurrentView }: { currentView: string, setCurrentView: (v: any) => void }) {
+function MobileTabBar() {
   return (
     <nav className="fixed bottom-0 left-0 w-full h-16 bg-white border-t flex justify-around items-center z-50 sm:hidden shadow-lg">
-      <button onClick={() => setCurrentView("map")}
-        className={`flex flex-col items-center flex-1 py-2 ${currentView === "map" ? "text-emerald-600" : "text-gray-400"}`}
-      >
+      <Link href="/" className="flex flex-col items-center flex-1 py-2 text-emerald-600">
         <Home className="w-6 h-6 mb-1" />
         <span className="text-xs">지도</span>
-      </button>
-      <button onClick={() => setCurrentView("stats")}
-        className={`flex flex-col items-center flex-1 py-2 ${currentView === "stats" ? "text-blue-600" : "text-gray-400"}`}
-      >
+      </Link>
+      <Link href="/stats" className="flex flex-col items-center flex-1 py-2 text-blue-600">
         <BarChart3 className="w-6 h-6 mb-1" />
         <span className="text-xs">통계</span>
-      </button>
-      <button onClick={() => setCurrentView("analysis")}
-        className={`flex flex-col items-center flex-1 py-2 ${currentView === "analysis" ? "text-purple-600" : "text-gray-400"}`}
-      >
+      </Link>
+      <Link href="/analysis" className="flex flex-col items-center flex-1 py-2 text-purple-600">
         <PieChart className="w-6 h-6 mb-1" />
         <span className="text-xs">분석</span>
-      </button>
-      <button onClick={() => setCurrentView("community")}
-        className={`flex flex-col items-center flex-1 py-2 ${currentView === "community" ? "text-green-600" : "text-gray-400"}`}
-      >
+      </Link>
+      <Link href="/community" className="flex flex-col items-center flex-1 py-2 text-green-600">
         <MessageSquare className="w-6 h-6 mb-1" />
         <span className="text-xs">커뮤니티</span>
-      </button>
+      </Link>
     </nav>
   );
 }
@@ -743,58 +737,10 @@ export default function EnvironmentalMapPlatform() {
               <div className="ml-10" />
               {/* 네비게이션 메뉴 */}
               <nav className="hidden md:flex items-center space-x-6">
-                <button
-                  onClick={() => setCurrentView("map")}
-                  className={`px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-emerald-500 touch-optimized
-                    ${currentView === "map"
-                      ? "bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200"
-                      : "text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 hover:underline hover:underline-offset-4"}
-                  `}
-                  aria-label="지도"
-                  tabIndex={0}
-                >
-                  <Home className={`w-6 h-6 inline mr-2 align-text-bottom transition-colors ${currentView === "map" ? "text-emerald-600" : "text-gray-400 group-hover:text-emerald-600"}`} />
-                  지도
-                </button>
-                <button
-                  onClick={() => setCurrentView("stats")}
-                  className={`px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-blue-500 touch-optimized
-                    ${currentView === "stats"
-                      ? "bg-blue-100 text-blue-700 shadow-sm border border-blue-200"
-                      : "text-gray-600 hover:text-blue-700 hover:bg-blue-50 hover:underline hover:underline-offset-4"}
-                  `}
-                  aria-label="통계 및 데이터"
-                  tabIndex={0}
-                >
-                  <BarChart3 className={`w-6 h-6 inline mr-2 align-text-bottom transition-colors ${currentView === "stats" ? "text-blue-600" : "text-gray-400 group-hover:text-blue-600"}`} />
-                  통계 및 데이터
-                </button>
-                <button
-                  onClick={() => setCurrentView("analysis")}
-                  className={`px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-purple-500 touch-optimized
-                    ${currentView === "analysis"
-                      ? "bg-purple-100 text-purple-700 shadow-sm border border-purple-200"
-                      : "text-gray-600 hover:text-purple-700 hover:bg-purple-50 hover:underline hover:underline-offset-4"}
-                  `}
-                  aria-label="분석"
-                  tabIndex={0}
-                >
-                  <PieChart className={`w-6 h-6 inline mr-2 align-text-bottom transition-colors ${currentView === "analysis" ? "text-purple-600" : "text-gray-400 group-hover:text-purple-600"}`} />
-                  분석
-                </button>
-                <button
-                  onClick={() => setCurrentView("community")}
-                  className={`px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-green-500 touch-optimized
-                    ${currentView === "community"
-                      ? "bg-green-100 text-green-700 shadow-sm border border-green-200"
-                      : "text-gray-600 hover:text-green-700 hover:bg-green-50 hover:underline hover:underline-offset-4"}
-                  `}
-                  aria-label="커뮤니티"
-                  tabIndex={0}
-                >
-                  <MessageSquare className={`w-6 h-6 inline mr-2 align-text-bottom transition-colors ${currentView === "community" ? "text-green-600" : "text-gray-400 group-hover:text-green-600"}`} />
-                  커뮤니티
-                </button>
+                <Link href="/" className={`px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-emerald-500 touch-optimized`}>지도</Link>
+                <Link href="/stats" className={`px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-blue-500 touch-optimized`}>통계 및 데이터</Link>
+                <Link href="/analysis" className={`px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-purple-500 touch-optimized`}>분석</Link>
+                <Link href="/community" className={`px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-green-500 touch-optimized`}>커뮤니티</Link>
               </nav>
             </div>
             
@@ -1051,7 +997,7 @@ export default function EnvironmentalMapPlatform() {
         </Dialog>
 
         {/* 모바일 탭 바 */}
-        <MobileTabBar currentView={currentView} setCurrentView={setCurrentView} />
+        <MobileTabBar />
       </main>
       {/* 세부내용 다이얼로그는 항상 Portal 레이어에서만 렌더 */}
       <ReportDetailDialog report={selectedReport} open={!!selectedReport} onOpenChange={(open) => { if (!open) setSelectedReport(null) }} />

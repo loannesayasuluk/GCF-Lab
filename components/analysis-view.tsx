@@ -251,109 +251,134 @@ ${reports.slice(0, 5).map((r, i) => `${i+1}. ${r.title}: ${r.description}`).join
 
         {/* AI 분석 결과 */}
         {analysisResults && !isAnalyzing && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Card className="shadow-lg border-0">
-              <CardHeader className="bg-blue-50 rounded-t-lg">
-                <CardTitle className="flex items-center space-x-3 text-blue-900">
-                  <Activity className="h-6 w-6" />
-                  <span className="text-xl">분석 요약</span>
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <Card className="shadow-lg border-0">
+                <CardHeader className="bg-blue-50 rounded-t-lg">
+                  <CardTitle className="flex items-center space-x-3 text-blue-900">
+                    <Activity className="h-6 w-6" />
+                    <span className="text-xl">분석 요약</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <p className="text-lg font-medium mb-6 leading-relaxed">{analysisResults.summary}</p>
+                  {/* 주요 키워드 뱃지 */}
+                  {analysisResults.insights.filter(i => i.startsWith('키워드:')).length > 0 && (
+                    <div className="mb-4 flex flex-wrap gap-2">
+                      {analysisResults.insights.filter(i => i.startsWith('키워드:')).map((i, idx) => (
+                        <Badge key={idx} className="bg-blue-100 text-blue-800 border-blue-200">{i.replace('키워드: ', '')}</Badge>
+                      ))}
+                    </div>
+                  )}
+                  {/* 나머지 인사이트 */}
+                  <div className="space-y-4">
+                    {analysisResults.insights.filter(i => !i.startsWith('키워드:')).map((insight, index) => (
+                      <div key={index} className="p-4 bg-blue-50 rounded-lg border-l-4 border-blue-200">
+                        <p className="text-base text-blue-800 leading-relaxed">{insight}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg border-0">
+                <CardHeader className="bg-green-50 rounded-t-lg">
+                  <CardTitle className="flex items-center space-x-3 text-green-900">
+                    <Lightbulb className="h-6 w-6" />
+                    <span className="text-xl">추천사항</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    {analysisResults.recommendations.map((rec, index) => (
+                      <div key={index} className="p-4 bg-green-50 rounded-lg border-l-4 border-green-200">
+                        <p className="text-base text-green-800 leading-relaxed">{rec}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg border-0">
+                <CardHeader className="bg-purple-50 rounded-t-lg">
+                  <CardTitle className="flex items-center space-x-3 text-purple-900">
+                    <TrendingUp className="h-6 w-6" />
+                    <span className="text-xl">트렌드 분석</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    {analysisResults.trends.map((trend, index) => (
+                      <div key={index} className="p-4 bg-purple-50 rounded-lg border-l-4 border-purple-200">
+                        <p className="text-base text-purple-800 leading-relaxed">{trend}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg border-0">
+                <CardHeader className="bg-red-50 rounded-t-lg">
+                  <CardTitle className="flex items-center space-x-3 text-red-900">
+                    <AlertTriangle className="h-6 w-6" />
+                    <span className="text-xl">위험 지역</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    {analysisResults.riskAreas.map((risk, index) => (
+                      <div key={index} className="p-4 bg-red-50 rounded-lg border-l-4 border-red-200">
+                        <p className="text-base text-red-800 leading-relaxed">{risk}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* 처리 효율성 분석 카드 개선 */}
+            <Card className="shadow-lg border-0 mt-8">
+              <CardHeader className="bg-gray-50 rounded-t-lg">
+                <CardTitle className="flex items-center space-x-3 text-gray-900">
+                  <BarChart3 className="h-6 w-6 text-blue-500" />
+                  <span className="text-xl">처리 효율성 분석</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <p className="text-lg font-medium mb-6 leading-relaxed">{analysisResults.summary}</p>
-                <div className="space-y-4">
-                  {analysisResults.insights.map((insight, index) => (
-                    <div key={index} className="p-4 bg-blue-50 rounded-lg border-l-4 border-blue-200">
-                      <p className="text-base text-blue-800 leading-relaxed">{insight}</p>
-                    </div>
-                  ))}
+              <CardContent className="p-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="text-center p-6 bg-blue-50 rounded-xl border border-blue-200 flex flex-col items-center">
+                    <PieChart className="h-8 w-8 text-blue-400 mb-2" />
+                    <div className="text-3xl font-bold text-blue-600 mb-2">{analysisResults.efficiency.avgProcessingTime}</div>
+                    <div className="text-base text-gray-600 font-medium">평균 처리 시간</div>
+                  </div>
+                  <div className="text-center p-6 bg-green-50 rounded-xl border border-green-200 flex flex-col items-center">
+                    <Sparkles className="h-8 w-8 text-green-400 mb-2" />
+                    <div className="text-3xl font-bold text-green-600 mb-2">{analysisResults.efficiency.completionRate}%</div>
+                    <div className="text-base text-gray-600 font-medium mb-3">처리 완료율</div>
+                    <Progress value={analysisResults.efficiency.completionRate} className="h-3" />
+                  </div>
+                  <div className="text-center p-6 bg-red-50 rounded-xl border border-red-200 flex flex-col items-center">
+                    <AlertTriangle className="h-8 w-8 text-red-400 mb-2" />
+                    <div className="text-3xl font-bold text-red-600 mb-2">{analysisResults.efficiency.priorityIssues}</div>
+                    <div className="text-base text-gray-600 font-medium">우선 처리 필요</div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg border-0">
-              <CardHeader className="bg-green-50 rounded-t-lg">
-                <CardTitle className="flex items-center space-x-3 text-green-900">
-                  <Lightbulb className="h-6 w-6" />
-                  <span className="text-xl">추천사항</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  {analysisResults.recommendations.map((rec, index) => (
-                    <div key={index} className="p-4 bg-green-50 rounded-lg border-l-4 border-green-200">
-                      <p className="text-base text-green-800 leading-relaxed">{rec}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-lg border-0">
-              <CardHeader className="bg-purple-50 rounded-t-lg">
-                <CardTitle className="flex items-center space-x-3 text-purple-900">
-                  <TrendingUp className="h-6 w-6" />
-                  <span className="text-xl">트렌드 분석</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  {analysisResults.trends.map((trend, index) => (
-                    <div key={index} className="p-4 bg-purple-50 rounded-lg border-l-4 border-purple-200">
-                      <p className="text-base text-purple-800 leading-relaxed">{trend}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-lg border-0">
-              <CardHeader className="bg-red-50 rounded-t-lg">
-                <CardTitle className="flex items-center space-x-3 text-red-900">
-                  <AlertTriangle className="h-6 w-6" />
-                  <span className="text-xl">위험 지역</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  {analysisResults.riskAreas.map((risk, index) => (
-                    <div key={index} className="p-4 bg-red-50 rounded-lg border-l-4 border-red-200">
-                      <p className="text-base text-red-800 leading-relaxed">{risk}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* 처리 효율성 분석 */}
-        {analysisResults && !isAnalyzing && (
-          <Card className="shadow-lg border-0">
-            <CardHeader className="bg-gray-50 rounded-t-lg">
-              <CardTitle className="flex items-center space-x-3 text-gray-900">
-                <BarChart3 className="h-6 w-6" />
-                <span className="text-xl">처리 효율성 분석</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="text-center p-6 bg-blue-50 rounded-xl border border-blue-200">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">{analysisResults.efficiency.avgProcessingTime}</div>
-                  <div className="text-base text-gray-600 font-medium">평균 처리 시간</div>
-                </div>
-                <div className="text-center p-6 bg-green-50 rounded-xl border border-green-200">
-                  <div className="text-3xl font-bold text-green-600 mb-2">{analysisResults.efficiency.completionRate}%</div>
-                  <div className="text-base text-gray-600 font-medium mb-3">처리 완료율</div>
-                  <Progress value={analysisResults.efficiency.completionRate} className="h-3" />
-                </div>
-                <div className="text-center p-6 bg-red-50 rounded-xl border border-red-200">
-                  <div className="text-3xl font-bold text-red-600 mb-2">{analysisResults.efficiency.priorityIssues}</div>
-                  <div className="text-base text-gray-600 font-medium">우선 처리 필요</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            {/* 분석 재실행 버튼 - 결과 하단/모바일 하단에도 노출 */}
+            <div className="flex justify-end mt-6 lg:hidden">
+              <Button 
+                variant="outline"
+                onClick={handleAIAnalysis}
+                disabled={isAnalyzing}
+                className="bg-blue-600 text-white hover:bg-blue-700 px-6 py-2 rounded-lg shadow-md w-full"
+              >
+                <Brain className="h-5 w-5 mr-2" />
+                {isAnalyzing ? "AI 분석 중..." : "AI 분석 재실행"}
+              </Button>
+            </div>
+          </>
         )}
 
         {/* 기본 통계 정보 */}
@@ -373,19 +398,19 @@ ${reports.slice(0, 5).map((r, i) => `${i+1}. ${r.title}: ${r.description}`).join
                 </div>
                 <div className="text-center p-6 bg-green-50 rounded-xl border border-green-200">
                   <div className="text-3xl font-bold text-green-600 mb-2">
-                    {reports.filter(r => r.status === 'completed').length}
+                    {reports.filter(r => r.status === '처리완료').length}
                   </div>
                   <div className="text-base text-gray-600 font-medium">처리 완료</div>
                 </div>
                 <div className="text-center p-6 bg-yellow-50 rounded-xl border border-yellow-200">
                   <div className="text-3xl font-bold text-yellow-600 mb-2">
-                    {reports.filter(r => r.status === 'pending').length}
+                    {reports.filter(r => r.status === '제보접수').length}
                   </div>
                   <div className="text-base text-gray-600 font-medium">처리 대기</div>
                 </div>
                 <div className="text-center p-6 bg-red-50 rounded-xl border border-red-200">
                   <div className="text-3xl font-bold text-red-600 mb-2">
-                    {reports.filter(r => r.status === 'urgent').length}
+                    {reports.filter(r => r.status === '긴급').length}
                   </div>
                   <div className="text-base text-gray-600 font-medium">긴급 제보</div>
                 </div>
