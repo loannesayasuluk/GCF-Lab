@@ -159,7 +159,12 @@
 
 /* Leaflet 지도 스타일 커스터마이징 */
 .leaflet-container {
+  width: 100% !important;
+  height: 600px !important;
+  min-height: 400px !important;
   font-family: inherit;
+  pointer-events: auto !important;
+  z-index: 0 !important;
 }
 
 .leaflet-popup-content-wrapper {
@@ -198,7 +203,18 @@
 @keyframes fade-in {
   0% {
     opacity: 0;
-    transform: translateY(10px) scale(0.95);
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
   }
   100% {
     opacity: 1;
@@ -206,19 +222,8 @@
   }
 }
 
-@keyframes slide-in {
-  0% {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
 .animate-soft-pulse {
-  animation: soft-pulse 3s ease-in-out infinite;
+  animation: soft-pulse 2s ease-in-out infinite;
 }
 
 .animate-fade-in {
@@ -226,7 +231,7 @@
 }
 
 .animate-slide-in {
-  animation: slide-in 0.3s ease-out forwards;
+  animation: slide-in 0.4s ease-out forwards;
 }
 
 /* 현재 위치 마커 pulse 애니메이션 */
@@ -290,4 +295,31 @@
 
 .touch-feedback:active {
   transform: scale(0.95);
+}
+
+/* Leaflet 컨트롤(내 위치 버튼 등)도 blur+연한 어둠+반투명 효과로 통일 */
+.leaflet-control {
+  background: rgba(30, 41, 59, 0.15) !important;
+  backdrop-filter: blur(8px) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+}
+.leaflet-control button,
+.leaflet-control a {
+  background: rgba(255,255,255,0.85) !important;
+  border-radius: 8px !important;
+  color: #222 !important;
+  box-shadow: none !important;
+}
+
+/* Leaflet 기본 컨트롤 완전 숨김 (커스텀 컨트롤로 대체) */
+.leaflet-control {
+  display: none !important;
+}
+
+/* SimpleMap 부모 컨테이너도 강제 height */
+.map-root-container, .map-parent {
+  width: 100%;
+  height: 600px;
+  min-height: 400px;
 }

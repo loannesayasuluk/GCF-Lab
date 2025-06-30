@@ -60,6 +60,8 @@ export interface User {
   id: string
   name: string
   email: string
+  avatar?: string
+  role?: string
   isAdmin: boolean
 }
 
@@ -70,6 +72,16 @@ export interface Stats {
   processing: number
   resolved: number
   thisWeek: number
+  totalReports: number
+  activeReports: number
+  resolvedReports: number
+  totalUsers: number
+  averageResolutionTime: number
+  reportsByType: { [key: string]: number }
+  reportsBySeverity: { [key: string]: number }
+  reportsByStatus: { [key: string]: number }
+  monthlyTrends: any[]
+  topLocations: any[]
 }
 
 // 필터 타입

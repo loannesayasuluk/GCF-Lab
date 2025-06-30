@@ -613,11 +613,13 @@ export default function MapComponent({ reports, selectedReport, onReportSelect, 
 
               {selectedReport.images && selectedReport.images.length > 0 && (
                 <div className="mt-2">
-                  <img
-                    src={selectedReport.images[0] || "/placeholder.svg?height=200&width=300"}
-                    alt="제보 사진"
-                    className="w-full h-32 object-cover rounded"
-                  />
+                  {(selectedReport.images[0] && selectedReport.images[0].trim() !== '') ? (
+                    <img
+                      src={selectedReport.images[0]}
+                      alt="제보 사진"
+                      className="w-full h-32 object-cover rounded"
+                    />
+                  ) : null}
                 </div>
               )}
 

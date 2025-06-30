@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useMemo } from "react"
+import React, { useState, useEffect, useRef, useMemo } from "react"
 import {
   MapPin,
   Plus,
@@ -30,13 +30,27 @@ import {
   ChevronDown,
   ChevronUp,
   Heart,
-  Brain,
+  Home,
+  Menu,
+  Filter,
+  Grid,
+  List,
+  Star,
+  Share2,
+  Bookmark,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Flag,
+  Shield,
+  Globe,
+  Brain
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -46,16 +60,20 @@ import { useToast } from "@/hooks/use-toast"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
-import SimpleMap from "@/components/simple-map"
-import { Menu } from "@headlessui/react"
-import { collection, addDoc, getDocs, query, where, updateDoc, deleteDoc, doc, writeBatch } from "firebase/firestore";
+import { Menu as HeadlessUIMenu } from "@headlessui/react"
+import { collection, addDoc, getDocs, query, where, updateDoc, deleteDoc, doc, writeBatch, orderBy, Timestamp, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { auth } from "@/lib/firebase";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from "firebase/auth";
-import { AnalysisView } from "@/components/analysis-view"
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile, updateEmail } from "firebase/auth";
+import AnalysisView from "@/components/analysis-view"
 import { CommunityView } from "@/components/community-view"
 import { StatsView } from "@/components/stats-view"
-import { Report, CommunityPost, User as GCFUser, Stats, Filters, Location, Notification } from "@/types"
+import { Report, CommunityPost, User, Stats, Filters, Location, Notification } from "@/types"
+import { typeLabels, typeIcons, typeColors, safeDateString, safeString, safeLocation } from '@/lib/utils';
+import dynamic from "next/dynamic";
+import ReportDetailDialog from "@/components/ReportDetailDialog"
+import { CATEGORY_STYLES } from '../lib/utils'
+const SimpleMap = dynamic(() => import("@/components/simple-map"), { ssr: false });
 
 // OpenAI AI 분석 호출 함수
 async function fetchAISummary(content: string) {
@@ -70,6 +88,42 @@ async function fetchAISummary(content: string) {
     console.error('AI 분석 API 호출 오류:', error);
     throw error;
   }
+}
+
+function MobileTabBar({ currentView, setCurrentView }: { currentView: string, setCurrentView: (v: any) => void }) {
+  return (
+    <nav className="fixed bottom-0 left-0 w-full h-16 bg-white border-t flex justify-around items-center z-50 sm:hidden shadow-lg">
+      <button onClick={() => setCurrentView("map")}
+        className={`flex flex-col items-center flex-1 py-2 ${currentView === "map" ? "text-emerald-600" : "text-gray-400"}`}
+      >
+        <Home className="w-6 h-6 mb-1" />
+        <span className="text-xs">지도</span>
+      </button>
+      <button onClick={() => setCurrentView("stats")}
+        className={`flex flex-col items-center flex-1 py-2 ${currentView === "stats" ? "text-blue-600" : "text-gray-400"}`}
+      >
+        <BarChart3 className="w-6 h-6 mb-1" />
+        <span className="text-xs">통계</span>
+      </button>
+      <button onClick={() => setCurrentView("analysis")}
+        className={`flex flex-col items-center flex-1 py-2 ${currentView === "analysis" ? "text-purple-600" : "text-gray-400"}`}
+      >
+        <PieChart className="w-6 h-6 mb-1" />
+        <span className="text-xs">분석</span>
+      </button>
+      <button onClick={() => setCurrentView("community")}
+        className={`flex flex-col items-center flex-1 py-2 ${currentView === "community" ? "text-green-600" : "text-gray-400"}`}
+      >
+        <MessageSquare className="w-6 h-6 mb-1" />
+        <span className="text-xs">커뮤니티</span>
+      </button>
+    </nav>
+  );
+}
+
+function isMobileDevice() {
+  if (typeof window === "undefined") return false;
+  return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(window.navigator.userAgent);
 }
 
 // 인증 다이얼로그 컴포넌트
@@ -126,14 +180,12 @@ function AuthDialog({
       <DialogHeader>
         <DialogTitle className="text-xl sm:text-2xl font-bold text-center">로그인 / 회원가입</DialogTitle>
       </DialogHeader>
-      
-      {/* 탭 버튼 */}
       <div className="flex space-x-1 p-2 bg-gray-100 rounded-lg mb-6">
         <button
           onClick={() => setActiveTab("login")}
           className={`flex-1 py-3 px-4 rounded-md text-base font-medium transition-all ${
             activeTab === "login"
-              ? "bg-white text-green-600 shadow-sm"
+              ? "bg-white text-emerald-600 shadow-sm"
               : "text-gray-600 hover:text-gray-900"
           }`}
         >
@@ -143,15 +195,13 @@ function AuthDialog({
           onClick={() => setActiveTab("signup")}
           className={`flex-1 py-3 px-4 rounded-md text-base font-medium transition-all ${
             activeTab === "signup"
-              ? "bg-white text-green-600 shadow-sm"
+              ? "bg-white text-emerald-600 shadow-sm"
               : "text-gray-600 hover:text-gray-900"
           }`}
         >
           회원가입
         </button>
       </div>
-
-      {/* 로그인 폼 */}
       {activeTab === "login" && (
         <div className="space-y-5">
           <div className="space-y-3">
@@ -162,7 +212,7 @@ function AuthDialog({
               placeholder="이메일을 입력하세요"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full py-3 px-4 text-lg sm:py-2 sm:text-base rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-base"
               disabled={isLoading}
             />
           </div>
@@ -174,35 +224,30 @@ function AuthDialog({
               placeholder="비밀번호를 입력하세요"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full py-3 px-4 text-lg sm:py-2 sm:text-base rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-base"
               disabled={isLoading}
             />
           </div>
-          <Button 
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-4 rounded-lg transition-colors text-base" 
+          <Button
             onClick={handleLogin}
             disabled={isLoading}
+            className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors"
           >
             {isLoading ? "로그인 중..." : "로그인"}
           </Button>
-          <div className="text-center text-sm text-gray-600 bg-gray-50 p-4 rounded-lg">
-            <p className="text-base">관리자 계정으로 로그인하려면</p>
-            <p className="text-sm">이메일에 "admin" 또는 "관리자"를 포함하세요</p>
-          </div>
         </div>
       )}
-
-      {/* 회원가입 폼 */}
       {activeTab === "signup" && (
         <div className="space-y-5">
           <div className="space-y-3">
             <Label htmlFor="signup-name" className="text-base font-medium">이름</Label>
             <Input
               id="signup-name"
+              type="text"
               placeholder="이름을 입력하세요"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full py-3 px-4 text-lg sm:py-2 sm:text-base rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-base"
               disabled={isLoading}
             />
           </div>
@@ -214,7 +259,7 @@ function AuthDialog({
               placeholder="이메일을 입력하세요"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full py-3 px-4 text-lg sm:py-2 sm:text-base rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-base"
               disabled={isLoading}
             />
           </div>
@@ -223,31 +268,78 @@ function AuthDialog({
             <Input
               id="signup-password"
               type="password"
-              placeholder="비밀번호를 입력하세요 (6자 이상)"
+              placeholder="비밀번호를 입력하세요"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full py-3 px-4 text-lg sm:py-2 sm:text-base rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-base"
               disabled={isLoading}
             />
           </div>
-          <Button 
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-4 rounded-lg transition-colors text-base" 
+          <Button
             onClick={handleSignup}
             disabled={isLoading}
+            className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors"
           >
             {isLoading ? "회원가입 중..." : "회원가입"}
           </Button>
         </div>
       )}
     </DialogContent>
-  )
+  );
+}
+
+// 기기 및 화면비율 체크 유틸리티
+function useDeviceType() {
+  const [device, setDevice] = useState<'mobile' | 'tablet' | 'pc'>('pc');
+  useEffect(() => {
+    const userAgent = typeof window !== 'undefined' ? navigator.userAgent : '';
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+    const width = window.innerWidth;
+    if (isMobile || width < 600) setDevice('mobile');
+    else if (width < 1024) setDevice('tablet');
+    else setDevice('pc');
+  }, []);
+  return device;
+}
+
+// 타입 가드 함수 추가
+function hasAddressField(location: any): location is { address: string } {
+  return typeof location === 'object' && location !== null && 'address' in location;
+}
+
+// 한글 변환 유틸
+function getSeverityLabel(severity: string) {
+  if (severity === 'high' || severity === '심각') return '심각';
+  if (severity === 'medium' || severity === '보통') return '보통';
+  if (severity === 'low' || severity === '경미') return '경미';
+  return severity;
+}
+function getTypeLabel(type: string) {
+  if (type === 'waste') return '폐기물';
+  if (type === 'air') return '대기오염';
+  if (type === 'water') return '수질오염';
+  if (type === 'noise') return '소음';
+  return type;
+}
+function getStatusLabel(status: string) {
+  if (status === '제보접수') return '제보접수';
+  if (status === '처리중') return '처리중';
+  if (status === '처리완료') return '처리완료';
+  return status;
+}
+function formatDate(date: string) {
+  if (!date) return '';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('ko-KR');
 }
 
 export default function EnvironmentalMapPlatform() {
+  // 모든 훅은 컴포넌트 최상단에서 선언
   const { toast } = useToast()
   const [selectedReport, setSelectedReport] = useState<Report | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [currentUser, setCurrentUser] = useState<GCFUser | null>(null)
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [showReportDialog, setShowReportDialog] = useState(false)
   const [showAdminPanel, setShowAdminPanel] = useState(false)
@@ -270,410 +362,478 @@ export default function EnvironmentalMapPlatform() {
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 })
   const [detailCardPos, setDetailCardPos] = useState<{ x: number; y: number } | null>(null)
   const [showLoginRequired, setShowLoginRequired] = useState(false)
+  const [showProfileDialog, setShowProfileDialog] = useState(false)
+  const [showMyReports, setShowMyReports] = useState(false)
+  const [editProfile, setEditProfile] = useState(false)
+  const [profileName, setProfileName] = useState("")
+  const [profileEmail, setProfileEmail] = useState("")
+  const [profileLoading, setProfileLoading] = useState(false)
+  const [isMobile, setIsMobile] = useState(false);
+  const [checked, setChecked] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // 제보 데이터
-  const [reports, setReports] = useState<Report[]>([
-    {
-      id: "1",
-      title: "강북구 공원 쓰레기 무단투기",
-      location: "강북구 번동 공원",
-      type: "waste",
-      severity: "medium",
-      reporter: "김철수",
-      date: "2024-01-20",
-      status: "제보접수",
-      description: "공원 내 벤치 주변에 음식물 쓰레기와 플라스틱 병들이 무단으로 버려져 있습니다. 아이들이 놀기 전에 정리가 필요합니다.",
-      coordinates: { lat: 37.5665, lng: 126.9780 },
-      images: ["/placeholder-user.jpg", "/placeholder-logo.png"],
-      aiAnalysis: {
-        summary: "공원 내 쓰레기 무단투기 문제로, 신속한 정리가 필요합니다.",
-        keywords: ["쓰레기", "공원", "정리"],
-        category: "폐기물 관리",
-        urgency: "medium",
-        estimatedCost: "50만원",
-        expectedDuration: "3일"
-      }
-    },
-    {
-      id: "2",
-      title: "성북구 대기오염 심각",
-      location: "성북구 동소문로",
-      type: "air",
-      severity: "high",
-      reporter: "이영희",
-      date: "2024-01-19",
-      status: "처리중",
-      description: "도로변에서 매연 냄새가 심하게 나고 있습니다. 특히 오후 시간대에 더욱 심해집니다.",
-      coordinates: { lat: 37.5894, lng: 127.0167 },
-      images: ["/placeholder-logo.svg"],
-      assignedTo: "환경과 김과장",
-      processingNotes: "대기질 측정 장비 설치 완료. 24시간 모니터링 중입니다."
-    },
-    {
-      id: "3",
-      title: "종로구 하천 오염",
-      location: "종로구 청운동 하천",
-      type: "water",
-      severity: "high",
-      reporter: "박민수",
-      date: "2024-01-18",
-      status: "처리완료",
-      description: "하천에 기름기가 떠다니고 물이 탁해졌습니다. 생태계에 영향을 줄 수 있습니다.",
-      coordinates: { lat: 37.5735, lng: 126.9789 },
-      images: ["/placeholder.jpg"],
-      resolvedDate: "2024-01-20",
-      resolutionReport: "하천 정화 작업 완료. 오염원 차단 조치 완료."
-    },
-    {
-      id: "4",
-      title: "마포구 야간 소음",
-      location: "마포구 합정동",
-      type: "noise",
-      severity: "medium",
-      reporter: "최지영",
-      date: "2024-01-17",
-      status: "제보접수",
-      description: "새벽 2시경부터 공사장 소음이 들립니다. 주민들의 수면에 지장을 주고 있습니다.",
-      coordinates: { lat: 37.5492, lng: 126.9136 },
-      images: ["/placeholder.jpg"]
-    },
-    {
-      id: "5",
-      title: "용산구 폐건축자재 불법투기",
-      location: "용산구 한강대로",
-      type: "waste",
-      severity: "low",
-      reporter: "정수민",
-      date: "2024-01-16",
-      status: "처리중",
-      description: "도로변에 건축자재들이 버려져 있습니다. 통행에 불편을 주고 있습니다.",
-      coordinates: { lat: 37.5320, lng: 126.9904 },
-      images: ["/placeholder.jpg"],
-      assignedTo: "청소과 박대리"
+  const device = useDeviceType();
+
+  useEffect(() => {
+    setIsMobile(isMobileDevice());
+    setChecked(true);
+  }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      setProfileName(currentUser.name || "");
+      setProfileEmail(currentUser.email || "");
     }
-  ])
+  }, [currentUser]);
 
-  // 커뮤니티 데이터
+  // reports 초기값 빈 배열
+  const [reports, setReports] = useState<Report[]>([]);
+
+  // Firestore에서 reports 실시간 반영
+  useEffect(() => {
+    console.log('[지도 디버그] Firestore 데이터 로딩 시작');
+    const q = collection(db, "reports");
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const rawData = querySnapshot.docs.map(doc => doc.data());
+      console.log('[지도 디버그] Firestore 원본 데이터:', rawData);
+      const data = querySnapshot.docs.map(doc => {
+        const d = doc.data();
+        // coordinates 타입 및 범위 검사
+        let lat = d.coordinates?.lat;
+        let lng = d.coordinates?.lng;
+        let coordValid = true;
+        if (typeof lat !== 'number' || typeof lng !== 'number') {
+          coordValid = false;
+        }
+        if (coordValid && (lat < 33 || lat > 39 || lng < 124 || lng > 132)) {
+          coordValid = false;
+        }
+        if (!coordValid) {
+          console.warn(`잘못된 coordinates:`, d.coordinates, `문서ID:`, doc.id);
+        }
+        return {
+          id: doc.id,
+          title: safeString(d.title),
+          location: safeLocation(d.location),
+          type: d.type || "all",
+          severity: d.severity || "all",
+          reporter: safeString(d.reporter),
+          date: d.date ? safeDateString(d.date) : '',
+          status: d.status || "all",
+          description: safeString(d.description),
+          coordinates: coordValid ? { lat, lng } : { lat: 0, lng: 0 },
+          images: d.images ?? [],
+          assignedTo: d.assignedTo,
+          processingNotes: d.processingNotes,
+          resolvedDate: d.resolvedDate,
+          resolutionReport: d.resolutionReport,
+          aiAnalysis: d.aiAnalysis,
+        } as Report;
+      });
+      console.log('[지도 디버그] Firestore에서 불러온 reports:', data);
+      setReports(data);
+    }, (error) => {
+      console.error('[지도 디버그] Firestore 데이터 로딩 오류:', error);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // displayReports는 Firestore 데이터만 사용
+  const displayReports = useMemo(() => {
+    console.log('[지도 디버그] displayReports(실제 지도에 표시될 데이터):', reports);
+    return reports;
+  }, [reports]);
+
+  // Firestore에서 communityPosts 불러오기
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([
     {
-      id: "1",
-      title: "우리 동네 환경 개선 프로젝트 참여하세요!",
-      author: "환경지킴이",
-      date: "2024-01-20",
-      content: "함께 우리 동네를 더 깨끗하게 만들어요. 매주 토요일 오전 10시에 모입니다.",
+      id: '1',
+      title: '우리 동네 환경 개선 프로젝트 참여하세요!',
+      author: '환경지킴이',
+      date: '2024-01-20',
+      content: '함께 우리 동네를 더 깨끗하게 만들어요. 매주 토요일 오전 10시에 모입니다.',
       likes: 15,
       comments: 8,
-      category: "모임",
+      category: '모임',
     },
     {
-      id: "2",
-      title: "미세먼지 측정 결과 공유",
-      author: "데이터분석가",
-      date: "2024-01-19",
-      content: "이번 주 우리 지역 미세먼지 농도 분석 결과를 공유합니다.",
+      id: '2',
+      title: '미세먼지 측정 결과 공유',
+      author: '데이터분석가',
+      date: '2024-01-19',
+      content: '이번 주 우리 지역 미세먼지 농도 분석 결과를 공유합니다.',
       likes: 23,
       comments: 12,
-      category: "정보",
-    },
-    {
-      id: "3",
-      title: "환경 보호를 위한 실천 방법",
-      author: "환경전문가",
-      date: "2024-01-18",
-      content: "일상에서 쉽게 실천할 수 있는 환경 보호 방법들을 소개합니다.",
-      likes: 45,
-      comments: 18,
-      category: "팁",
+      category: '정보',
     }
-  ])
+  ]);
+  useEffect(() => {
+    const fetchPosts = async () => {
+      const q = query(collection(db, "communityPosts"), orderBy("date", "desc"));
+      const querySnapshot = await getDocs(q);
+      const data = querySnapshot.docs.map(doc => {
+        const d = doc.data();
+        return {
+          id: doc.id,
+          title: d.title ?? "",
+          author: d.author ?? "",
+          date: d.date ?? "",
+          content: d.content ?? "",
+          likes: d.likes ?? 0,
+          comments: d.comments ?? 0,
+          category: d.category ?? "정보",
+          isLiked: false,
+          commentsList: []
+        } as CommunityPost;
+      });
+      if (data.length > 0) {
+        setCommunityPosts(data);
+      }
+    };
+    fetchPosts();
+  }, []);
 
-  // 통계 데이터 계산
-  const stats: Stats = useMemo(() => {
-    const total = reports.length
-    const pending = reports.filter(r => r.status === "제보접수").length
-    const processing = reports.filter(r => r.status === "처리중").length
-    const resolved = reports.filter(r => r.status === "처리완료").length
-    
-    // 이번 주 제보 수 계산
-    const now = new Date()
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-    const thisWeek = reports.filter(r => {
-      const reportDate = new Date(r.date)
-      return reportDate >= weekAgo && reportDate <= now
-    }).length
+  // stats 초기값 설정
+  const [stats, setStats] = useState<Stats>({
+    total: 0,
+    pending: 0,
+    processing: 0,
+    resolved: 0,
+    thisWeek: 0,
+    totalReports: 0,
+    activeReports: 0,
+    resolvedReports: 0,
+    totalUsers: 0,
+    averageResolutionTime: 0,
+    reportsByType: {},
+    reportsBySeverity: {},
+    reportsByStatus: {},
+    monthlyTrends: [],
+    topLocations: []
+  });
 
-    return { total, pending, processing, resolved, thisWeek }
-  }, [reports])
+  // stats 업데이트
+  useEffect(() => {
+    const newStats: Stats = {
+      total: displayReports.length,
+      pending: displayReports.filter(r => r.status === '제보접수').length,
+      processing: displayReports.filter(r => r.status === '처리중').length,
+      resolved: displayReports.filter(r => r.status === '처리완료').length,
+      thisWeek: 0,
+      totalReports: displayReports.length,
+      activeReports: displayReports.filter(r => r.status === '처리중').length,
+      resolvedReports: displayReports.filter(r => r.status === '처리완료').length,
+      totalUsers: new Set(displayReports.map(r => r.reporter)).size,
+      averageResolutionTime: 0,
+      reportsByType: {},
+      reportsBySeverity: {},
+      reportsByStatus: {},
+      monthlyTrends: [],
+      topLocations: []
+    };
 
-  // 필터링된 제보
-  const filteredReports = useMemo(() => {
-    return reports.filter(report => {
-      if (filters.type !== "all" && report.type !== filters.type) return false
-      if (filters.status !== "all" && report.status !== filters.status) return false
-      if (filters.severity !== "all" && report.severity !== filters.severity) return false
-      return true
-    })
-  }, [reports, filters])
+    // 유형별 집계
+    displayReports.forEach(report => {
+      newStats.reportsByType[report.type] = (newStats.reportsByType[report.type] || 0) + 1;
+      newStats.reportsBySeverity[report.severity] = (newStats.reportsBySeverity[report.severity] || 0) + 1;
+      newStats.reportsByStatus[report.status] = (newStats.reportsByStatus[report.status] || 0) + 1;
+    });
 
-  // 검색 결과
-  const searchResultsFiltered = useMemo(() => {
-    if (!searchApplied || !searchTerm.trim()) return []
-    
-    const term = searchTerm.toLowerCase()
-    return reports.filter(report => 
-      report.title.toLowerCase().includes(term) ||
-      report.location.toLowerCase().includes(term) ||
-      report.description.toLowerCase().includes(term) ||
-      report.reporter.toLowerCase().includes(term)
-    )
-  }, [reports, searchTerm, searchApplied])
+    setStats(newStats);
+  }, [displayReports]);
 
-  // 현재 표시할 제보 목록
-  const displayReports = searchApplied ? searchResultsFiltered : filteredReports
+  const handleAddReport = async (reportData: Omit<Report, "id">) => {
+    try {
+      const docRef = await addDoc(collection(db, "reports"), reportData);
+      toast({
+        title: "제보 성공",
+        description: "환경 제보가 성공적으로 등록되었습니다.",
+      });
+      setShowReportDialog(false);
+    } catch (error) {
+      console.error("Error adding report: ", error);
+      toast({
+        title: "제보 실패",
+        description: "제보 등록 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
 
-  // 핸들러 함수들
+  const handleCommunityPost = async (postData: Omit<CommunityPost, 'id' | 'likes' | 'comments' | 'isLiked' | 'commentsList'>) => {
+    try {
+      const docRef = await addDoc(collection(db, "communityPosts"), {
+        ...postData,
+        likes: 0,
+        comments: 0,
+        date: new Date().toISOString().split('T')[0]
+      });
+      toast({
+        title: "게시 성공",
+        description: "게시글이 성공적으로 등록되었습니다.",
+      });
+    } catch (error) {
+      console.error("Error adding post: ", error);
+      toast({
+        title: "게시 실패",
+        description: "게시글 등록 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleLogin = async (email: string, password: string) => {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      const user = userCredential.user
-      
-      // 관리자 권한 확인
-      const isAdmin = email.includes('admin') || email.includes('관리자')
-      
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
       setCurrentUser({
         id: user.uid,
-        name: user.displayName || '사용자',
-        email: user.email || '',
-        isAdmin
-      })
-      setIsLoggedIn(true)
-      setShowAuthDialog(false)
-      
+        name: user.displayName || "사용자",
+        email: user.email || "",
+        avatar: user.photoURL || "",
+        role: "user",
+        isAdmin: false
+      });
+      setIsLoggedIn(true);
+      setShowAuthDialog(false);
       toast({
         title: "로그인 성공",
         description: "환영합니다!",
-      })
+      });
     } catch (error: any) {
-      console.error('로그인 오류:', error)
+      console.error("Login error:", error);
+      let errorMessage = "로그인 중 오류가 발생했습니다.";
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = "등록되지 않은 이메일입니다.";
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = "비밀번호가 올바르지 않습니다.";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "유효하지 않은 이메일 형식입니다.";
+      }
       toast({
         title: "로그인 실패",
-        description: error.message || "로그인 중 오류가 발생했습니다.",
+        description: errorMessage,
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleSignup = async (email: string, password: string, name: string) => {
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-      const user = userCredential.user
-      
-      await updateProfile(user, { displayName: name })
-      
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      await updateProfile(user, { displayName: name });
       setCurrentUser({
         id: user.uid,
-        name,
-        email,
+        name: name,
+        email: user.email || "",
+        avatar: "",
+        role: "user",
         isAdmin: false
-      })
-      setIsLoggedIn(true)
-      setShowAuthDialog(false)
-      
+      });
+      setIsLoggedIn(true);
+      setShowAuthDialog(false);
       toast({
         title: "회원가입 성공",
-        description: "환영합니다!",
-      })
+        description: "환경지킴이에 오신 것을 환영합니다!",
+      });
     } catch (error: any) {
-      console.error('회원가입 오류:', error)
+      console.error("Signup error:", error);
+      let errorMessage = "회원가입 중 오류가 발생했습니다.";
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = "이미 사용 중인 이메일입니다.";
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = "비밀번호가 너무 약합니다.";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "유효하지 않은 이메일 형식입니다.";
+      }
       toast({
         title: "회원가입 실패",
-        description: error.message || "회원가입 중 오류가 발생했습니다.",
+        description: errorMessage,
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleLogout = () => {
-    auth.signOut()
-    setCurrentUser(null)
-    setIsLoggedIn(false)
+    auth.signOut();
+    setCurrentUser(null);
+    setIsLoggedIn(false);
     toast({
       title: "로그아웃",
-      description: "로그아웃되었습니다.",
-    })
-  }
-
-  const handleCommunityPost = (postData: Omit<CommunityPost, 'id' | 'likes' | 'comments'>) => {
-    const newPost: CommunityPost = {
-      ...postData,
-      id: Date.now().toString(),
-      likes: 0,
-      comments: 0
-    }
-    setCommunityPosts(prev => [newPost, ...prev])
-  }
+      description: "안전하게 로그아웃되었습니다.",
+    });
+  };
 
   const handleSearch = () => {
     if (searchTerm.trim()) {
-      setSearchApplied(true)
-    } else {
-      setSearchApplied(false)
+      setSearchApplied(true);
+      const results = displayReports.filter(report => {
+        const loc = report.location;
+        return (
+          report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (
+            loc != null &&
+            (
+              typeof loc === 'object' && (loc as object) !== null && 'address' in (loc as object)
+                ? ((loc as unknown as { address: string }).address.toLowerCase().includes(searchTerm.toLowerCase()))
+                : typeof loc === 'string'
+                  ? (loc as string).toLowerCase().includes(searchTerm.toLowerCase())
+                  : false
+            )
+          ) ||
+          report.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          report.reporter.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      });
+      setSearchResults(results);
     }
-  }
+  };
 
   const clearSearch = () => {
-    setSearchTerm("")
-    setSearchApplied(false)
-  }
+    setSearchTerm("");
+    setSearchApplied(false);
+    setSearchResults([]);
+  };
+
+  const handleAddComment = (postId: string, comment: { author: string; content: string; date: string }) => {
+    setCommunityPosts(prev => prev.map(post => {
+      if (post.id === postId) {
+        return {
+          ...post,
+          comments: post.comments + 1,
+          commentsList: [...(post.commentsList || []), comment]
+        };
+      }
+      return post;
+    }));
+  };
+
+  const handleToggleLike = (postId: string, isLike: boolean) => {
+    setCommunityPosts(prev => prev.map(post => {
+      if (post.id === postId) {
+        return {
+          ...post,
+          likes: isLike ? post.likes + 1 : post.likes - 1,
+          isLiked: isLike
+        };
+      }
+      return post;
+    }));
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-cyan-50 flex flex-col items-center">
       {/* 헤더 */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* 로고 및 타이틀 */}
-            <div className="flex items-center space-x-2 sm:space-x-3 cursor-pointer group" onClick={() => window.location.href = '/'}>
-              <Leaf className="h-8 w-8 sm:h-10 sm:w-10 text-green-600 group-hover:scale-110 transition-transform" />
-              <div className="flex flex-col leading-tight">
-                <span className="text-lg sm:text-2xl font-bold text-gray-900">GCF Lab</span>
-                <span className="text-xs sm:text-sm text-gray-500">환경 지도 플랫폼</span>
+      <header className="bg-white shadow-lg border-b border-gray-200 w-full sticky top-0 z-50 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Leaf className="w-7 h-7 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">환경지킴이</h1>
+                  <p className="text-base text-gray-500">우리 동네 환경을 지켜요</p>
+                </div>
               </div>
-            </div>
-
-            {/* 네비게이션 */}
-            <nav className="hidden md:flex space-x-8">
-              <button
-                onClick={() => setCurrentView("map")}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  currentView === "map"
-                    ? "bg-green-100 text-green-700"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                지도
-              </button>
-              <button
-                onClick={() => setCurrentView("stats")}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  currentView === "stats"
-                    ? "bg-green-100 text-green-700"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                통계
-              </button>
-              <button
-                onClick={() => setCurrentView("analysis")}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  currentView === "analysis"
-                    ? "bg-green-100 text-green-700"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                분석
-              </button>
-              <button
-                onClick={() => setCurrentView("community")}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  currentView === "community"
-                    ? "bg-green-100 text-green-700"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                커뮤니티
-              </button>
-            </nav>
-
-            {/* 사용자 메뉴 */}
-            <div className="flex items-center space-x-4">
-              {/* 제보하기 버튼 - 로그인 여부와 관계없이 표시 */}
-              <Button
-                onClick={() => {
-                  if (!isLoggedIn) {
-                    setShowAuthDialog(true)
-                    toast({
-                      title: "로그인 필요",
-                      description: "제보를 작성하려면 로그인이 필요합니다.",
-                      variant: "destructive",
-                    })
-                  } else {
-                    setShowReportDialog(true)
-                  }
-                }}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                제보하기
-              </Button>
-
-              {isLoggedIn ? (
-                <>
-                  <div className="relative">
-                    <Button variant="ghost" size="sm">
-                      <Bell className="h-4 w-4" />
-                      {unreadCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                          {unreadCount}
-                        </span>
-                      )}
-                    </Button>
-                  </div>
-                  <Menu as="div" className="relative">
-                    <Menu.Button className="flex items-center space-x-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback>
-                          {currentUser?.name?.charAt(0) || "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Menu.Button>
-                    <Menu.Items className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                      <Menu.Item>
-                        {({ active }) => (
-                          <button
-                            className={`${
-                              active ? 'bg-gray-100' : ''
-                            } block px-4 py-2 text-sm text-gray-700 w-full text-left`}
-                          >
-                            프로필
-                          </button>
-                        )}
-                      </Menu.Item>
-                      {currentUser?.isAdmin && (
-                        <Menu.Item>
-                          {({ active }) => (
-                            <button
-                              onClick={() => setShowAdminPanel(true)}
-                              className={`${
-                                active ? 'bg-gray-100' : ''
-                              } block px-4 py-2 text-sm text-gray-700 w-full text-left`}
-                            >
-                              관리자 패널
-                            </button>
-                          )}
-                        </Menu.Item>
-                      )}
-                      <Menu.Item>
-                        {({ active }) => (
-                          <button
-                            onClick={handleLogout}
-                            className={`${
-                              active ? 'bg-gray-100' : ''
-                            } block px-4 py-2 text-sm text-gray-700 w-full text-left`}
-                          >
-                            로그아웃
-                          </button>
-                        )}
-                      </Menu.Item>
-                    </Menu.Items>
-                  </Menu>
-                </>
-              ) : (
-                <Button
-                  onClick={() => setShowAuthDialog(true)}
-                  className="bg-green-600 hover:bg-green-700"
+              {/* 메뉴와 로고 사이 넉넉한 간격 */}
+              <div className="ml-10" />
+              {/* 네비게이션 메뉴 */}
+              <nav className="hidden md:flex items-center space-x-6">
+                <button
+                  onClick={() => setCurrentView("map")}
+                  className={`px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-emerald-500 touch-optimized
+                    ${currentView === "map"
+                      ? "bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200"
+                      : "text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 hover:underline hover:underline-offset-4"}
+                  `}
+                  aria-label="지도"
+                  tabIndex={0}
                 >
-                  <LogIn className="h-4 w-4 mr-2" />
+                  <Home className={`w-6 h-6 inline mr-2 align-text-bottom transition-colors ${currentView === "map" ? "text-emerald-600" : "text-gray-400 group-hover:text-emerald-600"}`} />
+                  지도
+                </button>
+                <button
+                  onClick={() => setCurrentView("stats")}
+                  className={`px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-blue-500 touch-optimized
+                    ${currentView === "stats"
+                      ? "bg-blue-100 text-blue-700 shadow-sm border border-blue-200"
+                      : "text-gray-600 hover:text-blue-700 hover:bg-blue-50 hover:underline hover:underline-offset-4"}
+                  `}
+                  aria-label="통계 및 데이터"
+                  tabIndex={0}
+                >
+                  <BarChart3 className={`w-6 h-6 inline mr-2 align-text-bottom transition-colors ${currentView === "stats" ? "text-blue-600" : "text-gray-400 group-hover:text-blue-600"}`} />
+                  통계 및 데이터
+                </button>
+                <button
+                  onClick={() => setCurrentView("analysis")}
+                  className={`px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-purple-500 touch-optimized
+                    ${currentView === "analysis"
+                      ? "bg-purple-100 text-purple-700 shadow-sm border border-purple-200"
+                      : "text-gray-600 hover:text-purple-700 hover:bg-purple-50 hover:underline hover:underline-offset-4"}
+                  `}
+                  aria-label="분석"
+                  tabIndex={0}
+                >
+                  <PieChart className={`w-6 h-6 inline mr-2 align-text-bottom transition-colors ${currentView === "analysis" ? "text-purple-600" : "text-gray-400 group-hover:text-purple-600"}`} />
+                  분석
+                </button>
+                <button
+                  onClick={() => setCurrentView("community")}
+                  className={`px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-green-500 touch-optimized
+                    ${currentView === "community"
+                      ? "bg-green-100 text-green-700 shadow-sm border border-green-200"
+                      : "text-gray-600 hover:text-green-700 hover:bg-green-50 hover:underline hover:underline-offset-4"}
+                  `}
+                  aria-label="커뮤니티"
+                  tabIndex={0}
+                >
+                  <MessageSquare className={`w-6 h-6 inline mr-2 align-text-bottom transition-colors ${currentView === "community" ? "text-green-600" : "text-gray-400 group-hover:text-green-600"}`} />
+                  커뮤니티
+                </button>
+              </nav>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              {/* 알림 */}
+              <Button variant="ghost" size="sm" className="relative touch-optimized px-3 py-2">
+                <Bell className="w-6 h-6 text-gray-600" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                )}
+              </Button>
+              
+              {/* 사용자 메뉴 */}
+              {isLoggedIn ? (
+                <div className="flex items-center space-x-3">
+                  <Avatar className="w-8 h-8 border-2 border-emerald-200">
+                    {currentUser?.avatar && currentUser.avatar.trim() !== '' && (
+                      <AvatarImage src={currentUser.avatar} />
+                    )}
+                    <AvatarFallback className="bg-emerald-100 text-emerald-600 text-sm font-medium">
+                      {currentUser?.name?.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="hidden sm:block">
+                    <p className="text-sm font-medium text-gray-900">{currentUser?.name}</p>
+                    <p className="text-xs text-gray-500">{currentUser?.email}</p>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={handleLogout} className="text-gray-600 hover:text-gray-900">
+                    <LogOut className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <Button 
+                  onClick={() => setShowAuthDialog(true)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-7 py-2 touch-optimized text-base font-semibold"
+                >
+                  <LogIn className="w-5 h-5 mr-2" />
                   로그인
                 </Button>
               )}
@@ -682,406 +842,236 @@ export default function EnvironmentalMapPlatform() {
         </div>
       </header>
 
-      {/* 메인 콘텐츠 */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* 환경 지도 - B안: 상단 크게 */}
-        {currentView === "map" && (
-          <section>
-            <Card className="w-full h-[500px] sm:h-[600px] lg:h-[700px] mb-8">
-              <CardHeader className="pb-3">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-                    <MapPin className="w-6 h-6 text-emerald-600" />
-                    환경 제보 지도
+      {/* 메인 컨텐츠 */}
+      <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1">
+        {/* 메인 컨텐츠 영역 */}
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6" style={{ display: currentView === "map" ? "grid" : "none" }}>
+          {/* 좌측 사이드바 */}
+          <div className="xl:col-span-1 space-y-6">
+            {/* 위치 검색 */}
+            <Card className="bg-white border-0 shadow-lg">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center space-x-2 text-lg">
+                  <Search className="w-5 h-5 text-emerald-600" />
+                  <span>위치 검색</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex space-x-2">
+                  <Input
+                    placeholder="주소를 입력하세요"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="flex-1 border-gray-200 focus:border-emerald-500"
+                  />
+                  <Button onClick={handleSearch} className="bg-emerald-600 hover:bg-emerald-700">
+                    <Search className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+            {/* 필터 */}
+            <Card className="bg-white border-0 shadow-lg">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center space-x-2 text-lg">
+                  <Filter className="w-5 h-5 text-blue-600" />
+                  <span>필터</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">유형</Label>
+                  <Select value={filters.type} onValueChange={(value) => setFilters({...filters, type: value as any})}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">전체</SelectItem>
+                      <SelectItem value="waste">폐기물</SelectItem>
+                      <SelectItem value="air">대기오염</SelectItem>
+                      <SelectItem value="water">수질오염</SelectItem>
+                      <SelectItem value="noise">소음</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">상태</Label>
+                  <Select value={filters.status} onValueChange={(value) => setFilters({...filters, status: value as any})}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">전체</SelectItem>
+                      <SelectItem value="제보접수">제보접수</SelectItem>
+                      <SelectItem value="처리중">처리중</SelectItem>
+                      <SelectItem value="처리완료">처리완료</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+            {/* 최근 제보 현황 */}
+            <Card className="bg-white border-0 shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center space-x-2 text-lg">
+                  <Clock className="w-5 h-5 text-orange-500" />
+                  <span>최근 제보</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {displayReports.slice(0, 5).map((report) => (
+                  <div key={report.id} className="flex items-center justify-between text-sm">
+                    <span className="truncate max-w-[120px]">{report.title}</span>
+                    <span className="text-xs text-gray-400">{new Date(report.date).toLocaleDateString()}</span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+            {/* AI 분석 통계(placeholder) */}
+            <Card className="bg-white border-0 shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center space-x-2 text-lg">
+                  <Brain className="w-5 h-5 text-blue-500" />
+                  <span>AI 분석 요약</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm text-gray-700">
+                <div>• 폐기물 관련 제보가 가장 많음</div>
+                <div>• 최근 3개월간 제보 15% 증가</div>
+                <div>• 강남구, 강북구 집중</div>
+              </CardContent>
+            </Card>
+            {/* 요약 정보 카드 */}
+            <Card className="bg-white border-0 shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center space-x-2 text-lg">
+                  <BarChart3 className="w-5 h-5 text-emerald-600" />
+                  <span>요약 현황</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span>총 제보</span>
+                  <span className="font-bold text-emerald-700">{stats.totalReports}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span>처리중</span>
+                  <span className="font-bold text-blue-600">{stats.activeReports}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span>해결완료</span>
+                  <span className="font-bold text-green-600">{stats.resolvedReports}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span>활성 사용자</span>
+                  <span className="font-bold text-purple-600">{stats.totalUsers}</span>
+                </div>
+              </CardContent>
+            </Card>
+            {/* 분류별 범례 */}
+            <Card className="bg-white border-0 shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center space-x-2 text-lg">
+                  <BarChart3 className="w-5 h-5 text-emerald-600" />
+                  <span>분류별 범례</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex gap-4 items-center my-2">
+                  {Object.entries(CATEGORY_STYLES).map(([category, style]) => (
+                    <div key={category} className="flex items-center gap-1 text-sm">
+                      <span style={{ color: style.color, fontSize: '1.2em' }}>{style.icon}</span>
+                      <span>{category}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          {/* 메인 컨텐츠(지도 등) */}
+          <div className="xl:col-span-3">
+            <Card className="bg-white border-0 shadow-lg h-[700px] flex flex-col">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center space-x-2 text-lg">
+                    <MapPin className="w-5 h-5 text-emerald-600" />
+                    <span>환경 지도</span>
                   </CardTitle>
                   <div className="flex items-center space-x-2">
-                    <Badge variant="outline" className="text-sm px-3 py-1">
-                      {displayReports.length}건 표시
-                    </Badge>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowReportDialog(true)}
+                      className="bg-emerald-600 text-white hover:bg-emerald-700 border-emerald-600"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      제보하기
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-0 relative z-0" style={{ minHeight: '400px' }}>
+              <CardContent className="relative w-full h-full min-h-[600px] overflow-hidden p-0 flex-1">
                 <SimpleMap
                   reports={displayReports}
-                  selectedReport={selectedReport}
                   onReportSelect={setSelectedReport}
+                  selectedReport={selectedReport}
                   currentLocation={currentLocation}
+                  isDialogOpen={!!selectedReport}
                 />
               </CardContent>
             </Card>
-          </section>
-        )}
+          </div>
+        </div>
 
-        {/* 통계/현황/커뮤니티 - 지도 아래 3분할 */}
-        {currentView === "map" && (
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* 실시간 통계 */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg sm:text-xl flex items-center space-x-2">
-                  <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6" />
-                  <span>실시간 통계</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl sm:text-3xl font-bold text-green-600">{stats.total}</div>
-                    <div className="text-sm sm:text-base text-gray-600">총 제보건수</div>
-                  </div>
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl sm:text-3xl font-bold text-blue-600">{stats.thisWeek}</div>
-                    <div className="text-sm sm:text-base text-gray-600">이번 주</div>
-                  </div>
-                  <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                    <div className="text-2xl sm:text-3xl font-bold text-yellow-600">{stats.pending}</div>
-                    <div className="text-sm sm:text-base text-gray-600">제보접수</div>
-                  </div>
-                  <div className="text-center p-4 bg-red-50 rounded-lg">
-                    <div className="text-2xl sm:text-3xl font-bold text-red-600">{stats.processing}</div>
-                    <div className="text-sm sm:text-base text-gray-600">처리중</div>
-                  </div>
-                </div>
-                <Separator className="my-4" />
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm sm:text-base">
-                    <span>처리 완료율</span>
-                    <span>{stats.total > 0 ? Math.round((stats.resolved / stats.total) * 100) : 0}%</span>
-                  </div>
-                  <Progress value={stats.total > 0 ? (stats.resolved / stats.total) * 100 : 0} className="h-2" />
-                </div>
-              </CardContent>
-            </Card>
-            {/* 최근 제보 */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg sm:text-xl">최근 제보</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {displayReports.slice(0, 5).map((report) => (
-                    <div
-                      key={report.id}
-                      className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                      onClick={() => setSelectedReport(report)}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="font-medium text-sm line-clamp-1">{report.title}</h4>
-                        <Badge
-                          variant="outline"
-                          className={`text-xs ${
-                            report.severity === "high"
-                              ? "border-red-200 text-red-700"
-                              : report.severity === "medium"
-                                ? "border-yellow-200 text-yellow-700"
-                                : "border-green-200 text-green-700"
-                          }`}
-                        >
-                          {report.severity === "high" ? "심각" : report.severity === "medium" ? "보통" : "경미"}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-gray-500 line-clamp-2">{report.location}</p>
-                      <p className="text-xs text-gray-400 mt-1">{new Date(report.date).toLocaleDateString()}</p>
-                    </div>
-                  ))}
-                  {displayReports.length === 0 && (
-                    <div className="text-center text-gray-400 py-6">최근 제보가 없습니다.</div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-            {/* 커뮤니티 */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg sm:text-xl">커뮤니티</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {communityPosts.slice(0, 3).map((post) => (
-                    <div key={post.id} className="p-3 border rounded-lg">
-                      <h4 className="font-medium text-sm line-clamp-1">{post.title}</h4>
-                      <p className="text-xs text-gray-500 line-clamp-2">{post.content}</p>
-                      <div className="flex items-center space-x-2 mt-2">
-                        <span className="text-xs text-gray-400">{post.author}</span>
-                        <span className="text-xs text-gray-400">{new Date(post.date).toLocaleDateString()}</span>
-                        <span className="text-xs text-pink-500">❤️ {post.likes}</span>
-                      </div>
-                    </div>
-                  ))}
-                  {communityPosts.length === 0 && (
-                    <div className="text-center text-gray-400 py-6">커뮤니티 글이 없습니다.</div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </section>
-        )}
-
-        {/* 기존 통계/분석/커뮤니티 뷰는 지도 뷰가 아닐 때만 노출 */}
+        {/* 통계 뷰 */}
         {currentView === "stats" && (
-          <StatsView reports={reports} stats={stats} />
+          <StatsView stats={stats} reports={displayReports} />
         )}
-        {currentView === "analysis" && (
-          <AnalysisView reports={reports} />
-        )}
+
+        {/* 커뮤니티 뷰 */}
         {currentView === "community" && (
-          <CommunityView
+          <CommunityView 
             posts={communityPosts}
             onAddPost={handleCommunityPost}
-            onAddComment={(postId, comment) => {
-              setCommunityPosts(prev => prev.map(post => 
-                post.id === String(postId) 
-                  ? { ...post, comments: post.comments + 1, commentsList: [...(post.commentsList || []), comment] }
-                  : post
-              ))
-            }}
-            onToggleLike={(postId, isLike) => {
-              setCommunityPosts(prev => prev.map(post => 
-                post.id === String(postId) 
-                  ? { ...post, likes: post.likes + (isLike ? 1 : -1), isLiked: isLike }
-                  : post
-              ))
-            }}
+            onAddComment={handleAddComment}
+            onToggleLike={handleToggleLike}
             currentUser={currentUser}
             isLoggedIn={isLoggedIn}
           />
         )}
+
+        {/* 분석 뷰 */}
+        {currentView === "analysis" && (
+          <AnalysisView reports={displayReports} hideMap />
+        )}
+
+        {/* 인증 다이얼로그 */}
+        <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+          <AuthDialog onLogin={handleLogin} onSignup={handleSignup} />
+        </Dialog>
+
+        {/* 모바일 탭 바 */}
+        <MobileTabBar currentView={currentView} setCurrentView={setCurrentView} />
       </main>
-
-      {/* 다이얼로그들 */}
-      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
-        <AuthDialog onLogin={handleLogin} onSignup={handleSignup} />
-      </Dialog>
-
-      {/* 제보 상세 카드 */}
-      {selectedReport && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
-          <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom-4 duration-300">
-            <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 border-b">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Badge 
-                      className={`${
-                        selectedReport.severity === "high" 
-                          ? "bg-red-100 text-red-800 border-red-200" 
-                          : selectedReport.severity === "medium" 
-                            ? "bg-yellow-100 text-yellow-800 border-yellow-200" 
-                            : "bg-green-100 text-green-800 border-green-200"
-                      }`}
-                    >
-                      {selectedReport.severity === "high" ? "🔴 심각" : 
-                       selectedReport.severity === "medium" ? "🟡 보통" : "🟢 경미"}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      {selectedReport.type === "waste" ? "🗑️ 폐기물" :
-                       selectedReport.type === "air" ? "💨 대기오염" :
-                       selectedReport.type === "water" ? "💧 수질오염" :
-                       selectedReport.type === "noise" ? "🔊 소음" : selectedReport.type}
-                    </Badge>
-                    <Badge 
-                      className={`${
-                        selectedReport.status === "처리완료" 
-                          ? "bg-green-100 text-green-800 border-green-200" 
-                          : selectedReport.status === "처리중" 
-                            ? "bg-blue-100 text-blue-800 border-blue-200" 
-                            : "bg-yellow-100 text-yellow-800 border-yellow-200"
-                      }`}
-                    >
-                      {selectedReport.status}
-                    </Badge>
-                  </div>
-                  <CardTitle className="text-xl sm:text-2xl text-gray-900">{selectedReport.title}</CardTitle>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedReport(null)}
-                  className="hover:bg-gray-100 rounded-full p-2"
-                >
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6 space-y-6">
-              {/* 기본 정보 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">위치</span>
-                    <span className="font-medium">{selectedReport.location}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <UserIcon className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">제보자</span>
-                    <span className="font-medium">{selectedReport.reporter}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">제보일</span>
-                    <span className="font-medium">{selectedReport.date}</span>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  {selectedReport.assignedTo && (
-                    <div className="flex items-center space-x-2">
-                      <Users className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-600">담당자</span>
-                      <span className="font-medium">{selectedReport.assignedTo}</span>
-                    </div>
-                  )}
-                  {selectedReport.resolvedDate && (
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm text-gray-600">해결일</span>
-                      <span className="font-medium text-green-600">{selectedReport.resolvedDate}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <Separator />
-              
-              {/* 상세 설명 */}
-              <div>
-                <h4 className="font-semibold text-lg mb-3 flex items-center space-x-2">
-                  <FileText className="h-5 w-5 text-blue-600" />
-                  <span>상세 설명</span>
-                </h4>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-gray-700 leading-relaxed">{selectedReport.description}</p>
-                </div>
-              </div>
-
-              {/* 처리 노트 */}
-              {selectedReport.processingNotes && (
-                <div>
-                  <h4 className="font-semibold text-lg mb-3 flex items-center space-x-2">
-                    <Clock className="h-5 w-5 text-orange-600" />
-                    <span>처리 노트</span>
-                  </h4>
-                  <div className="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-200">
-                    <p className="text-orange-800">{selectedReport.processingNotes}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* 해결 보고서 */}
-              {selectedReport.resolutionReport && (
-                <div>
-                  <h4 className="font-semibold text-lg mb-3 flex items-center space-x-2">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span>해결 보고서</span>
-                  </h4>
-                  <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-200">
-                    <p className="text-green-800">{selectedReport.resolutionReport}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* AI 분석 결과 */}
-              {selectedReport.aiAnalysis && (
-                <div className="animate-in slide-in-from-right-4 duration-500">
-                  <h4 className="font-semibold text-lg mb-4 flex items-center space-x-2">
-                    <div className="relative">
-                      <Brain className="h-5 w-5 text-purple-600 animate-bounce" />
-                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-                    </div>
-                    <span className="bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text text-transparent font-bold">AI 분석 결과</span>
-                    <span className="ml-2 px-2 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold animate-fade-in">Powered by AI</span>
-                  </h4>
-                  <div className="space-y-4">
-                    {/* 분석 요약 */}
-                    <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg border border-purple-200 shadow-md animate-fade-in">
-                      <h5 className="font-medium text-purple-800 mb-2 flex items-center space-x-2">
-                        <Activity className="h-4 w-4 animate-spin-slow" />
-                        <span>분석 요약</span>
-                      </h5>
-                      <p className="text-purple-700 leading-relaxed">{selectedReport.aiAnalysis.summary}</p>
-                    </div>
-
-                    {/* 키워드 */}
-                    <div className="bg-blue-50 p-4 rounded-lg animate-fade-in">
-                      <h5 className="font-medium text-blue-800 mb-3 flex items-center space-x-2">
-                        <Target className="h-4 w-4 animate-pulse" />
-                        <span>주요 키워드</span>
-                      </h5>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedReport.aiAnalysis.keywords.map((keyword, index) => (
-                          <Badge 
-                            key={index} 
-                            className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200 transition-colors animate-bounce"
-                          >
-                            {keyword}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* 분석 세부사항 */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-green-50 p-4 rounded-lg animate-fade-in">
-                        <h5 className="font-medium text-green-800 mb-2 flex items-center space-x-2">
-                          <PieChart className="h-4 w-4 animate-bounce" />
-                          <span>분류</span>
-                        </h5>
-                        <p className="text-green-700">{selectedReport.aiAnalysis.category}</p>
-                      </div>
-                      <div className="bg-yellow-50 p-4 rounded-lg animate-fade-in">
-                        <h5 className="font-medium text-yellow-800 mb-2 flex items-center space-x-2">
-                          <AlertCircle className="h-4 w-4 animate-bounce" />
-                          <span>긴급도</span>
-                        </h5>
-                        <p className="text-yellow-700">{selectedReport.aiAnalysis.urgency}</p>
-                      </div>
-                      <div className="bg-red-50 p-4 rounded-lg animate-fade-in">
-                        <h5 className="font-medium text-red-800 mb-2 flex items-center space-x-2">
-                          <TrendingUp className="h-4 w-4 animate-bounce" />
-                          <span>예상 비용</span>
-                        </h5>
-                        <p className="text-red-700">{selectedReport.aiAnalysis.estimatedCost}</p>
-                      </div>
-                      <div className="bg-indigo-50 p-4 rounded-lg animate-fade-in">
-                        <h5 className="font-medium text-indigo-800 mb-2 flex items-center space-x-2">
-                          <Clock className="h-4 w-4 animate-bounce" />
-                          <span>예상 소요시간</span>
-                        </h5>
-                        <p className="text-indigo-700">{selectedReport.aiAnalysis.expectedDuration}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* 이미지 */}
-              {selectedReport.images && selectedReport.images.length > 0 && (
-                <div>
-                  <h4 className="font-semibold text-lg mb-3 flex items-center space-x-2">
-                    <Camera className="h-5 w-5 text-gray-600" />
-                    <span>첨부 이미지</span>
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    {selectedReport.images.map((image, index) => (
-                      <div key={index} className="relative group">
-                        <img 
-                          src={image} 
-                          alt={`제보 이미지 ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-lg border hover:scale-105 transition-transform duration-200"
-                        />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
-                          <Eye className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      {/* 세부내용 다이얼로그는 항상 Portal 레이어에서만 렌더 */}
+      <ReportDetailDialog report={selectedReport} open={!!selectedReport} onOpenChange={(open) => { if (!open) setSelectedReport(null) }} />
     </div>
-  )
-} 
+  );
+}
+
+// InfoRow 컴포넌트와 severityColor 함수 추가 (컴포넌트 하단에 위치)
+function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2">
+      {icon}
+      <span className="text-gray-500">{label}:</span>
+      <span className="font-medium text-gray-800">{value}</span>
+    </div>
+  );
+}
+
+function severityColor(severity: string) {
+  if (severity === '심각') return 'bg-red-400';
+  if (severity === '보통') return 'bg-yellow-300';
+  return 'bg-green-400';
+}

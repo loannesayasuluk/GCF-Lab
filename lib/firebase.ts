@@ -2,7 +2,6 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
-// 아래 firebaseConfig 값은 Firebase 콘솔 > 프로젝트 설정 > 내 앱에서 복사해서 붙여넣으세요!
 const firebaseConfig = {
   apiKey: "AIzaSyDdCUy2LawCUkykPuNXzQuMtwlmWYF-ojw",
   authDomain: "gcf-lab-13e42.firebaseapp.com",

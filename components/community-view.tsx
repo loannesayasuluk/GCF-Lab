@@ -35,8 +35,8 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
   const [showNewPostDialog, setShowNewPostDialog] = useState(false)
   const [newPostTitle, setNewPostTitle] = useState("")
   const [newPostContent, setNewPostContent] = useState("")
-  const [newPostCategory, setNewPostCategory] = useState<CommunityPost['category'] | "">("")
-  const [newPostSeverity, setNewPostSeverity] = useState<string>("")
+  const [newPostCategory, setNewPostCategory] = useState<CommunityPost['category']>('모임')
+  const [newPostSeverity, setNewPostSeverity] = useState<string>('medium')
   const [showGuide, setShowGuide] = useState(false)
   const [expandedPosts, setExpandedPosts] = useState<ExpandedPosts>({})
   const [newComments, setNewComments] = useState<NewComments>({})
@@ -64,8 +64,8 @@ export function CommunityView({ posts, onAddPost, onAddComment, onToggleLike, cu
       
       setNewPostTitle("")
       setNewPostContent("")
-      setNewPostCategory("")
-      setNewPostSeverity("")
+      setNewPostCategory('모임')
+      setNewPostSeverity('medium')
       setShowNewPostDialog(false)
       
       toast({
