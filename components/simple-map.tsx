@@ -30,6 +30,9 @@ export interface SimpleMapProps {
   center?: { lat: number; lng: number }
   zoom?: number
   children?: React.ReactNode
+  markerPosition?: { lat: number; lng: number }
+  mapStyle?: keyof typeof MAP_TILE_SERVICES
+  showMapStyleSelector?: boolean
 }
 
 const CATEGORY_STYLES = {
@@ -37,6 +40,61 @@ const CATEGORY_STYLES = {
   '소음': { color: 'blue', icon: '🔊' },
   '기타': { color: 'gray', icon: '❓' },
   // ...서비스 전체 연동용 분류 추가
+};
+
+// Mapbox API 키 설정
+const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || 'YOUR_MAPBOX_TOKEN';
+
+// 지도 타일 서비스 정의 (Mapbox만)
+const MAP_TILE_SERVICES = {
+  'mapbox-streets': {
+    name: 'Mapbox 도로 지도',
+    url: `https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=${MAPBOX_ACCESS_TOKEN}`,
+    attribution: '© Mapbox',
+    maxZoom: 22
+  },
+  'mapbox-satellite': {
+    name: 'Mapbox 위성 이미지',
+    url: `https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${MAPBOX_ACCESS_TOKEN}`,
+    attribution: '© Mapbox',
+    maxZoom: 22
+  },
+  'mapbox-satellite-streets': {
+    name: 'Mapbox 위성 + 도로',
+    url: `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v11/tiles/{z}/{x}/{y}?access_token=${MAPBOX_ACCESS_TOKEN}`,
+    attribution: '© Mapbox',
+    maxZoom: 22
+  },
+  'mapbox-light': {
+    name: 'Mapbox 라이트 테마',
+    url: `https://api.mapbox.com/styles/v1/mapbox/light-v10/tiles/{z}/{x}/{y}?access_token=${MAPBOX_ACCESS_TOKEN}`,
+    attribution: '© Mapbox',
+    maxZoom: 22
+  },
+  'mapbox-dark': {
+    name: 'Mapbox 다크 테마',
+    url: `https://api.mapbox.com/styles/v1/mapbox/dark-v10/tiles/{z}/{x}/{y}?access_token=${MAPBOX_ACCESS_TOKEN}`,
+    attribution: '© Mapbox',
+    maxZoom: 22
+  },
+  'mapbox-navigation-day': {
+    name: 'Mapbox 내비게이션 (주간)',
+    url: `https://api.mapbox.com/styles/v1/mapbox/navigation-day-v1/tiles/{z}/{x}/{y}?access_token=${MAPBOX_ACCESS_TOKEN}`,
+    attribution: '© Mapbox',
+    maxZoom: 22
+  },
+  'mapbox-navigation-night': {
+    name: 'Mapbox 내비게이션 (야간)',
+    url: `https://api.mapbox.com/styles/v1/mapbox/navigation-night-v1/tiles/{z}/{x}/{y}?access_token=${MAPBOX_ACCESS_TOKEN}`,
+    attribution: '© Mapbox',
+    maxZoom: 22
+  },
+  'mapbox-outdoors': {
+    name: 'Mapbox 아웃도어',
+    url: `https://api.mapbox.com/styles/v1/mapbox/outdoors-v11/tiles/{z}/{x}/{y}?access_token=${MAPBOX_ACCESS_TOKEN}`,
+    attribution: '© Mapbox',
+    maxZoom: 22
+  }
 };
 
 // Report 타입에 category, summary가 없다는 에러 해결 (타입 보강)
@@ -268,6 +326,11 @@ const SafeMapContainer = (props: any) => {
     }, 100);
   };
 
+  // 선택된 지도 스타일 상태
+  const [selectedMapStyle, setSelectedMapStyle] = useState<keyof typeof MAP_TILE_SERVICES>(
+    props.mapStyle || 'mapbox-streets'
+  );
+
   // 순수 Leaflet으로 지도 생성
   const createPureLeafletMap = () => {
     if (!containerRef.current || !window.L) return;
@@ -322,13 +385,24 @@ const SafeMapContainer = (props: any) => {
         tap: true,
       });
 
-      // 타일 레이어 추가
-      window.L.tileLayer('https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors, Humanitarian OpenStreetMap Team',
-        maxZoom: 19,
-        tileSize: 512,
-        zoomOffset: -1,
-      }).addTo(map);
+      // 선택된 지도 스타일로 타일 레이어 추가
+      const selectedService = MAP_TILE_SERVICES[selectedMapStyle];
+      if (selectedService) {
+        window.L.tileLayer(selectedService.url, {
+          attribution: selectedService.attribution,
+          maxZoom: selectedService.maxZoom,
+          tileSize: 512,
+          zoomOffset: -1,
+        }).addTo(map);
+      } else {
+        // 기본값으로 Mapbox 도로 지도 사용
+        window.L.tileLayer(MAP_TILE_SERVICES['mapbox-streets'].url, {
+          attribution: MAP_TILE_SERVICES['mapbox-streets'].attribution,
+          maxZoom: MAP_TILE_SERVICES['mapbox-streets'].maxZoom,
+          tileSize: 512,
+          zoomOffset: -1,
+        }).addTo(map);
+      }
 
       // 맵 인스턴스 저장
       mapRef.current = map;
@@ -344,7 +418,7 @@ const SafeMapContainer = (props: any) => {
         });
       }
 
-      console.log("[지도 디버그] 순수 Leaflet 지도 생성됨");
+      console.log("[지도 디버그] 순수 Leaflet 지도 생성됨 - 스타일:", selectedMapStyle);
     } catch (e) {
       console.warn("[지도 디버그] 순수 Leaflet 지도 생성 실패:", e);
     }
@@ -475,7 +549,7 @@ const SafeMapContainer = (props: any) => {
       
       return () => clearTimeout(timer);
     }
-  }, [shouldRenderMap]);
+  }, [shouldRenderMap, selectedMapStyle]);
 
   if (!isInitialized) {
     return <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
@@ -510,6 +584,29 @@ const SafeMapContainer = (props: any) => {
 
   return (
     <div ref={containerRef} style={{ width: "100%", height: "100%" }} className="relative">
+      {/* 지도 스타일 선택기 */}
+      {props.showMapStyleSelector && (
+        <div className="absolute top-4 right-4 z-[1000] bg-white rounded-lg shadow-lg p-2">
+          <select
+            value={selectedMapStyle}
+            onChange={(e) => {
+              setSelectedMapStyle(e.target.value as keyof typeof MAP_TILE_SERVICES);
+              // 지도 재생성
+              setTimeout(() => {
+                createPureLeafletMap();
+              }, 100);
+            }}
+            className="text-sm border border-gray-300 rounded px-2 py-1 bg-white"
+          >
+            {Object.entries(MAP_TILE_SERVICES).map(([key, service]) => (
+              <option key={key} value={key}>
+                {service.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      
       <div 
         id={uniqueId.current}
         style={{ width: "100%", height: "100%" }}
@@ -525,65 +622,54 @@ const SafeMapContainer = (props: any) => {
 export default function SimpleMap({
   center = { lat: 37.5665, lng: 126.978 },
   zoom = 11,
-}) {
+  markerPosition,
+}: SimpleMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const [sdkLoaded, setSdkLoaded] = useState(false);
+  const leafletMapRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    if (window.naver && window.naver.maps) {
-      setSdkLoaded(true);
-      return;
-    }
-
-    const existingScript = document.getElementById("naver-map-script");
-    if (existingScript) {
-      existingScript.addEventListener("load", () => setSdkLoaded(true));
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.id = "naver-map-script";
-    script.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${NAVER_CLIENT_ID}`;
-    script.async = true;
-    script.onload = () => setSdkLoaded(true);
-    document.head.appendChild(script);
-  }, []);
-
-  useEffect(() => {
-    if (!sdkLoaded) return;
     if (!mapRef.current) return;
-    if (!window.naver || !window.naver.maps) return;
 
-    // 생성 지연 (DOM이 완전히 렌더링된 후)
-    const timer = setTimeout(() => {
-      // 기존 지도 제거
-      if (mapRef.current!.firstChild) {
-        mapRef.current!.innerHTML = "";
+    // 기존 지도 제거
+    if (leafletMapRef.current) {
+      leafletMapRef.current.remove();
+      leafletMapRef.current = null;
+    }
+
+    // 지도 생성
+    const map = L.map(mapRef.current).setView([center.lat, center.lng], zoom);
+    leafletMapRef.current = map;
+
+    // 예쁜 CartoDB Voyager 타일 적용
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap, © CartoDB',
+      maxZoom: 19,
+    }).addTo(map);
+
+    // 마커 추가 (옵션)
+    if (markerPosition) {
+      const marker = L.marker([markerPosition.lat, markerPosition.lng]).addTo(map);
+      markerRef.current = marker;
+    }
+
+    // Clean up
+    return () => {
+      if (leafletMapRef.current) {
+        leafletMapRef.current.remove();
+        leafletMapRef.current = null;
       }
-      const map = new window.naver.maps.Map(mapRef.current, {
-        center: new window.naver.maps.LatLng(center.lat, center.lng),
-        zoom,
-      });
-      new window.naver.maps.Marker({
-        position: new window.naver.maps.LatLng(center.lat, center.lng),
-        map,
-      });
-    }, 200);
-
-    return () => clearTimeout(timer);
-  }, [sdkLoaded, center, zoom]);
+      markerRef.current = null;
+    };
+  }, [center, zoom, markerPosition]);
 
   return (
     <div
       ref={mapRef}
-      id="naver-map-container"
       style={{
         width: "100%",
         height: "500px",
-        minHeight: "500px",
-        maxHeight: "500px",
+        minHeight: "300px",
         border: "2px solid #10b981",
         borderRadius: "12px",
         overflow: "hidden",
@@ -594,3 +680,59 @@ export default function SimpleMap({
     />
   );
 }
+
+/*
+사용 예시:
+
+// 기본 사용 (Mapbox 도로 지도)
+<SimpleMap
+  reports={reports}
+  onReportSelect={handleReportSelect}
+  selectedReport={selectedReport}
+  center={{ lat: 37.5665, lng: 126.978 }}
+  zoom={11}
+/>
+
+// Mapbox 위성 이미지 사용
+<SimpleMap
+  reports={reports}
+  onReportSelect={handleReportSelect}
+  selectedReport={selectedReport}
+  center={{ lat: 37.5665, lng: 126.978 }}
+  zoom={11}
+  mapStyle="mapbox-satellite"
+/>
+
+// 지도 스타일 선택기 표시
+<SimpleMap
+  reports={reports}
+  onReportSelect={handleReportSelect}
+  selectedReport={selectedReport}
+  center={{ lat: 37.5665, lng: 126.978 }}
+  zoom={11}
+  showMapStyleSelector={true}
+/>
+
+// Mapbox 다크 테마 사용
+<SimpleMap
+  reports={reports}
+  onReportSelect={handleReportSelect}
+  selectedReport={selectedReport}
+  center={{ lat: 37.5665, lng: 126.978 }}
+  zoom={11}
+  mapStyle="mapbox-dark"
+/>
+
+사용 가능한 Mapbox 지도 스타일:
+- mapbox-streets: Mapbox 도로 지도 (기본값)
+- mapbox-satellite: Mapbox 위성 이미지
+- mapbox-satellite-streets: Mapbox 위성 + 도로
+- mapbox-light: Mapbox 라이트 테마
+- mapbox-dark: Mapbox 다크 테마
+- mapbox-navigation-day: Mapbox 내비게이션 (주간)
+- mapbox-navigation-night: Mapbox 내비게이션 (야간)
+- mapbox-outdoors: Mapbox 아웃도어
+
+환경 변수 설정:
+.env.local 파일에 NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token 추가
+*/
