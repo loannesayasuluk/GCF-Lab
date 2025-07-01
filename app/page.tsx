@@ -528,14 +528,96 @@ export default function EnvironmentalMapPlatform() {
     };
 
     // 유형별 집계
+    const typeCounts: { [key: string]: number } = {};
+    const severityCounts: { [key: string]: number } = {};
+    const statusCounts: { [key: string]: number } = {};
+
     displayReports.forEach(report => {
-      newStats.reportsByType[report.type] = (newStats.reportsByType[report.type] || 0) + 1;
-      newStats.reportsBySeverity[report.severity] = (newStats.reportsBySeverity[report.severity] || 0) + 1;
-      newStats.reportsByStatus[report.status] = (newStats.reportsByStatus[report.status] || 0) + 1;
+      typeCounts[report.type] = (typeCounts[report.type] || 0) + 1;
+      severityCounts[report.severity] = (severityCounts[report.severity] || 0) + 1;
+      statusCounts[report.status] = (statusCounts[report.status] || 0) + 1;
     });
+
+    newStats.reportsByType = typeCounts;
+    newStats.reportsBySeverity = severityCounts;
+    newStats.reportsByStatus = statusCounts;
 
     setStats(newStats);
   }, [displayReports]);
+
+  // currentView 변경 시 지도 인스턴스 정리
+  useEffect(() => {
+    if (currentView !== "map") {
+      // 지도 뷰가 아닐 때 지도 인스턴스 정리
+      if (typeof window !== 'undefined' && (window as any).leafletMapInstance) {
+        try {
+          if ((window as any).leafletMapInstance.remove) {
+            (window as any).leafletMapInstance.remove();
+          }
+        } catch (e) {
+          console.warn("[지도 디버그] currentView 변경 시 지도 정리 실패:", e);
+        }
+        (window as any).leafletMapInstance = null;
+      }
+      
+      // DOM에서 Leaflet 관련 요소들 제거
+      const allLeafletElements = document.querySelectorAll('[class*="leaflet"]');
+      allLeafletElements.forEach(element => {
+        try {
+          element.remove();
+        } catch (e) {
+          console.warn("[지도 디버그] DOM 요소 정리 실패:", e);
+        }
+      });
+    }
+  }, [currentView]);
+
+  // 컴포넌트 언마운트 시 지도 인스턴스 정리
+  useEffect(() => {
+    return () => {
+      // 전역 지도 인스턴스 정리
+      if (typeof window !== 'undefined' && (window as any).leafletMapInstance) {
+        try {
+          if ((window as any).leafletMapInstance.remove) {
+            (window as any).leafletMapInstance.remove();
+          }
+        } catch (e) {
+          console.warn("[지도 디버그] 컴포넌트 언마운트 시 지도 정리 실패:", e);
+        }
+        (window as any).leafletMapInstance = null;
+      }
+      
+      // DOM에서 모든 Leaflet 관련 요소 완전 제거
+      const allLeafletElements = document.querySelectorAll('[class*="leaflet"]');
+      allLeafletElements.forEach(element => {
+        try {
+          element.remove();
+        } catch (e) {
+          console.warn("[지도 디버그] 컴포넌트 언마운트 시 DOM 요소 정리 실패:", e);
+        }
+      });
+      
+      // 추가: 모든 Leaflet 관련 스타일시트 제거
+      const leafletStylesheets = document.querySelectorAll('link[href*="leaflet"]');
+      leafletStylesheets.forEach(link => {
+        try {
+          link.remove();
+        } catch (e) {
+          console.warn("[지도 디버그] Leaflet 스타일시트 제거 실패:", e);
+        }
+      });
+      
+      // 추가: 모든 Leaflet 관련 스크립트 제거
+      const leafletScripts = document.querySelectorAll('script[src*="leaflet"]');
+      leafletScripts.forEach(script => {
+        try {
+          script.remove();
+        } catch (e) {
+          console.warn("[지도 디버그] Leaflet 스크립트 제거 실패:", e);
+        }
+      });
+    };
+  }, []);
 
   const handleAddReport = async (reportData: Omit<Report, "id">) => {
     try {
@@ -957,13 +1039,15 @@ export default function EnvironmentalMapPlatform() {
                 </div>
               </CardHeader>
               <CardContent className="relative w-full h-full min-h-[600px] overflow-hidden p-0 flex-1">
-                <SimpleMap
-                  reports={displayReports}
-                  onReportSelect={setSelectedReport}
-                  selectedReport={selectedReport}
-                  currentLocation={currentLocation}
-                  isDialogOpen={!!selectedReport}
-                />
+                {currentView === "map" && (
+                  <SimpleMap
+                    reports={displayReports}
+                    onReportSelect={setSelectedReport}
+                    selectedReport={selectedReport}
+                    currentLocation={currentLocation}
+                    isDialogOpen={!!selectedReport}
+                  />
+                )}
               </CardContent>
             </Card>
           </div>

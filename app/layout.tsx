@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Toaster } from "@/components/ui/toaster"
+import Head from 'next/head'
 
 export const metadata: Metadata = {
   title: '환경 지도 플랫폼',
@@ -15,6 +16,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
+      <Head>
+        <script src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=czowx453xp"></script>
+      </Head>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>

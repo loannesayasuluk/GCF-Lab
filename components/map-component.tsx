@@ -541,7 +541,8 @@ export default function MapComponent({ reports, selectedReport, onReportSelect, 
     initializeMap()
 
     return () => {
-      if (mapInstanceRef.current && mapInstanceRef.current.type !== "fallback") {
+      // 1. 현재 map 인스턴스 정리
+      if (mapInstanceRef.current && mapInstanceRef.current.remove) {
         try {
           mapInstanceRef.current.remove()
         } catch (e) {
@@ -549,6 +550,53 @@ export default function MapComponent({ reports, selectedReport, onReportSelect, 
         }
       }
       mapInstanceRef.current = null
+
+      // 2. 전역 leafletMapInstance 정리
+      if (typeof window !== 'undefined' && (window as any).leafletMapInstance) {
+        try {
+          if ((window as any).leafletMapInstance.remove) {
+            (window as any).leafletMapInstance.remove();
+          }
+        } catch (e) {
+          console.warn("window.leafletMapInstance cleanup error:", e)
+        }
+        (window as any).leafletMapInstance = null;
+      }
+
+      // 3. DOM 컨테이너에서 기존 지도 요소들 완전 제거
+      if (mapRef.current) {
+        const existingMaps = mapRef.current.querySelectorAll('.leaflet-container, .leaflet-map-pane, .leaflet-tile-pane, .leaflet-overlay-pane, .leaflet-marker-pane, .leaflet-tooltip-pane, .leaflet-popup-pane, .leaflet-shadow-pane');
+        existingMaps.forEach(element => {
+          try {
+            element.remove();
+          } catch (e) {
+            console.warn("DOM element cleanup error:", e)
+          }
+        });
+      }
+
+      // 4. 마커들 정리
+      if (markersRef.current.length > 0) {
+        markersRef.current.forEach(marker => {
+          try {
+            if (marker && marker.remove) marker.remove();
+          } catch (e) {
+            console.warn("Marker cleanup error:", e)
+          }
+        });
+        markersRef.current = [];
+      }
+
+      // 5. 현재 위치 마커 정리
+      if (currentLocationMarkerRef.current && currentLocationMarkerRef.current.remove) {
+        try {
+          currentLocationMarkerRef.current.remove();
+        } catch (e) {
+          console.warn("Current location marker cleanup error:", e)
+        }
+        currentLocationMarkerRef.current = null;
+      }
+
       setMapLoaded(false)
     }
   }, [])
