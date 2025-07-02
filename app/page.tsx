@@ -471,9 +471,13 @@ export default function EnvironmentalMapPlatform() {
       report.coordinates.lat !== 0 && 
       report.coordinates.lng !== 0
     );
-    
-    return validReports;
-  }, [reports]);
+    // filters 적용
+    return validReports.filter(report => {
+      const typeMatch = filters.type === 'all' || report.type === filters.type;
+      const statusMatch = filters.status === 'all' || report.status === filters.status;
+      return typeMatch && statusMatch;
+    });
+  }, [reports, filters]);
 
   // Firestore에서 communityPosts 불러오기
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([
@@ -845,196 +849,232 @@ export default function EnvironmentalMapPlatform() {
   }, [selectedReport]);
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 items-start">
-        {/* 좌측 사이드바: 검색, 필터, 최근 제보, AI 분석 요약 등 */}
-        <div className="space-y-6 bg-blue-50/80 rounded-2xl p-2">
-          {/* 위치 검색 */}
-          <Card className="bg-white border-0 shadow-lg">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center space-x-2 text-lg">
-                <Search className="w-5 h-5 text-emerald-600" />
-                <span>위치 검색</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex space-x-2">
-                <Input
-                  placeholder="주소를 입력하세요"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="flex-1 border-gray-200 focus:border-emerald-500"
-                />
-                <Button onClick={handleSearch} className="bg-emerald-600 hover:bg-emerald-700">
-                  <Search className="w-4 h-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-          {/* 필터 */}
-          <Card className="bg-white border-0 shadow-lg">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center space-x-2 text-lg">
-                <Filter className="w-5 h-5 text-blue-600" />
-                <span>필터</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium text-gray-700">유형</Label>
-                <Select value={filters.type} onValueChange={(value) => setFilters({...filters, type: value as any})}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">전체</SelectItem>
-                    <SelectItem value="waste">폐기물</SelectItem>
-                    <SelectItem value="air">대기오염</SelectItem>
-                    <SelectItem value="water">수질오염</SelectItem>
-                    <SelectItem value="noise">소음</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-sm font-medium text-gray-700">상태</Label>
-                <Select value={filters.status} onValueChange={(value) => setFilters({...filters, status: value as any})}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">전체</SelectItem>
-                    <SelectItem value="제보접수">제보접수</SelectItem>
-                    <SelectItem value="처리중">처리중</SelectItem>
-                    <SelectItem value="처리완료">처리완료</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-          {/* 최근 제보 현황 */}
-          <Card className="bg-white border-0 shadow-lg">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center space-x-2 text-lg">
-                <Clock className="w-5 h-5 text-orange-500" />
-                <span>최근 제보</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {displayReports.slice(0, 5).map((report) => (
-                <div key={report.id} className="flex items-center justify-between text-sm">
-                  <span className="truncate max-w-[120px]">{report.title}</span>
-                  <span className="text-xs text-gray-400">{new Date(report.date).toLocaleDateString()}</span>
+    <>
+      <header className="bg-white shadow-lg border-b border-gray-200 w-full sticky top-0 z-50 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Leaf className="w-7 h-7 text-white" />
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-          {/* AI 분석 통계(placeholder) */}
-          <Card className="bg-white border-0 shadow-lg">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center space-x-2 text-lg">
-                <Brain className="w-5 h-5 text-blue-500" />
-                <span>AI 분석 요약</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm text-gray-700">
-              <div>• 폐기물 관련 제보가 가장 많음</div>
-              <div>• 최근 3개월간 제보 15% 증가</div>
-              <div>• 강남구, 강북구 집중</div>
-            </CardContent>
-          </Card>
-          {/* 요약 정보 카드 */}
-          <Card className="bg-white border-0 shadow-lg">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center space-x-2 text-lg">
-                <BarChart3 className="w-5 h-5 text-emerald-600" />
-                <span>요약 현황</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span>전체 제보</span>
-                <span className="font-bold text-emerald-700">{stats.totalReports}</span>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">환경지킴이</h1>
+                  <p className="text-base text-gray-500">우리 동네 환경을 지켜요</p>
+                </div>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>지도 표시</span>
-                <span className="font-bold text-blue-700">{displayReports.length}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>처리중</span>
-                <span className="font-bold text-blue-600">{stats.activeReports}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>해결완료</span>
-                <span className="font-bold text-green-600">{stats.resolvedReports}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>활성 사용자</span>
-                <span className="font-bold text-purple-600">{stats.totalUsers}</span>
-              </div>
-            </CardContent>
-          </Card>
+              <div className="ml-20" />
+              <nav className="hidden md:flex items-center space-x-6">
+                <Link href="/" className="px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-emerald-500 touch-optimized">지도</Link>
+                <Link href="/stats" className="px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-blue-500 touch-optimized">통계 및 데이터</Link>
+                <Link href="/analysis" className="px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-purple-500 touch-optimized">분석</Link>
+                <Link href="/community" className="px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-green-500 touch-optimized">커뮤니티</Link>
+              </nav>
+            </div>
+            <div className="flex items-center space-x-4">
+              <button className="relative touch-optimized px-3 py-2">
+                <Bell className="w-6 h-6 text-gray-600" />
+              </button>
+              <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-7 py-2 touch-optimized text-base font-semibold rounded-xl flex items-center"
+                onClick={() => setShowAuthDialog(true)}>
+                <LogIn className="w-5 h-5 mr-2" />
+                로그인
+              </button>
+            </div>
+          </div>
         </div>
-        {/* 메인 지도 영역 */}
-        <div className="xl:col-span-3 bg-blue-50/80 rounded-2xl p-2">
-          <Card className="bg-white border-0 shadow-lg h-[700px] flex flex-col">
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
+      </header>
+      <div className="container mx-auto py-8">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 items-start">
+          {/* 좌측 사이드바: 검색, 필터, 최근 제보, AI 분석 요약 등 */}
+          <div className="space-y-6 bg-blue-50/80 rounded-2xl p-2">
+            {/* 위치 검색 */}
+            <Card className="bg-white border-0 shadow-lg">
+              <CardHeader className="pb-4">
                 <CardTitle className="flex items-center space-x-2 text-lg">
-                  <MapPin className="w-5 h-5 text-emerald-600" />
-                  <span>환경 지도</span>
+                  <Search className="w-5 h-5 text-emerald-600" />
+                  <span>위치 검색</span>
                 </CardTitle>
-                <div className="flex items-center space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShowReportDialog(true)}
-                    className="bg-emerald-600 text-white hover:bg-emerald-700 border-emerald-600"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    제보하기
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex space-x-2">
+                  <Input
+                    placeholder="주소를 입력하세요"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="flex-1 border-gray-200 focus:border-emerald-500"
+                  />
+                  <Button onClick={handleSearch} className="bg-emerald-600 hover:bg-emerald-700">
+                    <Search className="w-4 h-4" />
                   </Button>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="relative w-full h-[700px] min-h-[600px] p-0 flex-1" style={{height: 700, minHeight: 600}}>
-              {currentView === "map" && (
-                <>
-                  {reportsLoading ? (
-                    <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 z-10">
-                      <div className="text-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-2"></div>
-                        <p className="text-gray-600">제보 데이터를 불러오는 중...</p>
+              </CardContent>
+            </Card>
+            {/* 필터 */}
+            <Card className="bg-white border-0 shadow-lg">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center space-x-2 text-lg">
+                  <Filter className="w-5 h-5 text-blue-600" />
+                  <span>필터</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">유형</Label>
+                  <Select value={filters.type} onValueChange={(value) => setFilters({...filters, type: value as any})}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">전체</SelectItem>
+                      <SelectItem value="waste">폐기물</SelectItem>
+                      <SelectItem value="air">대기오염</SelectItem>
+                      <SelectItem value="water">수질오염</SelectItem>
+                      <SelectItem value="noise">소음</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">상태</Label>
+                  <Select value={filters.status} onValueChange={(value) => setFilters({...filters, status: value as any})}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">전체</SelectItem>
+                      <SelectItem value="제보접수">제보접수</SelectItem>
+                      <SelectItem value="처리중">처리중</SelectItem>
+                      <SelectItem value="처리완료">처리완료</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+            {/* 최근 제보 현황 */}
+            <Card className="bg-white border-0 shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center space-x-2 text-lg">
+                  <Clock className="w-5 h-5 text-orange-500" />
+                  <span>최근 제보</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {displayReports.slice(0, 5).map((report) => (
+                  <div key={report.id} className="flex items-center justify-between text-sm">
+                    <span className="truncate max-w-[120px]">{report.title}</span>
+                    <span className="text-xs text-gray-400">{new Date(report.date).toLocaleDateString()}</span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+            {/* AI 분석 통계(placeholder) */}
+            <Card className="bg-white border-0 shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center space-x-2 text-lg">
+                  <Brain className="w-5 h-5 text-blue-500" />
+                  <span>AI 분석 요약</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm text-gray-700">
+                <div>• 폐기물 관련 제보가 가장 많음</div>
+                <div>• 최근 3개월간 제보 15% 증가</div>
+                <div>• 강남구, 강북구 집중</div>
+              </CardContent>
+            </Card>
+            {/* 요약 정보 카드 */}
+            <Card className="bg-white border-0 shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center space-x-2 text-lg">
+                  <BarChart3 className="w-5 h-5 text-emerald-600" />
+                  <span>요약 현황</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span>전체 제보</span>
+                  <span className="font-bold text-emerald-700">{stats.totalReports}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span>지도 표시</span>
+                  <span className="font-bold text-blue-700">{displayReports.length}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span>처리중</span>
+                  <span className="font-bold text-blue-600">{stats.activeReports}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span>해결완료</span>
+                  <span className="font-bold text-green-600">{stats.resolvedReports}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span>활성 사용자</span>
+                  <span className="font-bold text-purple-600">{stats.totalUsers}</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          {/* 메인 지도 영역 */}
+          <div className="xl:col-span-3 bg-blue-50/80 rounded-2xl p-2">
+            <Card className="bg-white border-0 shadow-lg h-[700px] flex flex-col">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center space-x-2 text-lg">
+                    <MapPin className="w-5 h-5 text-emerald-600" />
+                    <span>환경 지도</span>
+                  </CardTitle>
+                  <div className="flex items-center space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowReportDialog(true)}
+                      className="bg-emerald-600 text-white hover:bg-emerald-700 border-emerald-600"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      제보하기
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="relative w-full h-[700px] min-h-[600px] p-0 flex-1" style={{height: 700, minHeight: 600}}>
+                {currentView === "map" && (
+                  <>
+                    {reportsLoading ? (
+                      <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 z-10">
+                        <div className="text-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-2"></div>
+                          <p className="text-gray-600">제보 데이터를 불러오는 중...</p>
+                        </div>
                       </div>
-                    </div>
-                  ) : (
-                    <SimpleMap
-                      reports={displayReports}
-                      onReportSelect={(report) => {
-                        console.log('[디버그] onReportSelect 호출:', report);
-                        setSelectedReport(report);
-                      }}
-                      selectedReport={selectedReport}
-                      currentLocation={currentLocation}
-                      isDialogOpen={!!selectedReport}
-                    />
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-          <MapLegendOverlay />
+                    ) : (
+                      <SimpleMap
+                        reports={displayReports}
+                        onReportSelect={(report) => {
+                          console.log('[디버그] onReportSelect 호출:', report);
+                          setSelectedReport(report);
+                        }}
+                        selectedReport={selectedReport}
+                        currentLocation={currentLocation}
+                        isDialogOpen={!!selectedReport}
+                      />
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+            <MapLegendOverlay />
+          </div>
         </div>
+        {selectedReport && (
+          <ReportDetailDialog
+            report={selectedReport}
+            open={!!selectedReport}
+            onOpenChange={(open) => {
+              if (!open) setSelectedReport(null);
+            }}
+          />
+        )}
       </div>
-      {selectedReport && (
-        <ReportDetailDialog
-          report={selectedReport}
-          open={!!selectedReport}
-          onOpenChange={(open) => {
-            if (!open) setSelectedReport(null);
-          }}
-        />
-      )}
-    </div>
+    </>
   );
 }
 
