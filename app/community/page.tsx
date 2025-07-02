@@ -7,6 +7,7 @@ import { CommunityView } from "@/components/community-view";
 
 export default function CommunityPage() {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
+  
   useEffect(() => {
     const fetchPosts = async () => {
       const q = query(collection(db, "communityPosts"), orderBy("date", "desc"));
@@ -16,5 +17,28 @@ export default function CommunityPage() {
     };
     fetchPosts();
   }, []);
-  return <CommunityView posts={posts} />;
+
+  // 더미 함수들 - 실제 구현은 필요에 따라 추가
+  const handleAddPost = (post: Omit<CommunityPost, 'id' | 'likes' | 'comments'>) => {
+    console.log('Add post:', post);
+  };
+
+  const handleAddComment = (postId: string, comment: { author: string; content: string; date: string }) => {
+    console.log('Add comment:', postId, comment);
+  };
+
+  const handleToggleLike = (postId: string, isLike: boolean) => {
+    console.log('Toggle like:', postId, isLike);
+  };
+
+  return (
+    <CommunityView 
+      posts={posts} 
+      onAddPost={handleAddPost}
+      onAddComment={handleAddComment}
+      onToggleLike={handleToggleLike}
+      currentUser={null}
+      isLoggedIn={false}
+    />
+  );
 } 

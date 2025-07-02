@@ -75,6 +75,7 @@ import ReportDetailDialog from "@/components/ReportDetailDialog"
 import { CATEGORY_STYLES } from '../lib/utils'
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import MapLegendOverlay from "@/components/map-legend-overlay";
 const SimpleMap = dynamic(() => import("@/components/simple-map"), { ssr: false });
 
 // OpenAI AI 분석 호출 함수
@@ -383,60 +384,95 @@ export default function EnvironmentalMapPlatform() {
 
   // reports 초기값 빈 배열
   const [reports, setReports] = useState<Report[]>([]);
+  const [reportsLoading, setReportsLoading] = useState(true);
 
   // Firestore에서 reports 실시간 반영
   useEffect(() => {
     console.log('[지도 디버그] Firestore 데이터 로딩 시작');
-    const q = collection(db, "reports");
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const rawData = querySnapshot.docs.map(doc => doc.data());
-      console.log('[지도 디버그] Firestore 원본 데이터:', rawData);
-      const data = querySnapshot.docs.map(doc => {
-        const d = doc.data();
-        // coordinates 타입 및 범위 검사
-        let lat = d.coordinates?.lat;
-        let lng = d.coordinates?.lng;
-        let coordValid = true;
-        if (typeof lat !== 'number' || typeof lng !== 'number') {
-          coordValid = false;
+    setReportsLoading(true);
+    
+    try {
+      const q = collection(db, "reports");
+      
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        console.log('[지도 디버그] Firestore에서', querySnapshot.docs.length, '개 문서 로딩됨');
+        
+        const data = querySnapshot.docs.map(doc => {
+          const d = doc.data();
+          
+          // coordinates 타입 및 범위 검사
+          let lat = d.coordinates?.lat;
+          let lng = d.coordinates?.lng;
+          let coordValid = true;
+          if (typeof lat !== 'number' || typeof lng !== 'number') {
+            coordValid = false;
+          }
+          if (coordValid && (lat < 33 || lat > 39 || lng < 124 || lng > 132)) {
+            coordValid = false;
+          }
+          if (!coordValid) {
+            console.warn(`잘못된 coordinates:`, d.coordinates, `문서ID:`, doc.id);
+          }
+          return {
+            id: doc.id,
+            title: safeString(d.title),
+            location: safeLocation(d.location),
+            type: d.type || "all",
+            severity: d.severity || "all",
+            reporter: safeString(d.reporter),
+            date: d.date ? safeDateString(d.date) : '',
+            status: d.status || "all",
+            description: safeString(d.description),
+            coordinates: coordValid ? { lat, lng } : { lat: 0, lng: 0 },
+            images: d.images ?? [],
+            assignedTo: d.assignedTo,
+            processingNotes: d.processingNotes,
+            resolvedDate: d.resolvedDate,
+            resolutionReport: d.resolutionReport,
+            aiAnalysis: d.aiAnalysis,
+          } as Report;
+        });
+        
+        const validReports = data.filter(r => r.coordinates.lat !== 0 && r.coordinates.lng !== 0);
+        console.log('[지도 디버그] 유효한 coordinates를 가진 제보:', validReports.length, '개');
+        
+        // 중복 위치 확인
+        const coordinates = validReports.map(r => `${r.coordinates.lat.toFixed(4)},${r.coordinates.lng.toFixed(4)}`);
+        const uniqueCoordinates = new Set(coordinates);
+        console.log('[지도 디버그] 고유한 좌표 개수:', uniqueCoordinates.size, '개');
+        console.log('[지도 디버그] 모든 좌표:', coordinates);
+        
+        if (coordinates.length !== uniqueCoordinates.size) {
+          console.log('[지도 디버그] 중복된 좌표가 있습니다!');
+          const duplicates = coordinates.filter((coord, index) => coordinates.indexOf(coord) !== index);
+          console.log('[지도 디버그] 중복된 좌표:', [...new Set(duplicates)]);
         }
-        if (coordValid && (lat < 33 || lat > 39 || lng < 124 || lng > 132)) {
-          coordValid = false;
-        }
-        if (!coordValid) {
-          console.warn(`잘못된 coordinates:`, d.coordinates, `문서ID:`, doc.id);
-        }
-        return {
-          id: doc.id,
-          title: safeString(d.title),
-          location: safeLocation(d.location),
-          type: d.type || "all",
-          severity: d.severity || "all",
-          reporter: safeString(d.reporter),
-          date: d.date ? safeDateString(d.date) : '',
-          status: d.status || "all",
-          description: safeString(d.description),
-          coordinates: coordValid ? { lat, lng } : { lat: 0, lng: 0 },
-          images: d.images ?? [],
-          assignedTo: d.assignedTo,
-          processingNotes: d.processingNotes,
-          resolvedDate: d.resolvedDate,
-          resolutionReport: d.resolutionReport,
-          aiAnalysis: d.aiAnalysis,
-        } as Report;
+        
+        setReports(data);
+        setReportsLoading(false);
+      }, (error) => {
+        console.error('[지도 디버그] Firestore 데이터 로딩 오류:', error);
+        setReportsLoading(false);
       });
-      console.log('[지도 디버그] Firestore에서 불러온 reports:', data);
-      setReports(data);
-    }, (error) => {
-      console.error('[지도 디버그] Firestore 데이터 로딩 오류:', error);
-    });
-    return () => unsubscribe();
+      
+      return () => unsubscribe();
+    } catch (error) {
+      console.error('[지도 디버그] Firestore 쿼리 생성 오류:', error);
+      setReportsLoading(false);
+    }
   }, []);
 
-  // displayReports는 Firestore 데이터만 사용
+  // displayReports는 Firestore 데이터만 사용 (유효한 coordinates만 필터링)
   const displayReports = useMemo(() => {
-    console.log('[지도 디버그] displayReports(실제 지도에 표시될 데이터):', reports);
-    return reports;
+    const validReports = reports.filter(report => 
+      report.coordinates && 
+      typeof report.coordinates.lat === 'number' && 
+      typeof report.coordinates.lng === 'number' &&
+      report.coordinates.lat !== 0 && 
+      report.coordinates.lng !== 0
+    );
+    
+    return validReports;
   }, [reports]);
 
   // Firestore에서 communityPosts 불러오기
@@ -509,16 +545,21 @@ export default function EnvironmentalMapPlatform() {
 
   // stats 업데이트
   useEffect(() => {
+    // 전체 제보 수 (coordinates 유효성과 관계없이)
+    const totalAllReports = reports.length;
+    // 지도에 표시되는 제보 수 (유효한 coordinates만)
+    const totalDisplayReports = displayReports.length;
+    
     const newStats: Stats = {
-      total: displayReports.length,
-      pending: displayReports.filter(r => r.status === '제보접수').length,
-      processing: displayReports.filter(r => r.status === '처리중').length,
-      resolved: displayReports.filter(r => r.status === '처리완료').length,
+      total: totalAllReports, // 전체 제보 수로 변경
+      pending: reports.filter(r => r.status === '제보접수').length,
+      processing: reports.filter(r => r.status === '처리중').length,
+      resolved: reports.filter(r => r.status === '처리완료').length,
       thisWeek: 0,
-      totalReports: displayReports.length,
-      activeReports: displayReports.filter(r => r.status === '처리중').length,
-      resolvedReports: displayReports.filter(r => r.status === '처리완료').length,
-      totalUsers: new Set(displayReports.map(r => r.reporter)).size,
+      totalReports: totalAllReports, // 전체 제보 수
+      activeReports: reports.filter(r => r.status === '처리중').length,
+      resolvedReports: reports.filter(r => r.status === '처리완료').length,
+      totalUsers: new Set(reports.map(r => r.reporter)).size,
       averageResolutionTime: 0,
       reportsByType: {},
       reportsBySeverity: {},
@@ -527,12 +568,12 @@ export default function EnvironmentalMapPlatform() {
       topLocations: []
     };
 
-    // 유형별 집계
+    // 유형별 집계 (전체 제보 기준)
     const typeCounts: { [key: string]: number } = {};
     const severityCounts: { [key: string]: number } = {};
     const statusCounts: { [key: string]: number } = {};
 
-    displayReports.forEach(report => {
+    reports.forEach(report => {
       typeCounts[report.type] = (typeCounts[report.type] || 0) + 1;
       severityCounts[report.severity] = (severityCounts[report.severity] || 0) + 1;
       statusCounts[report.status] = (statusCounts[report.status] || 0) + 1;
@@ -543,7 +584,7 @@ export default function EnvironmentalMapPlatform() {
     newStats.reportsByStatus = statusCounts;
 
     setStats(newStats);
-  }, [displayReports]);
+  }, [reports, displayReports]);
 
   // currentView 변경 시 지도 인스턴스 정리
   useEffect(() => {
@@ -799,292 +840,200 @@ export default function EnvironmentalMapPlatform() {
     }));
   };
 
+  useEffect(() => {
+    console.log('[디버그] selectedReport 값 변경:', selectedReport);
+  }, [selectedReport]);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-cyan-50 flex flex-col items-center">
-      {/* 헤더 */}
-      <header className="bg-white shadow-lg border-b border-gray-200 w-full sticky top-0 z-50 py-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex items-center">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
-                  <Leaf className="w-7 h-7 text-white" />
+    <div className="container mx-auto py-8">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 items-start">
+        {/* 좌측 사이드바: 검색, 필터, 최근 제보, AI 분석 요약 등 */}
+        <div className="space-y-6 bg-blue-50/80 rounded-2xl p-2">
+          {/* 위치 검색 */}
+          <Card className="bg-white border-0 shadow-lg">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center space-x-2 text-lg">
+                <Search className="w-5 h-5 text-emerald-600" />
+                <span>위치 검색</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex space-x-2">
+                <Input
+                  placeholder="주소를 입력하세요"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="flex-1 border-gray-200 focus:border-emerald-500"
+                />
+                <Button onClick={handleSearch} className="bg-emerald-600 hover:bg-emerald-700">
+                  <Search className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          {/* 필터 */}
+          <Card className="bg-white border-0 shadow-lg">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center space-x-2 text-lg">
+                <Filter className="w-5 h-5 text-blue-600" />
+                <span>필터</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700">유형</Label>
+                <Select value={filters.type} onValueChange={(value) => setFilters({...filters, type: value as any})}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">전체</SelectItem>
+                    <SelectItem value="waste">폐기물</SelectItem>
+                    <SelectItem value="air">대기오염</SelectItem>
+                    <SelectItem value="water">수질오염</SelectItem>
+                    <SelectItem value="noise">소음</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-gray-700">상태</Label>
+                <Select value={filters.status} onValueChange={(value) => setFilters({...filters, status: value as any})}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">전체</SelectItem>
+                    <SelectItem value="제보접수">제보접수</SelectItem>
+                    <SelectItem value="처리중">처리중</SelectItem>
+                    <SelectItem value="처리완료">처리완료</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+          {/* 최근 제보 현황 */}
+          <Card className="bg-white border-0 shadow-lg">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center space-x-2 text-lg">
+                <Clock className="w-5 h-5 text-orange-500" />
+                <span>최근 제보</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {displayReports.slice(0, 5).map((report) => (
+                <div key={report.id} className="flex items-center justify-between text-sm">
+                  <span className="truncate max-w-[120px]">{report.title}</span>
+                  <span className="text-xs text-gray-400">{new Date(report.date).toLocaleDateString()}</span>
                 </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">환경지킴이</h1>
-                  <p className="text-base text-gray-500">우리 동네 환경을 지켜요</p>
+              ))}
+            </CardContent>
+          </Card>
+          {/* AI 분석 통계(placeholder) */}
+          <Card className="bg-white border-0 shadow-lg">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center space-x-2 text-lg">
+                <Brain className="w-5 h-5 text-blue-500" />
+                <span>AI 분석 요약</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm text-gray-700">
+              <div>• 폐기물 관련 제보가 가장 많음</div>
+              <div>• 최근 3개월간 제보 15% 증가</div>
+              <div>• 강남구, 강북구 집중</div>
+            </CardContent>
+          </Card>
+          {/* 요약 정보 카드 */}
+          <Card className="bg-white border-0 shadow-lg">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center space-x-2 text-lg">
+                <BarChart3 className="w-5 h-5 text-emerald-600" />
+                <span>요약 현황</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span>전체 제보</span>
+                <span className="font-bold text-emerald-700">{stats.totalReports}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span>지도 표시</span>
+                <span className="font-bold text-blue-700">{displayReports.length}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span>처리중</span>
+                <span className="font-bold text-blue-600">{stats.activeReports}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span>해결완료</span>
+                <span className="font-bold text-green-600">{stats.resolvedReports}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span>활성 사용자</span>
+                <span className="font-bold text-purple-600">{stats.totalUsers}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        {/* 메인 지도 영역 */}
+        <div className="xl:col-span-3 bg-blue-50/80 rounded-2xl p-2">
+          <Card className="bg-white border-0 shadow-lg h-[700px] flex flex-col">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center space-x-2 text-lg">
+                  <MapPin className="w-5 h-5 text-emerald-600" />
+                  <span>환경 지도</span>
+                </CardTitle>
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowReportDialog(true)}
+                    className="bg-emerald-600 text-white hover:bg-emerald-700 border-emerald-600"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    제보하기
+                  </Button>
                 </div>
               </div>
-              {/* 메뉴와 로고 사이 넉넉한 간격 */}
-              <div className="ml-10" />
-              {/* 네비게이션 메뉴 */}
-              <nav className="hidden md:flex items-center space-x-6">
-                <Link href="/" className={`px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-emerald-500 touch-optimized`}>지도</Link>
-                <Link href="/stats" className={`px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-blue-500 touch-optimized`}>통계 및 데이터</Link>
-                <Link href="/analysis" className={`px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-purple-500 touch-optimized`}>분석</Link>
-                <Link href="/community" className={`px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-green-500 touch-optimized`}>커뮤니티</Link>
-              </nav>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              {/* 알림 */}
-              <Button variant="ghost" size="sm" className="relative touch-optimized px-3 py-2">
-                <Bell className="w-6 h-6 text-gray-600" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    {unreadCount}
-                  </span>
-                )}
-              </Button>
-              
-              {/* 사용자 메뉴 */}
-              {isLoggedIn ? (
-                <div className="flex items-center space-x-3">
-                  <Avatar className="w-8 h-8 border-2 border-emerald-200">
-                    {currentUser?.avatar && currentUser.avatar.trim() !== '' && (
-                      <AvatarImage src={currentUser.avatar} />
-                    )}
-                    <AvatarFallback className="bg-emerald-100 text-emerald-600 text-sm font-medium">
-                      {currentUser?.name?.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="hidden sm:block">
-                    <p className="text-sm font-medium text-gray-900">{currentUser?.name}</p>
-                    <p className="text-xs text-gray-500">{currentUser?.email}</p>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={handleLogout} className="text-gray-600 hover:text-gray-900">
-                    <LogOut className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : (
-                <Button 
-                  onClick={() => setShowAuthDialog(true)}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-7 py-2 touch-optimized text-base font-semibold"
-                >
-                  <LogIn className="w-5 h-5 mr-2" />
-                  로그인
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* 메인 컨텐츠 */}
-      <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1">
-        {/* 메인 컨텐츠 영역 */}
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6" style={{ display: currentView === "map" ? "grid" : "none" }}>
-          {/* 좌측 사이드바 */}
-          <div className="xl:col-span-1 space-y-6">
-            {/* 위치 검색 */}
-            <Card className="bg-white border-0 shadow-lg">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center space-x-2 text-lg">
-                  <Search className="w-5 h-5 text-emerald-600" />
-                  <span>위치 검색</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex space-x-2">
-                  <Input
-                    placeholder="주소를 입력하세요"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="flex-1 border-gray-200 focus:border-emerald-500"
-                  />
-                  <Button onClick={handleSearch} className="bg-emerald-600 hover:bg-emerald-700">
-                    <Search className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-            {/* 필터 */}
-            <Card className="bg-white border-0 shadow-lg">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center space-x-2 text-lg">
-                  <Filter className="w-5 h-5 text-blue-600" />
-                  <span>필터</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">유형</Label>
-                  <Select value={filters.type} onValueChange={(value) => setFilters({...filters, type: value as any})}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">전체</SelectItem>
-                      <SelectItem value="waste">폐기물</SelectItem>
-                      <SelectItem value="air">대기오염</SelectItem>
-                      <SelectItem value="water">수질오염</SelectItem>
-                      <SelectItem value="noise">소음</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">상태</Label>
-                  <Select value={filters.status} onValueChange={(value) => setFilters({...filters, status: value as any})}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">전체</SelectItem>
-                      <SelectItem value="제보접수">제보접수</SelectItem>
-                      <SelectItem value="처리중">처리중</SelectItem>
-                      <SelectItem value="처리완료">처리완료</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-            {/* 최근 제보 현황 */}
-            <Card className="bg-white border-0 shadow-lg">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center space-x-2 text-lg">
-                  <Clock className="w-5 h-5 text-orange-500" />
-                  <span>최근 제보</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {displayReports.slice(0, 5).map((report) => (
-                  <div key={report.id} className="flex items-center justify-between text-sm">
-                    <span className="truncate max-w-[120px]">{report.title}</span>
-                    <span className="text-xs text-gray-400">{new Date(report.date).toLocaleDateString()}</span>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-            {/* AI 분석 통계(placeholder) */}
-            <Card className="bg-white border-0 shadow-lg">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center space-x-2 text-lg">
-                  <Brain className="w-5 h-5 text-blue-500" />
-                  <span>AI 분석 요약</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm text-gray-700">
-                <div>• 폐기물 관련 제보가 가장 많음</div>
-                <div>• 최근 3개월간 제보 15% 증가</div>
-                <div>• 강남구, 강북구 집중</div>
-              </CardContent>
-            </Card>
-            {/* 요약 정보 카드 */}
-            <Card className="bg-white border-0 shadow-lg">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center space-x-2 text-lg">
-                  <BarChart3 className="w-5 h-5 text-emerald-600" />
-                  <span>요약 현황</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span>총 제보</span>
-                  <span className="font-bold text-emerald-700">{stats.totalReports}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>처리중</span>
-                  <span className="font-bold text-blue-600">{stats.activeReports}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>해결완료</span>
-                  <span className="font-bold text-green-600">{stats.resolvedReports}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>활성 사용자</span>
-                  <span className="font-bold text-purple-600">{stats.totalUsers}</span>
-                </div>
-              </CardContent>
-            </Card>
-            {/* 분류별 범례 */}
-            <Card className="bg-white border-0 shadow-lg">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center space-x-2 text-lg">
-                  <BarChart3 className="w-5 h-5 text-emerald-600" />
-                  <span>분류별 범례</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex gap-4 items-center my-2">
-                  {Object.entries(CATEGORY_STYLES).map(([category, style]) => (
-                    <div key={category} className="flex items-center gap-1 text-sm">
-                      <span style={{ color: style.color, fontSize: '1.2em' }}>{style.icon}</span>
-                      <span>{category}</span>
+            </CardHeader>
+            <CardContent className="relative w-full h-[700px] min-h-[600px] p-0 flex-1" style={{height: 700, minHeight: 600}}>
+              {currentView === "map" && (
+                <>
+                  {reportsLoading ? (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 z-10">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-2"></div>
+                        <p className="text-gray-600">제보 데이터를 불러오는 중...</p>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          {/* 메인 컨텐츠(지도 등) */}
-          <div className="xl:col-span-3">
-            <Card className="bg-white border-0 shadow-lg h-[700px] flex flex-col">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center space-x-2 text-lg">
-                    <MapPin className="w-5 h-5 text-emerald-600" />
-                    <span>환경 지도</span>
-                  </CardTitle>
-                  <div className="flex items-center space-x-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setShowReportDialog(true)}
-                      className="bg-emerald-600 text-white hover:bg-emerald-700 border-emerald-600"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      제보하기
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="relative w-full h-full min-h-[600px] overflow-hidden p-0 flex-1">
-                {currentView === "map" && (
-                  <SimpleMap
-                    reports={displayReports}
-                    onReportSelect={setSelectedReport}
-                    selectedReport={selectedReport}
-                    currentLocation={currentLocation}
-                    isDialogOpen={!!selectedReport}
-                  />
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                  ) : (
+                    <SimpleMap
+                      reports={displayReports}
+                      onReportSelect={(report) => {
+                        console.log('[디버그] onReportSelect 호출:', report);
+                        setSelectedReport(report);
+                      }}
+                      selectedReport={selectedReport}
+                      currentLocation={currentLocation}
+                      isDialogOpen={!!selectedReport}
+                    />
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
+          <MapLegendOverlay />
         </div>
-
-        {/* 통계 뷰 */}
-        {currentView === "stats" && (
-          <StatsView stats={stats} reports={displayReports} />
-        )}
-
-        {/* 커뮤니티 뷰 */}
-        {currentView === "community" && (
-          <CommunityView 
-            posts={communityPosts}
-            onAddPost={handleCommunityPost}
-            onAddComment={handleAddComment}
-            onToggleLike={handleToggleLike}
-            currentUser={currentUser}
-            isLoggedIn={isLoggedIn}
-          />
-        )}
-
-        {/* 분석 뷰 */}
-        {currentView === "analysis" && (
-          <AnalysisView reports={displayReports} hideMap />
-        )}
-
-        {/* 인증 다이얼로그 */}
-        <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
-          <AuthDialog onLogin={handleLogin} onSignup={handleSignup} />
-        </Dialog>
-
-        {/* 모바일 탭 바 */}
-        <MobileTabBar />
-      </main>
-      {/* 세부내용 다이얼로그는 항상 Portal 레이어에서만 렌더 */}
-      <ReportDetailDialog report={selectedReport} open={!!selectedReport} onOpenChange={(open) => { if (!open) setSelectedReport(null) }} />
+      </div>
+      {selectedReport && (
+        <ReportDetailDialog
+          report={selectedReport}
+          open={!!selectedReport}
+          onOpenChange={(open) => {
+            if (!open) setSelectedReport(null);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -7,7 +7,7 @@ export interface Report {
   severity: 'low' | 'medium' | 'high'
   reporter: string
   date: string
-  status: '제보접수' | '처리중' | '처리완료'
+  status: '제보접수' | '처리중' | '처리완료' | '긴급'
   description: string
   coordinates: {
     lat: number
@@ -87,7 +87,7 @@ export interface Stats {
 // 필터 타입
 export interface Filters {
   type: 'all' | 'waste' | 'air' | 'water' | 'noise'
-  status: 'all' | '제보접수' | '처리중' | '처리완료'
+  status: 'all' | '제보접수' | '처리중' | '처리완료' | '긴급'
   dateRange: 'all' | 'today' | 'week' | 'month'
   severity: 'all' | 'low' | 'medium' | 'high'
 }
