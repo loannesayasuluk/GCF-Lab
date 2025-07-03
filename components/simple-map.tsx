@@ -6,16 +6,11 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, Tooltip } from 'react-l
 import "leaflet/dist/leaflet.css"
 import L from "leaflet"
 
-// Leaflet 기본 마커 아이콘 경로 문제 해결
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
-import markerIcon from 'leaflet/dist/images/marker-icon.png'
-import markerShadow from 'leaflet/dist/images/marker-shadow.png'
-
-// 아이콘 경로를 직접 지정
+// Leaflet 기본 마커 아이콘 경로 문제 해결 - public 폴더 사용
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x.src ?? markerIcon2x,
-  iconUrl: markerIcon.src ?? markerIcon,
-  shadowUrl: markerShadow.src ?? markerShadow,
+  iconRetinaUrl: '/leaflet/marker-icon-2x.png',
+  iconUrl: '/leaflet/marker-icon.png',
+  shadowUrl: '/leaflet/marker-shadow.png',
 })
 
 // 유형별 마커 색상 이미지 경로
