@@ -76,7 +76,8 @@ import { CATEGORY_STYLES } from '../lib/utils'
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import MapLegendOverlay from "@/components/map-legend-overlay";
-const SimpleMap = dynamic(() => import("@/components/simple-map"), { ssr: false });
+import type { SimpleMapRef } from "@/components/simple-map"
+const SimpleMap = dynamic(() => import("@/components/simple-map"), { ssr: false })
 
 // OpenAI AI 분석 호출 함수
 async function fetchAISummary(content: string) {
@@ -287,9 +288,12 @@ function AuthDialog({
 function useDeviceType() {
   const [device, setDevice] = useState<'mobile' | 'tablet' | 'pc'>('pc');
   useEffect(() => {
-    const userAgent = typeof window !== 'undefined' ? navigator.userAgent : '';
+    if (typeof window === 'undefined') return;
+    
+    const userAgent = navigator.userAgent;
     const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
     const width = window.innerWidth;
+    
     if (isMobile || width < 600) setDevice('mobile');
     else if (width < 1024) setDevice('tablet');
     else setDevice('pc');
@@ -327,6 +331,26 @@ function formatDate(date: string) {
   const d = new Date(date);
   if (isNaN(d.getTime())) return '';
   return d.toLocaleDateString('ko-KR');
+}
+
+// 주소 검색 결과 타입 정의
+interface AddressSearchResult {
+  place_id: number;
+  display_name: string;
+  lat: string;
+  lon: string;
+  type: string;
+}
+
+// 제보 유형별 색상 반환 함수
+function getTypeColor(type: string): string {
+  switch (type) {
+    case 'waste': return 'bg-purple-500'
+    case 'air': return 'bg-blue-500'
+    case 'water': return 'bg-cyan-500'
+    case 'noise': return 'bg-yellow-500'
+    default: return 'bg-gray-500'
+  }
 }
 
 export default function EnvironmentalMapPlatform() {
@@ -367,6 +391,13 @@ export default function EnvironmentalMapPlatform() {
   const [checked, setChecked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [addressSearchResults, setAddressSearchResults] = useState<AddressSearchResult[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [showSearchResults, setShowSearchResults] = useState(false)
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const mapRef = useRef<SimpleMapRef>(null)
+  const [aiSummary, setAiSummary] = useState<any>(null)
+  const [aiSummaryLoading, setAiSummaryLoading] = useState(false)
 
   const device = useDeviceType();
 
@@ -848,42 +879,133 @@ export default function EnvironmentalMapPlatform() {
     console.log('[디버그] selectedReport 값 변경:', selectedReport);
   }, [selectedReport]);
 
+  // 주소 검색 함수 (OpenStreetMap Nominatim API 사용)
+  const searchAddress = async (query: string) => {
+    if (!query.trim() || query.length < 2) {
+      setAddressSearchResults([])
+      return
+    }
+
+    setIsSearching(true)
+    try {
+      // 한국 지역으로 제한하고, 주소 검색에 최적화된 파라미터
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?` +
+        `q=${encodeURIComponent(query)}&` +
+        `countrycodes=kr&` +
+        `addressdetails=1&` +
+        `limit=10&` +
+        `format=json&` +
+        `accept-language=ko`
+      )
+      
+      if (response.ok) {
+        const data = await response.json()
+        setAddressSearchResults(data)
+      } else {
+        console.error('주소 검색 실패:', response.status)
+        setAddressSearchResults([])
+      }
+    } catch (error) {
+      console.error('주소 검색 오류:', error)
+      setAddressSearchResults([])
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  // 검색어 변경 시 디바운스 적용
+  const handleSearchInputChange = (value: string) => {
+    setSearchTerm(value)
+    setShowSearchResults(true)
+    
+    // 이전 타이머 취소
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+    
+    // 500ms 후에 검색 실행 (디바운스)
+    searchTimeoutRef.current = setTimeout(() => {
+      searchAddress(value)
+    }, 500)
+  }
+
+  // 주소 선택 시 지도 이동
+  const handleAddressSelect = (result: AddressSearchResult) => {
+    const lat = parseFloat(result.lat)
+    const lng = parseFloat(result.lon)
+    
+    // 지도 중심 이동
+    if (mapRef.current) {
+      mapRef.current.flyTo(lat, lng, 15)
+    }
+    
+    setSearchTerm(result.display_name)
+    setShowSearchResults(false)
+    setAddressSearchResults([])
+  }
+
+  // 검색 결과 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element
+      if (!target.closest('.search-container')) {
+        setShowSearchResults(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // 컴포넌트 언마운트 시 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  // AI 분석 요약 호출
+  useEffect(() => {
+    const callAISummary = async () => {
+      if (displayReports.length === 0) {
+        setAiSummary(null)
+        return
+      }
+
+      setAiSummaryLoading(true)
+      try {
+        // 제보 데이터를 문자열로 변환하여 AI 분석에 전달
+        const reportsData = displayReports.map(report => ({
+          title: report.title,
+          description: report.description,
+          type: report.type,
+          status: report.status,
+          severity: report.severity,
+          location: report.location,
+          date: report.date
+        }))
+        
+        const content = JSON.stringify(reportsData, null, 2)
+        const result = await fetchAISummary(content)
+        setAiSummary(result)
+      } catch (error) {
+        console.error('AI 분석 오류:', error)
+        setAiSummary(null)
+      } finally {
+        setAiSummaryLoading(false)
+      }
+    }
+
+    // 디바운스 적용 (1초 후 실행)
+    const timeoutId = setTimeout(callAISummary, 1000)
+    return () => clearTimeout(timeoutId)
+  }, [displayReports])
+
   return (
     <>
-      <header className="bg-white shadow-lg border-b border-gray-200 w-full sticky top-0 z-50 py-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex items-center">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
-                  <Leaf className="w-7 h-7 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">환경지킴이</h1>
-                  <p className="text-base text-gray-500">우리 동네 환경을 지켜요</p>
-                </div>
-              </div>
-              <div className="ml-20" />
-              <nav className="hidden md:flex items-center space-x-6">
-                <Link href="/" className="px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-emerald-500 touch-optimized">지도</Link>
-                <Link href="/stats" className="px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-blue-500 touch-optimized">통계 및 데이터</Link>
-                <Link href="/analysis" className="px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-purple-500 touch-optimized">분석</Link>
-                <Link href="/community" className="px-7 py-3.5 rounded-xl text-lg font-semibold transition-all focus-visible:outline-2 focus-visible:outline-green-500 touch-optimized">커뮤니티</Link>
-              </nav>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button className="relative touch-optimized px-3 py-2">
-                <Bell className="w-6 h-6 text-gray-600" />
-              </button>
-              <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-7 py-2 touch-optimized text-base font-semibold rounded-xl flex items-center"
-                onClick={() => setShowAuthDialog(true)}>
-                <LogIn className="w-5 h-5 mr-2" />
-                로그인
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
       <div className="container mx-auto py-8">
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 items-start">
           {/* 좌측 사이드바: 검색, 필터, 최근 제보, AI 분석 요약 등 */}
@@ -897,16 +1019,53 @@ export default function EnvironmentalMapPlatform() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex space-x-2">
-                  <Input
-                    placeholder="주소를 입력하세요"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="flex-1 border-gray-200 focus:border-emerald-500"
-                  />
-                  <Button onClick={handleSearch} className="bg-emerald-600 hover:bg-emerald-700">
-                    <Search className="w-4 h-4" />
-                  </Button>
+                <div className="search-container relative">
+                  <div className="flex space-x-2">
+                    <div className="relative flex-1">
+                      <Input
+                        placeholder="주소를 입력하세요 (예: 잠실로62)"
+                        value={searchTerm}
+                        onChange={(e) => handleSearchInputChange(e.target.value)}
+                        className="border-gray-200 focus:border-emerald-500 pr-8"
+                      />
+                      {isSearching && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600"></div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* 검색 결과 드롭다운 */}
+                  {showSearchResults && addressSearchResults.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+                      {addressSearchResults.map((result) => (
+                        <div
+                          key={result.place_id}
+                          className="px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                          onClick={() => handleAddressSelect(result)}
+                        >
+                          <div className="text-sm font-medium text-gray-900">
+                            {result.display_name.split(', ').slice(0, 3).join(', ')}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {result.type === 'house' ? '건물' : 
+                             result.type === 'street' ? '도로' : 
+                             result.type === 'suburb' ? '지역' : '주소'}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* 검색 결과 없음 */}
+                  {showSearchResults && searchTerm.length >= 2 && !isSearching && addressSearchResults.length === 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                      <div className="px-3 py-2 text-sm text-gray-500">
+                        검색 결과가 없습니다.
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -950,24 +1109,84 @@ export default function EnvironmentalMapPlatform() {
                 </div>
               </CardContent>
             </Card>
-            {/* 최근 제보 현황 */}
+            {/* 최근 제보 + 요약 현황 통합 */}
             <Card className="bg-white border-0 shadow-lg">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center space-x-2 text-lg">
-                  <Clock className="w-5 h-5 text-orange-500" />
-                  <span>최근 제보</span>
+                  <BarChart3 className="w-5 h-5 text-emerald-600" />
+                  <span>현황 요약</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                {displayReports.slice(0, 5).map((report) => (
-                  <div key={report.id} className="flex items-center justify-between text-sm">
-                    <span className="truncate max-w-[120px]">{report.title}</span>
-                    <span className="text-xs text-gray-400">{new Date(report.date).toLocaleDateString()}</span>
+              <CardContent className="space-y-4">
+                {/* 주요 통계 */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-3 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-xs text-emerald-600 font-medium">전체 제보</div>
+                        <div className="text-lg font-bold text-emerald-700">{stats.totalReports}</div>
+                      </div>
+                      <div className="text-emerald-500">
+                        <Activity className="w-5 h-5" />
+                      </div>
+                    </div>
                   </div>
-                ))}
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-xs text-blue-600 font-medium">처리중</div>
+                        <div className="text-lg font-bold text-blue-700">{stats.activeReports}</div>
+                      </div>
+                      <div className="text-blue-500">
+                        <Clock className="w-5 h-5" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-3 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-xs text-green-600 font-medium">해결완료</div>
+                        <div className="text-lg font-bold text-green-700">{stats.resolvedReports}</div>
+                      </div>
+                      <div className="text-green-500">
+                        <CheckCircle className="w-5 h-5" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-3 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-xs text-purple-600 font-medium">활성 사용자</div>
+                        <div className="text-lg font-bold text-purple-700">{stats.totalUsers}</div>
+                      </div>
+                      <div className="text-purple-500">
+                        <Users className="w-4 h-4" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* 최근 제보 */}
+                <div className="border-t pt-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">최근 제보</span>
+                    <span className="text-xs text-gray-400">{displayReports.length}건 표시</span>
+                  </div>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {displayReports.slice(0, 3).map((report) => (
+                      <div key={report.id} className="flex items-center justify-between text-xs p-2 bg-gray-50 rounded">
+                        <div className="flex items-center space-x-2">
+                          <span className={`w-2 h-2 rounded-full ${getTypeColor(report.type)}`}></span>
+                          <span className="truncate max-w-[100px]">{report.title}</span>
+                        </div>
+                        <span className="text-gray-400">{new Date(report.date).toLocaleDateString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </CardContent>
             </Card>
-            {/* AI 분석 통계(placeholder) */}
+            {/* AI 분석 요약 */}
             <Card className="bg-white border-0 shadow-lg">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center space-x-2 text-lg">
@@ -975,41 +1194,57 @@ export default function EnvironmentalMapPlatform() {
                   <span>AI 분석 요약</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2 text-sm text-gray-700">
-                <div>• 폐기물 관련 제보가 가장 많음</div>
-                <div>• 최근 3개월간 제보 15% 증가</div>
-                <div>• 강남구, 강북구 집중</div>
-              </CardContent>
-            </Card>
-            {/* 요약 정보 카드 */}
-            <Card className="bg-white border-0 shadow-lg">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center space-x-2 text-lg">
-                  <BarChart3 className="w-5 h-5 text-emerald-600" />
-                  <span>요약 현황</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span>전체 제보</span>
-                  <span className="font-bold text-emerald-700">{stats.totalReports}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>지도 표시</span>
-                  <span className="font-bold text-blue-700">{displayReports.length}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>처리중</span>
-                  <span className="font-bold text-blue-600">{stats.activeReports}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>해결완료</span>
-                  <span className="font-bold text-green-600">{stats.resolvedReports}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>활성 사용자</span>
-                  <span className="font-bold text-purple-600">{stats.totalUsers}</span>
-                </div>
+              <CardContent className="space-y-3">
+                {aiSummaryLoading ? (
+                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                    <span>AI 분석 중...</span>
+                  </div>
+                ) : aiSummary ? (
+                  <div className="space-y-3">
+                    <div className="text-sm text-gray-700 bg-blue-50 p-3 rounded-lg">
+                      {aiSummary.summary}
+                    </div>
+                    
+                    {aiSummary.keyInsights && aiSummary.keyInsights.length > 0 && (
+                      <div>
+                        <div className="text-xs font-medium text-gray-700 mb-2">주요 인사이트</div>
+                        <div className="space-y-1">
+                          {aiSummary.keyInsights.slice(0, 2).map((insight, index) => (
+                            <div key={index} className="text-xs text-gray-600 flex items-start space-x-2">
+                              <span className="text-blue-500 mt-0.5">•</span>
+                              <span>{insight}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {aiSummary.recommendations && aiSummary.recommendations.length > 0 && (
+                      <div>
+                        <div className="text-xs font-medium text-gray-700 mb-2">권장사항</div>
+                        <div className="space-y-1">
+                          {aiSummary.recommendations.slice(0, 1).map((rec, index) => (
+                            <div key={index} className="text-xs text-gray-600 flex items-start space-x-2">
+                              <span className="text-green-500 mt-0.5">→</span>
+                              <span>{rec}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {aiSummary.dataQuality && (
+                      <div className="text-xs text-gray-500 pt-2 border-t">
+                        데이터 품질: {aiSummary.dataQuality}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-500">
+                    AI 분석을 시작하려면 제보 데이터가 필요합니다.
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -1047,6 +1282,7 @@ export default function EnvironmentalMapPlatform() {
                       </div>
                     ) : (
                       <SimpleMap
+                        ref={mapRef}
                         reports={displayReports}
                         onReportSelect={(report) => {
                           console.log('[디버그] onReportSelect 호출:', report);

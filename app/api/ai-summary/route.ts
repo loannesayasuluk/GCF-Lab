@@ -24,13 +24,45 @@ export async function POST(req: NextRequest) {
 
   const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
-  // 프롬프트 구성 (Gemini는 contents 배열)
+  // 개선된 프롬프트 구성 - 더 의미있는 분석 결과 제공
   const prompt = {
     contents: [
       {
         parts: [
           {
-            text: `다음 환경 제보 내용을 한글로 요약하고, 관련 키워드 3개, 카테고리, 긴급도, 예상비용, 예상기간을 추출해줘. 반드시 아래 JSON 형태로만 답변해. 설명 없이 JSON만 반환해.\n내용: """${content}"""\n결과 예시:\n{\n  "summary": "...",\n  "keywords": ["...", "...", "..."],\n  "category": "...",\n  "urgency": "...",\n  "estimatedCost": "...",\n  "expectedDuration": "..."\n}`
+            text: `다음 환경 제보 데이터를 분석하여 실제로 유용한 인사이트를 제공해주세요. 
+
+데이터: """${content}"""
+
+다음 기준으로 분석해주세요:
+1. 데이터가 5건 미만이면: "데이터가 부족하여 의미있는 분석이 어렵습니다. 더 많은 제보가 필요합니다."
+2. 데이터가 충분하면:
+   - 가장 급증하는 문제 유형과 지역
+   - 처리 지연이 있는 이슈
+   - 시급한 대응이 필요한 핫스팟
+   - 개선이 필요한 처리 프로세스
+   - 예방 가능한 문제 패턴
+
+반드시 아래 JSON 형태로만 답변해주세요:
+
+{
+  "summary": "핵심 분석 요약 (2-3문장)",
+  "keyInsights": [
+    "가장 중요한 인사이트 1",
+    "가장 중요한 인사이트 2", 
+    "가장 중요한 인사이트 3"
+  ],
+  "trends": {
+    "increasingIssues": ["급증하는 문제들"],
+    "hotspots": ["집중 지역들"],
+    "delayedProcessing": ["지연 처리 이슈들"]
+  },
+  "recommendations": [
+    "즉시 대응 권장사항 1",
+    "즉시 대응 권장사항 2"
+  ],
+  "dataQuality": "데이터 품질 평가 (충분/부족/양호 등)"
+}`
           }
         ]
       }
@@ -60,22 +92,32 @@ export async function POST(req: NextRequest) {
     try {
       result = JSON.parse(cleanText);
     } catch {
+      // 파싱 실패 시 기본 응답
       result = {
         summary: 'AI 분석 결과를 불러오지 못했습니다.',
-        insights: [],
-        recommendations: [],
-        trends: [],
-        riskAreas: [],
-        efficiency: {
-          avgProcessingTime: '-',
-          completionRate: 0,
-          priorityIssues: 0
-        }
+        keyInsights: ['데이터 분석 중 오류가 발생했습니다.'],
+        trends: {
+          increasingIssues: [],
+          hotspots: [],
+          delayedProcessing: []
+        },
+        recommendations: ['데이터를 다시 확인해주세요.'],
+        dataQuality: '분석 불가'
       };
     }
     return NextResponse.json(result);
   } catch (error) {
     console.error('Gemini API 호출 오류:', error);
-    return NextResponse.json({ summary: 'AI 분석 실패: Gemini API 호출 오류' });
+    return NextResponse.json({ 
+      summary: 'AI 분석 실패: Gemini API 호출 오류',
+      keyInsights: ['API 연결에 문제가 있습니다.'],
+      trends: {
+        increasingIssues: [],
+        hotspots: [],
+        delayedProcessing: []
+      },
+      recommendations: ['잠시 후 다시 시도해주세요.'],
+      dataQuality: '분석 불가'
+    });
   }
 } 

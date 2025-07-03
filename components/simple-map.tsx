@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef } from "react"
+import React, { useEffect, useRef, useImperativeHandle, forwardRef } from "react"
 import { Report } from "@/types"
 import { MapContainer, TileLayer, Marker, Popup, useMap, Tooltip } from 'react-leaflet'
 import "leaflet/dist/leaflet.css"
@@ -64,6 +64,11 @@ export interface SimpleMapProps {
   zoom?: number
 }
 
+export interface SimpleMapRef {
+  flyTo: (lat: number, lng: number, zoom?: number) => void
+  setView: (lat: number, lng: number, zoom?: number) => void
+}
+
 function FlyToSelected({ selectedReport }: { selectedReport: Report | null }) {
   const map = useMap()
   useEffect(() => {
@@ -74,7 +79,18 @@ function FlyToSelected({ selectedReport }: { selectedReport: Report | null }) {
   return null
 }
 
-export default function SimpleMap({
+// 지도 제어를 위한 내부 컴포넌트
+function MapController({ mapRef }: { mapRef: React.MutableRefObject<any> }) {
+  const map = useMap()
+  
+  useEffect(() => {
+    mapRef.current = map
+  }, [map, mapRef])
+  
+  return null
+}
+
+const SimpleMap = forwardRef<SimpleMapRef, SimpleMapProps>(({
   reports,
   onReportSelect,
   selectedReport,
@@ -82,8 +98,22 @@ export default function SimpleMap({
   isDialogOpen,
   center = { lat: 37.5665, lng: 126.978 },
   zoom = 11,
-}: SimpleMapProps) {
+}, ref) => {
   const mapRef = useRef<any>(null)
+
+  // 부모 컴포넌트에서 호출할 수 있는 메서드들
+  useImperativeHandle(ref, () => ({
+    flyTo: (lat: number, lng: number, zoomLevel: number = 15) => {
+      if (mapRef.current) {
+        mapRef.current.flyTo([lat, lng], zoomLevel, { duration: 1 })
+      }
+    },
+    setView: (lat: number, lng: number, zoomLevel: number = 15) => {
+      if (mapRef.current) {
+        mapRef.current.setView([lat, lng], zoomLevel)
+      }
+    }
+  }), [])
 
   return (
     <MapContainer
@@ -92,9 +122,9 @@ export default function SimpleMap({
         zoom,
         scrollWheelZoom: true,
         style: { height: 600, width: '100%' },
-        whenCreated: (mapInstance: any) => { mapRef.current = mapInstance; },
       }}
     >
+      <MapController mapRef={mapRef} />
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         // @ts-ignore
@@ -128,6 +158,7 @@ export default function SimpleMap({
           popupAnchor: [0, -38],
         }) as any;
         return (
+          // @ts-ignore
           <Marker
             key={report.id}
             position={[report.coordinates.lat, report.coordinates.lng]}
@@ -160,7 +191,7 @@ export default function SimpleMap({
       <FlyToSelected selectedReport={selectedReport} />
     </MapContainer>
   )
-}
+})
 
 // 타입별 아이콘 반환 함수
 function getTypeIcon(type: string): string {
@@ -172,3 +203,5 @@ function getTypeIcon(type: string): string {
     default: return '📍'
   }
 }
+
+export default SimpleMap

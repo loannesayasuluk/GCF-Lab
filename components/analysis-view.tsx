@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { useToast } from "@/hooks/use-toast"
 import { Report } from "@/types"
-import SimpleMap from "./simple-map"
+import dynamic from "next/dynamic"
 import ReportDetailDialog from "./ReportDetailDialog"
 
 interface AnalysisViewProps {
@@ -28,6 +28,9 @@ interface AnalysisResults {
     priorityIssues: number
   }
 }
+
+const WordCloud = dynamic(() => import("react-wordcloud"), { ssr: false })
+const SimpleMap = dynamic(() => import("./simple-map"), { ssr: false })
 
 export default function AnalysisView({ reports, hideMap }: AnalysisViewProps) {
   const { toast } = useToast()
@@ -262,12 +265,20 @@ ${reports.slice(0, 5).map((r, i) => `${i+1}. ${r.title}: ${r.description}`).join
                 </CardHeader>
                 <CardContent className="p-6">
                   <p className="text-lg font-medium mb-6 leading-relaxed">{analysisResults.summary}</p>
-                  {/* 주요 키워드 뱃지 */}
+                  {/* 워드클라우드 시각화 */}
                   {analysisResults.insights.filter(i => i.startsWith('키워드:')).length > 0 && (
-                    <div className="mb-4 flex flex-wrap gap-2">
-                      {analysisResults.insights.filter(i => i.startsWith('키워드:')).map((i, idx) => (
-                        <Badge key={idx} className="bg-blue-100 text-blue-800 border-blue-200">{i.replace('키워드: ', '')}</Badge>
-                      ))}
+                    <div className="mb-4 flex flex-col md:flex-row gap-4 items-center">
+                      <div className="w-full md:w-1/2 h-48">
+                        <WordCloud
+                          words={analysisResults.insights.filter(i => i.startsWith('키워드:')).map(i => ({ text: i.replace('키워드: ', ''), value: 20 }))}
+                          options={{ rotations: 2, rotationAngles: [-30, 30], fontSizes: [18, 36] }}
+                        />
+                      </div>
+                      <div className="flex flex-wrap gap-2 w-full md:w-1/2">
+                        {analysisResults.insights.filter(i => i.startsWith('키워드:')).map((i, idx) => (
+                          <Badge key={idx} className="bg-blue-100 text-blue-800 border-blue-200">{i.replace('키워드: ', '')}</Badge>
+                        ))}
+                      </div>
                     </div>
                   )}
                   {/* 나머지 인사이트 */}
