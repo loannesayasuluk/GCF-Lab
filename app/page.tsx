@@ -1010,65 +1010,6 @@ export default function EnvironmentalMapPlatform() {
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 items-start">
           {/* 좌측 사이드바: 검색, 필터, 최근 제보, AI 분석 요약 등 */}
           <div className="space-y-6 bg-blue-50/80 rounded-2xl p-2">
-            {/* 위치 검색 */}
-            <Card className="bg-white border-0 shadow-lg">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center space-x-2 text-lg">
-                  <Search className="w-5 h-5 text-emerald-600" />
-                  <span>위치 검색</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="search-container relative">
-                  <div className="flex space-x-2">
-                    <div className="relative flex-1">
-                      <Input
-                        placeholder="주소를 입력하세요 (예: 잠실로62)"
-                        value={searchTerm}
-                        onChange={(e) => handleSearchInputChange(e.target.value)}
-                        className="border-gray-200 focus:border-emerald-500 pr-8"
-                      />
-                      {isSearching && (
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600"></div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* 검색 결과 드롭다운 */}
-                  {showSearchResults && addressSearchResults.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
-                      {addressSearchResults.map((result) => (
-                        <div
-                          key={result.place_id}
-                          className="px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                          onClick={() => handleAddressSelect(result)}
-                        >
-                          <div className="text-sm font-medium text-gray-900">
-                            {result.display_name.split(', ').slice(0, 3).join(', ')}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {result.type === 'house' ? '건물' : 
-                             result.type === 'street' ? '도로' : 
-                             result.type === 'suburb' ? '지역' : '주소'}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {/* 검색 결과 없음 */}
-                  {showSearchResults && searchTerm.length >= 2 && !isSearching && addressSearchResults.length === 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                      <div className="px-3 py-2 text-sm text-gray-500">
-                        검색 결과가 없습니다.
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
             {/* 필터 */}
             <Card className="bg-white border-0 shadow-lg">
               <CardHeader className="pb-4">
@@ -1109,7 +1050,7 @@ export default function EnvironmentalMapPlatform() {
                 </div>
               </CardContent>
             </Card>
-            {/* 최근 제보 + 요약 현황 통합 */}
+            {/* 현황 요약 */}
             <Card className="bg-white border-0 shadow-lg">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center space-x-2 text-lg">
@@ -1165,86 +1106,6 @@ export default function EnvironmentalMapPlatform() {
                     </div>
                   </div>
                 </div>
-                
-                {/* 최근 제보 */}
-                <div className="border-t pt-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">최근 제보</span>
-                    <span className="text-xs text-gray-400">{displayReports.length}건 표시</span>
-                  </div>
-                  <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {displayReports.slice(0, 3).map((report) => (
-                      <div key={report.id} className="flex items-center justify-between text-xs p-2 bg-gray-50 rounded">
-                        <div className="flex items-center space-x-2">
-                          <span className={`w-2 h-2 rounded-full ${getTypeColor(report.type)}`}></span>
-                          <span className="truncate max-w-[100px]">{report.title}</span>
-                        </div>
-                        <span className="text-gray-400">{new Date(report.date).toLocaleDateString()}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            {/* AI 분석 요약 */}
-            <Card className="bg-white border-0 shadow-lg">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center space-x-2 text-lg">
-                  <Brain className="w-5 h-5 text-blue-500" />
-                  <span>AI 분석 요약</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {aiSummaryLoading ? (
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                    <span>AI 분석 중...</span>
-                  </div>
-                ) : aiSummary ? (
-                  <div className="space-y-3">
-                    <div className="text-sm text-gray-700 bg-blue-50 p-3 rounded-lg">
-                      {aiSummary.summary}
-                    </div>
-                    
-                    {aiSummary.keyInsights && aiSummary.keyInsights.length > 0 && (
-                      <div>
-                        <div className="text-xs font-medium text-gray-700 mb-2">주요 인사이트</div>
-                        <div className="space-y-1">
-                          {aiSummary.keyInsights.slice(0, 2).map((insight, index) => (
-                            <div key={index} className="text-xs text-gray-600 flex items-start space-x-2">
-                              <span className="text-blue-500 mt-0.5">•</span>
-                              <span>{insight}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {aiSummary.recommendations && aiSummary.recommendations.length > 0 && (
-                      <div>
-                        <div className="text-xs font-medium text-gray-700 mb-2">권장사항</div>
-                        <div className="space-y-1">
-                          {aiSummary.recommendations.slice(0, 1).map((rec, index) => (
-                            <div key={index} className="text-xs text-gray-600 flex items-start space-x-2">
-                              <span className="text-green-500 mt-0.5">→</span>
-                              <span>{rec}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {aiSummary.dataQuality && (
-                      <div className="text-xs text-gray-500 pt-2 border-t">
-                        데이터 품질: {aiSummary.dataQuality}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-sm text-gray-500">
-                    AI 분석을 시작하려면 제보 데이터가 필요합니다.
-                  </div>
-                )}
               </CardContent>
             </Card>
           </div>
