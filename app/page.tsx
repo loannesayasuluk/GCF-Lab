@@ -77,6 +77,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import MapLegendOverlay from "@/components/map-legend-overlay";
 import type { SimpleMapRef } from "@/components/simple-map"
+import { ChartContainer } from "@/components/ui/chart"
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts"
 const SimpleMap = dynamic(() => import("@/components/simple-map"), { ssr: false })
 
 // OpenAI AI 분석 호출 함수
@@ -509,6 +511,32 @@ export default function EnvironmentalMapPlatform() {
       return typeMatch && statusMatch;
     });
   }, [reports, filters]);
+  console.log('displayReports', displayReports);
+
+  // 최근 6개월(YYYY-MM) 배열 생성 및 월별 카운트 집계
+  const chartData = useMemo(() => {
+    const now = new Date();
+    const months = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      return `${yyyy}-${mm}`;
+    });
+    return months.map(month => {
+      const count = displayReports.filter(r => {
+        if (!r.date) return false;
+        const d = new Date(r.date);
+        if (isNaN(d.getTime())) return false;
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        return `${yyyy}-${mm}` === month;
+      }).length;
+      // x축 라벨은 '7월' 등으로 변환
+      const label = `${parseInt(month.split('-')[1], 10)}월`;
+      return { month: label, reports: count };
+    });
+  }, [displayReports]);
+  console.log('chartData', chartData);
 
   // Firestore에서 communityPosts 불러오기
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([
@@ -1106,6 +1134,36 @@ export default function EnvironmentalMapPlatform() {
                     </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+            {/* 미니 통계/트렌드 차트 */}
+            <Card className="bg-white border-0 shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center space-x-2 text-lg">
+                  <BarChart3 className="w-5 h-5 text-blue-500" />
+                  <span>최근 6개월 제보 추이</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {chartData && chartData.some(d => d.reports > 0) ? (
+                  <div className="w-full h-32 flex items-end">
+                    <ChartContainer
+                      config={{ reports: { label: '제보 건수', color: '#3b82f6' } }}
+                      style={{ width: '100%', height: '100%' }}
+                    >
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={chartData}>
+                          <XAxis dataKey="month" axisLine={false} tickLine={false} fontSize={12} />
+                          <YAxis allowDecimals={false} axisLine={false} tickLine={false} fontSize={12} width={24} />
+                          <Tooltip />
+                          <Bar dataKey="reports" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-400 py-8 text-sm">최근 6개월 제보 데이터가 없습니다.</div>
+                )}
               </CardContent>
             </Card>
           </div>
